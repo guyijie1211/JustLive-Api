@@ -8,13 +8,13 @@
 
 数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
 
-####直播支持
+#### 直播支持
 
 虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
 
 直播源获取参考	[wbt5/real-url](https://github.com/wbt5/real-url)
 
-####弹幕支持(暂不支持弹幕发送)
+#### 弹幕支持(暂不支持弹幕发送)
 
 斗鱼、BILIBILI直播
 
