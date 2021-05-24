@@ -32,7 +32,7 @@ BILIBILI直播弹幕协议参考	[lovelyyoshino/Bilibili-Live-API](https://githu
 |   /getRecommendByPlatform   |       String platform, int page, int size        | 根据分页信息获取**指定直播平台**的推荐直播间（根据观看人数降序排序） |
 | /getRecommendByPlatformArea | String platform, String area, int page, int size |      获取指定直播平台下特定分区（area）的推荐直播间信息      |
 |   /getRecommendByAreaAll    |      String areaType, String area, int page      |   获取特定分区下所有直播平台的直播间信息（一页10个直播间）   |
-|         /getRealUrl         |          String platform, String roomId          |             获取指定平台直播间的真实直播推流地址             |
+|         /getRealUrl         |          String platform, String roomId          | 获取指定平台直播间的真实直播推流地址（除斗鱼外，都是Https协议源头地址） |
 |        /getRoomInfo         |    String uid, String platform, String roomId    | 获取指定平台直播间的房间信息（uid用来确定改用户是否已关注次直播间） |
 |         /getRoomsOn         |                    String uid                    |                 获取用户所有关注的直播间信息                 |
 |        /refreshArea         |                        无                        |                 更新缓存中所有平台的分区信息                 |
@@ -54,3 +54,11 @@ Https请求调用示例：
 
 调用失败时，返回code为400。
 
+
+
+## 待增加功能
+
+- [ ] 斗鱼直播Https直播源地址
+- [ ] 虎牙、网易cc 弹幕获取
+- [ ] 弹幕发送
+- [ ] 更多平台支持
