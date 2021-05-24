@@ -4,7 +4,7 @@
 
   前端项目    [MixLive-vue](https://github.com/guyijie1211/MixLive-vue)
 
-  网站页面    [live.yj1211.work](live.yj1211.work)
+  网站页面    [live.yj1211.work](http://live.yj1211.work)
 
   数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
 
