@@ -1,24 +1,24 @@
 # MixLive
 
-直播聚合（后端项目）
+  直播聚合（后端项目）
 
-前端项目    [MixLive-vue](https://github.com/guyijie1211/MixLive-vue)
+  前端项目    [MixLive-vue](https://github.com/guyijie1211/MixLive-vue)
 
-网站页面    [live.yj1211.work](live.yj1211.work)
+  网站页面    [live.yj1211.work](live.yj1211.work)
 
-数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
+  数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
 
 #### 直播支持
 
-虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
+  虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
 
 #### 弹幕支持(暂不支持弹幕发送)
 
-斗鱼、BILIBILI直播
+  斗鱼、BILIBILI直播
 
 #### 接口说明
 
-直播相关接口都采用 HTTP GET 方法请求
+  直播相关接口都采用 HTTP GET 方法请求
 
 |          请求地址           |                       参数                       |                           接口说明                           |
 | :-------------------------: | :----------------------------------------------: | :----------------------------------------------------------: |
@@ -36,15 +36,15 @@
 
 #### 调用方式
 
-支持通过Http和Https请求调用，Http请求请发送至8013端口，Https请求请发送至8014端口。
+  支持通过Http和Https请求调用，Http请求请发送至8013端口，Https请求请发送至8014端口。
 
-调用时请在uri中加上/api/live
+  调用时请在uri中加上/api/live
 
-Https请求调用示例：
+  Https请求调用示例：
 
-![image-20210524170329627](https://typora-pic-yj.oss-cn-shanghai.aliyuncs.com/img/image-20210524170329627.png)
+ ![image-20210524170329627](https://typora-pic-yj.oss-cn-shanghai.aliyuncs.com/img/image-20210524170329627.png)
 
-调用成功时，返回信息中code为200。
+  调用成功时，返回信息中code为200。
 
-调用失败时，返回code为400。
+  调用失败时，返回code为400。
 
