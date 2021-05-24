@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="work.yj1211.live.mapper.UserMapper">
+    <resultMap id="userInfoMap" type="work.yj1211.live.vo.UserInfo">
+        <result column="uid" property="uid"/>
+        <result column="userName" property="userName"/>
+        <result column="nickName" property="nickName"/>
+        <result column="head" property="head"/>
+    </resultMap>
+
+    <select id="login" resultType="work.yj1211.live.vo.UserInfo">
+        select uid,userName,nickName,head from userinfo where userName = #{userName} and password = #{password}
+    </select>
+
+    <select id="findUserByName" resultType="work.yj1211.live.vo.UserInfo">
+        select uid,userName,nickName,password,head from userinfo where userName = #{userName}
+    </select>
+
+    <insert id="register" parameterType="work.yj1211.live.vo.UserInfo">
+        insert into userinfo(uid,userName,nickName,password) value (#{uid}, #{userName}, #{nickName}, #{password})
+    </insert>
+
+    <insert id="followRoom">
+        insert into follows(uid,platform,roomId) value (#{uid}, #{platform}, #{roomId})
+    </insert>
+
+    <delete id="unFollowRoom">
+        delete from follows where uid = #{uid} and platform = #{platform} and roomId = #{roomId}
+    </delete>
+
+    <update id="changeUserInfo" parameterType="work.yj1211.live.vo.UserInfo">
+        update userinfo
+        set nickName = #{nickName}
+        where userName = #{userName}
+    </update>
+
+    <update id="changePassword" >
+        update userinfo set password = #{password} where userName = #{userName}
+    </update>
+</mapper>
