@@ -12,9 +12,15 @@
 
 虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
 
+直播源获取参考	[wbt5/real-url](https://github.com/wbt5/real-url)
+
 ####弹幕支持(暂不支持弹幕发送)
 
 斗鱼、BILIBILI直播
+
+斗鱼弹幕协议参考	[斗鱼开放平台]([斗鱼开放平台 (douyu.com)](https://open.douyu.com/source/api/63))
+
+BILIBILI直播弹幕协议参考	[lovelyyoshino/Bilibili-Live-API](https://github.com/lovelyyoshino/Bilibili-Live-API)
 
 #### 接口说明
 
