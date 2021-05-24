@@ -8,11 +8,11 @@
 
 数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
 
-####直播支持
+#### 直播支持
 
 虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
 
-####弹幕支持(暂不支持弹幕发送)
+#### 弹幕支持(暂不支持弹幕发送)
 
 斗鱼、BILIBILI直播
 
@@ -34,7 +34,7 @@
 |        /getAllAreas         |                        无                        |                    获取所有平台的分区信息                    |
 |           /search           | String platform, String keyWords, String isLive  | 搜索指定平台的主播（keyWords：搜索关键词，isLive：搜索正在直播的主播） |
 
-##### 调用方式
+#### 调用方式
 
 支持通过Http和Https请求调用，Http请求请发送至8013端口，Https请求请发送至8014端口。
 
