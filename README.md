@@ -12,6 +12,8 @@
 
 虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
 
+目前返回的都是hls协议的直播地址
+
 直播源获取参考	[wbt5/real-url](https://github.com/wbt5/real-url)
 
 ## 弹幕支持(暂不支持弹幕发送)
