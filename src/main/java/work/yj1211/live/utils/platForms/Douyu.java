@@ -32,7 +32,7 @@ public class Douyu {
     private static Map<String, String> roomUrlMap = new ConcurrentHashMap<>();
     private static Map<String, List<Integer>> roomRateMap = new ConcurrentHashMap<>();
 
-//    private static final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
+    //    private static final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
     private static final Pattern PATTERN = Pattern.compile("(vdwdae325w_64we[\\s\\S]*function ub98484234[\\s\\S]*?)function");
 
     static {
@@ -78,7 +78,7 @@ public class Douyu {
     private static String get_single_url(String roomId, String qn){
         //获取房间唯一标识，第一次获取时去请求
         String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
-        String result = "http://tx2play1.douyucdn.cn/live/" + roomUrl + qn + ".m3u8?uuid=";
+        String result = "https://hls1a-akm.douyucdn.cn/" + roomUrl + qn + ".m3u8?uuid=";
         return result;
     }
 
