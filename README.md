@@ -24,6 +24,20 @@
 
 BILIBILI直播弹幕协议参考	[lovelyyoshino/Bilibili-Live-API](https://github.com/lovelyyoshino/Bilibili-Live-API)
 
+## 更新路线
+
+- [X] 斗鱼直播Https直播源地址
+
+- [X] 虎牙弹幕获取
+
+- [ ] 弹幕发送
+
+- [ ] 更多平台支持
+
+- [X] 弹幕屏蔽
+
+- [ ] 历史记录
+
 ## 接口说明
 
 直播相关接口都采用 HTTP GET 方法请求
@@ -55,15 +69,3 @@ Https请求调用示例：
 调用成功时，返回信息中code为200。
 
 调用失败时，返回code为400。
-
-
-
-## 待增加功能
-
-- [ ] 斗鱼直播Https直播源地址
-
-- [ ] 虎牙、网易cc 弹幕获取
-
-- [ ] 弹幕发送
-
-- [ ] 更多平台支持
