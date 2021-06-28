@@ -18,15 +18,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Huya {
-    private static final Pattern PATTERN = Pattern.compile("liveLineUrl = \"([\\s\\S]*?)\";");
-    private static final Pattern PATTERN2 = Pattern.compile("ayyuid: \'([\\s\\S]*?)\',");
-    private static final Pattern OwnerName = Pattern.compile("ANTHOR_NICK = \'([\\s\\S]*?)\';");
-    private static final Pattern RoomName = Pattern.compile("liveRoomName = \'([\\s\\S]*?)\';");
-    private static final Pattern RoomPic = Pattern.compile("picURL = \'([\\s\\S]*?)\';");
-    private static final Pattern OwnerPic = Pattern.compile("//huyaimg.msstatic.com([\\s\\S]*?)\"");
-    private static final Pattern AREA = Pattern.compile("game_name: \'([\\s\\S]*?)\'");
-    private static final Pattern Num = Pattern.compile("totalCount: \'([\\s\\S]*?)\'");
-    private static final Pattern ISLIVE = Pattern.compile("ISLIVE = ([\\s\\S]*?);");
+    private static final Pattern PATTERN = Pattern.compile("\"liveLineUrl\":\"([\\s\\S]*?)\",");
+    private static final Pattern PATTERN2 = Pattern.compile("\"lUid\":([\\s\\S]*?),");
+    private static final Pattern OwnerName = Pattern.compile("\"sNick\":\"([\\s\\S]*?)\",");
+    private static final Pattern RoomName = Pattern.compile("\"sRoomName\":\"([\\s\\S]*?)\",");
+    private static final Pattern RoomPic = Pattern.compile("\"sScreenshot\":\"([\\s\\S]*?)\",");
+    private static final Pattern OwnerPic = Pattern.compile("\"sAvatar180\":\"([\\s\\S]*?)\",");
+    private static final Pattern AREA = Pattern.compile("\"sGameFullName\":\"([\\s\\S]*?)\",");
+    private static final Pattern Num = Pattern.compile("\"lActivityCount\":([\\s\\S]*?),");
+    private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
     private static List<String> qnString = new ArrayList<>();
 
     static {
@@ -91,11 +91,11 @@ public class Huya {
             return;
         }
         try{
-            result = result.substring(result.indexOf("\"")+1, result.lastIndexOf("\""));
+            result = result.substring(result.indexOf("\":\"")+3, result.lastIndexOf("\""));
             result = new String(Base64.getDecoder().decode(result), "utf-8");
             String finalResult = result.replaceAll("(ratio=[^&]*)&", "");
             List<Integer> qnList = getQns(roomId);
-            result2 = result2.substring(result2.indexOf("'")+1,result2.indexOf("'", 9));
+            result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
             urls.put("OD", "https:" + finalResult);
             for (int i = 0; i < qnList.size() ; i++) {
@@ -268,17 +268,17 @@ public class Huya {
 
         liveRoomInfo.setRoomId(roomId);
         liveRoomInfo.setPlatForm("huya");
-        liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "'", "'"));
-        liveRoomInfo.setRoomName(getMatchResult(resultRoomName,"'", "'"));
-        liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "'", "'"));
-        liveRoomInfo.setOwnerHeadPic("/" + getMatchResult(resultOwnerPic, "/", "\""));
-        liveRoomInfo.setCategoryName(getMatchResult(resultAREA, "'", "'"));
-        if (!getMatchResult(resultNum, "'", "'").equals("") ) {
-            liveRoomInfo.setOnline(Integer.valueOf(getMatchResult(resultNum, "'", "'")));
+        liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "\":\"", "\""));
+        liveRoomInfo.setRoomName(getMatchResult(resultRoomName,"\":\"", "\""));
+        liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "\":\"", "\""));
+        liveRoomInfo.setOwnerHeadPic(getMatchResult(resultOwnerPic, "\":\"", "\""));
+        liveRoomInfo.setCategoryName(getMatchResult(resultAREA, "\":\"", "\""));
+        if (!getMatchResult(resultNum, "\":", ",").equals("") ) {
+            liveRoomInfo.setOnline(Integer.valueOf(getMatchResult(resultNum, "\":", ",")));
         } else {
             liveRoomInfo.setOnline(0);
         }
-        liveRoomInfo.setIsLive(resultISLIVE.substring(9,13).equals("true") ? 1 : 0);
+        liveRoomInfo.setIsLive(getMatchResult(resultISLIVE, "\":", ",").equals("2") ? 1 : 0);
 
         return liveRoomInfo;
     }
@@ -364,12 +364,11 @@ public class Huya {
     /**
      * 分割搜索结果
      * @param str
-     * @param indexStr
      * @return
      */
     private static String getMatchResult(String str, String indexStartStr, String indexEndStr) {
         String result;
-        result = str.substring(str.indexOf(indexStartStr)+1,str.indexOf(indexEndStr, str.indexOf(indexStartStr)+1));
+        result = str.substring(str.indexOf(indexStartStr)+indexStartStr.length(),str.lastIndexOf(indexEndStr));
         return result;
     }
 }
