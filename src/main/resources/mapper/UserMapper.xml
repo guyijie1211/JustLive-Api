@@ -7,10 +7,33 @@
         <result column="userName" property="userName"/>
         <result column="nickName" property="nickName"/>
         <result column="head" property="head"/>
+        <collection property="banInfos" ofType="work.yj1211.live.vo.BanInfo">
+            <result column="bantype" property="type"/>
+            <result column="content" property="content"/>
+            <result column="platform" property="platform"/>
+        </collection>
     </resultMap>
 
-    <select id="login" resultType="work.yj1211.live.vo.UserInfo">
-        select uid,userName,nickName,head from userinfo where userName = #{userName} and password = #{password}
+    <select id="login" resultMap="userInfoMap">
+        select  u.uid,
+                u.userName,
+                u.nickName,
+                u.head,
+                b.bantype,
+                b.content,
+                b.platform
+        from danmuban b LEFT OUTER JOIN userinfo u on b.uid = u.uid
+        where userName = #{userName} and password = #{password}
+            union
+        select  u.uid,
+                u.userName,
+                u.nickName,
+                u.head,
+                b.bantype,
+                b.content,
+                b.platform
+        from danmuban b right OUTER JOIN userinfo u on b.uid = u.uid
+        where userName = #{userName} and password = #{password}
     </select>
 
     <select id="findUserByName" resultType="work.yj1211.live.vo.UserInfo">
@@ -18,11 +41,18 @@
     </select>
 
     <insert id="register" parameterType="work.yj1211.live.vo.UserInfo">
-        insert into userinfo(uid,userName,nickName,password) value (#{uid}, #{userName}, #{nickName}, #{password})
+        insert into userinfo(uid,userName,nickName,password) values (#{uid}, #{userName}, #{nickName}, #{password});
+        insert into danmuban(uid,bantype,content,platform) values (#{uid},'0','false','null');
+        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','douyu');
+        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','bilibili');
+        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','huya');
+        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','cc');
+        insert into danmuban(uid,bantype,platform) values (#{uid},'2','null');
+        insert into danmuban(uid,bantype,platform) values (#{uid},'3','null');
     </insert>
 
     <insert id="followRoom">
-        insert into follows(uid,platform,roomId) value (#{uid}, #{platform}, #{roomId})
+        insert into follows(uid,platform,roomId) values (#{uid}, #{platform}, #{roomId})
     </insert>
 
     <delete id="unFollowRoom">
@@ -37,5 +67,12 @@
 
     <update id="changePassword" >
         update userinfo set password = #{password} where userName = #{userName}
+    </update>
+
+    <update id="changeUserBan">
+        <foreach collection="banInfos" item="ban">
+            update danmuban set content=#{ban.content}
+            where uid=#{uid} and bantype=#{ban.type} and platform=#{ban.platform};
+        </foreach>
     </update>
 </mapper>

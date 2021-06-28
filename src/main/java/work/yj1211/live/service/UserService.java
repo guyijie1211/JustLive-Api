@@ -3,6 +3,7 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.UserMapper;
+import work.yj1211.live.vo.BanInfo;
 import work.yj1211.live.vo.UserInfo;
 
 import java.util.List;
@@ -35,6 +36,10 @@ public class UserService {
 
     public void changeUserInfo(UserInfo userInfo){
         userMapper.changeUserInfo(userInfo);
+    }
+
+    public void changeUserBan(List<BanInfo> banInfos, String uid){
+        userMapper.changeUserBan(banInfos,uid);
     }
 
     public void changePassword(String userName, String password){
