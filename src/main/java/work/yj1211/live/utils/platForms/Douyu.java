@@ -373,7 +373,12 @@ public class Douyu {
         if(number.contains("万")){
             int index = number.indexOf(".");
             String temp = number.substring(0, index)+number.substring(index+1, number.length()-1);
-            temp = temp + (int)(Math.random()*900 + 100);
+            temp = temp + (int)((Math.random()*9+1)*100);
+            num = Integer.valueOf(temp);
+        }else if (number.contains("亿")){
+            int index = number.indexOf(".");
+            String temp = number.substring(0, index)+number.substring(index+1, number.length()-1);
+            temp = temp + (int)((Math.random()*9+1)*1000000);
             num = Integer.valueOf(temp);
         }else {
             return Integer.valueOf(number);

@@ -18,5 +18,5 @@ public interface UserMapper {
     void unFollowRoom(@Param("platform") String platform, @Param("roomId")String roomId, @Param("uid")String uid);
     void changeUserInfo(UserInfo userInfo);
     void changePassword(@Param("userName")String userName, @Param("password") String password);
-    void changeUserBan(@Param(value = "banInfos") List<BanInfo> banInfos, @Param(value = "uid") String uid);
+    void changeUserBan(UserInfo userInfo);
 }

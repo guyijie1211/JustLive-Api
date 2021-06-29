@@ -112,7 +112,7 @@ public class UserInfoCrl {
     @ResponseBody
     public Result changeUserInfo(@RequestBody UserInfo userInfo){
         userService.changeUserInfo(userInfo);
-        userService.changeUserBan(userInfo.getBanInfos(), userInfo.getUid());
+        userService.changeUserBan(userInfo);
         UserInfo userInfo1 = userService.findUserByName(userInfo.getUserName());
         return ResultFactory.buildSuccessResult(userInfo1);
     }

@@ -7,32 +7,28 @@
         <result column="userName" property="userName"/>
         <result column="nickName" property="nickName"/>
         <result column="head" property="head"/>
-        <collection property="banInfos" ofType="work.yj1211.live.vo.BanInfo">
-            <result column="bantype" property="type"/>
-            <result column="content" property="content"/>
-            <result column="platform" property="platform"/>
-        </collection>
+        <result column="isActived" property="isActived"/>
+        <result column="allContent" property="allContent"/>
+        <result column="selectedContent" property="selectedContent"/>
+        <result column="douyuLevel" property="douyuLevel"/>
+        <result column="bilibiliLevel" property="bilibiliLevel"/>
+        <result column="huyaLevel" property="huyaLevel"/>
+        <result column="ccLevel" property="ccLevel"/>
     </resultMap>
 
     <select id="login" resultMap="userInfoMap">
-        select  u.uid,
-                u.userName,
-                u.nickName,
-                u.head,
-                b.bantype,
-                b.content,
-                b.platform
-        from danmuban b LEFT OUTER JOIN userinfo u on b.uid = u.uid
-        where userName = #{userName} and password = #{password}
-            union
-        select  u.uid,
-                u.userName,
-                u.nickName,
-                u.head,
-                b.bantype,
-                b.content,
-                b.platform
-        from danmuban b right OUTER JOIN userinfo u on b.uid = u.uid
+        select  uid,
+                userName,
+                nickName,
+                head,
+                isActived,
+                allContent,
+                selectedContent,
+                douyuLevel,
+                bilibiliLevel,
+                huyaLevel,
+                ccLevel
+        from userinfo
         where userName = #{userName} and password = #{password}
     </select>
 
@@ -41,14 +37,17 @@
     </select>
 
     <insert id="register" parameterType="work.yj1211.live.vo.UserInfo">
-        insert into userinfo(uid,userName,nickName,password) values (#{uid}, #{userName}, #{nickName}, #{password});
-        insert into danmuban(uid,bantype,content,platform) values (#{uid},'0','false','null');
-        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','douyu');
-        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','bilibili');
-        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','huya');
-        insert into danmuban(uid,bantype,content,platform) values (#{uid},'1','1','cc');
-        insert into danmuban(uid,bantype,platform) values (#{uid},'2','null');
-        insert into danmuban(uid,bantype,platform) values (#{uid},'3','null');
+        insert into userinfo(uid,userName,
+                    nickName,
+                    password,
+                    isActived,
+                    douyuLevel,
+                    bilibiliLevel,
+                    huyaLevel,
+                    ccLevel,
+                    allContent,
+                    selectedContent)
+        values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','','');
     </insert>
 
     <insert id="followRoom">
@@ -69,10 +68,18 @@
         update userinfo set password = #{password} where userName = #{userName}
     </update>
 
-    <update id="changeUserBan">
-        <foreach collection="banInfos" item="ban">
-            update danmuban set content=#{ban.content}
-            where uid=#{uid} and bantype=#{ban.type} and platform=#{ban.platform};
-        </foreach>
+    <update id="changeUserBan" parameterType="work.yj1211.live.vo.UserInfo">
+        update userinfo
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="isActived != null and isActived != ''">isActived = #{isActived},</if>
+            <if test="douyuLevel != null and douyuLevel != ''">douyuLevel = #{douyuLevel},</if>
+            <if test="bilibiliLevel != null and bilibiliLevel != ''">bilibiliLevel = #{bilibiliLevel},</if>
+            <if test="huyaLevel != null and huyaLevel != ''">huyaLevel = #{huyaLevel},</if>
+            <if test="ccLevel != null and ccLevel != ''">ccLevel = #{ccLevel},</if>
+            <if test="huyaLevel != null and huyaLevel != ''">huyaLevel = #{huyaLevel},</if>
+            <if test="1==1">allContent = #{allContent},</if>
+            <if test="1==1">selectedContent = #{selectedContent},</if>
+        </trim>
+        where userName = #{userName}
     </update>
 </mapper>

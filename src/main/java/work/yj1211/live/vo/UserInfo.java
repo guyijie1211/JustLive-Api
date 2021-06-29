@@ -12,5 +12,11 @@ public class UserInfo implements Serializable {
     private String nickName;
     private String password;
     private String head;
-    private List<BanInfo> banInfos;
+    private String isActived;
+    private String allContent;
+    private String selectedContent;
+    private String douyuLevel;
+    private String bilibiliLevel;
+    private String huyaLevel;
+    private String ccLevel;
 }

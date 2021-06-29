@@ -38,8 +38,8 @@ public class UserService {
         userMapper.changeUserInfo(userInfo);
     }
 
-    public void changeUserBan(List<BanInfo> banInfos, String uid){
-        userMapper.changeUserBan(banInfos,uid);
+    public void changeUserBan(UserInfo userInfo){
+        userMapper.changeUserBan(userInfo);
     }
 
     public void changePassword(String userName, String password){
