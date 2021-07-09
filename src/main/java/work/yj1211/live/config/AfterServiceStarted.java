@@ -5,12 +5,15 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.service.LiveRoomService;
+import work.yj1211.live.service.TvLiveService;
 
 @Component
 public class AfterServiceStarted implements ApplicationRunner {
 
     @Autowired
     private LiveRoomService liveRoomService;
+    @Autowired
+    private TvLiveService tvLiveService;
 
     /**
      * 会在服务启动完成后立即执行
@@ -18,5 +21,6 @@ public class AfterServiceStarted implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         liveRoomService.refreshArea();
+        tvLiveService.refreshM3U();
     }
 }
