@@ -14,6 +14,7 @@
         <result column="bilibiliLevel" property="bilibiliLevel"/>
         <result column="huyaLevel" property="huyaLevel"/>
         <result column="ccLevel" property="ccLevel"/>
+        <result column="egameLevel" property="egameLevel"/>
     </resultMap>
 
     <select id="login" resultMap="userInfoMap">
@@ -27,7 +28,8 @@
                 douyuLevel,
                 bilibiliLevel,
                 huyaLevel,
-                ccLevel
+                ccLevel,
+                egameLevel
         from userinfo
         where userName = #{userName} and password = #{password}
     </select>
@@ -45,6 +47,7 @@
                     bilibiliLevel,
                     huyaLevel,
                     ccLevel,
+                    egameLevel,
                     allContent,
                     selectedContent)
         values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','','');
@@ -76,7 +79,7 @@
             <if test="bilibiliLevel != null and bilibiliLevel != ''">bilibiliLevel = #{bilibiliLevel},</if>
             <if test="huyaLevel != null and huyaLevel != ''">huyaLevel = #{huyaLevel},</if>
             <if test="ccLevel != null and ccLevel != ''">ccLevel = #{ccLevel},</if>
-            <if test="huyaLevel != null and huyaLevel != ''">huyaLevel = #{huyaLevel},</if>
+            <if test="egameLevel != null and egameLevel != ''">egameLevel = #{egameLevel},</if>
             <if test="1==1">allContent = #{allContent},</if>
             <if test="1==1">selectedContent = #{selectedContent},</if>
         </trim>

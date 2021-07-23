@@ -19,4 +19,5 @@ public class UserInfo implements Serializable {
     private String bilibiliLevel;
     private String huyaLevel;
     private String ccLevel;
+    private String egameLevel;
 }

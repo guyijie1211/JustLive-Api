@@ -35,10 +35,9 @@ public class TvLiveService {
                 String txt[];
                 TV tv;
                 while((lineTxt = bufferedReader.readLine()) != null){
-                    txt = lineTxt.split(",");
                     tv = new TV();
-                    tv.setName(txt[0].replace("3M1080", "高清").replace(" 576", ""));
-                    tv.setUrl(txt[1]);
+                    tv.setName(lineTxt);
+                    tv.setUrl(bufferedReader.readLine());
                     result.add(tv);
                 }
                 read.close();

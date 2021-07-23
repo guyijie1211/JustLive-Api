@@ -16,6 +16,8 @@ public class Global {
     public static Map<String, String> BilibiliCateMap = new HashMap<>();
     public static Map<String, String> HuyaCateMap = new HashMap<>();
     public static Map<String, String> CCCateMap = new HashMap<>();
+    public static Map<String, String> EgameCateMap = new HashMap<>();
+    public static Map<String, String> EgameCateMapVer = new HashMap<>();
     public static List<String> AreaTypeSortList = new ArrayList<>();
     public static Map<String, List<String>> AreaInfoSortMap = new HashMap<>();
     private static String m3uPath;

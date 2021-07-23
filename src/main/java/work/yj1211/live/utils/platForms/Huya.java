@@ -97,11 +97,11 @@ public class Huya {
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
-            urls.put("OD", "https:" + finalResult);
+            urls.put("OD", "http://121.12.115.101/tx.hls.huya.com" + finalResult.substring(finalResult.indexOf("/src")));
             for (int i = 0; i < qnList.size() ; i++) {
                 int qn = qnList.get(i);
                 if (qn != 0) {
-                    urls.put(qnString.get(i), "https:" + finalResult + "&ratio=" + qnList.get(i));
+                    urls.put(qnString.get(i), "http://121.12.115.101/tx.hls.huya.com" + finalResult.substring(finalResult.indexOf("/src")) + "&ratio=" + qnList.get(i));
                 }
             }
         }catch (Exception e){

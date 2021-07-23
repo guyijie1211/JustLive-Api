@@ -43,22 +43,21 @@ public class LiveRoomService {
         Thread t2 = new Thread(new MyThread("douyu", list));
         Thread t3 = new Thread(new MyThread("huya", list));
         Thread t4 = new Thread(new MyThread("cc", list));
+        Thread t5 = new Thread(new MyThread("egame", list));
         t1.start();
         t2.start();
         t3.start();
         t4.start();
+        t5.start();
         try{
             t1.join();
             t2.join();
             t3.join();
             t4.join();
+            t5.join();
         }catch (Exception e){
             e.printStackTrace();
         }
-//        list.addAll(getRecommendByPlatform("bilibili", page, size));
-//        list.addAll(getRecommendByPlatform("douyu", page, size));
-//        list.addAll(getRecommendByPlatform("huya", page, size));
-//        list.addAll(getRecommendByPlatform("cc", page, size));
         return list;
     }
 
@@ -82,6 +81,9 @@ public class LiveRoomService {
         }
         if("cc".equals(platform)){
             list = CC.getRecommend(page, size);
+        }
+        if("egame".equals(platform)){
+            list = Egame.getRecommend(page, size);
         }
         return list;
     }
@@ -108,6 +110,9 @@ public class LiveRoomService {
         if("cc".equals(platform)){
             list = CC.getAreaRoom(area, page, size);
         }
+        if("egame".equals(platform)){
+            list = Egame.getAreaRoom(area, page, size);
+        }
         return list;
     }
 
@@ -130,6 +135,9 @@ public class LiveRoomService {
         }
         if ("cc".equals(platForm)){
             CC.getRealUrl(urls,roomId);
+        }
+        if ("egame".equals(platForm)){
+            Egame.get_real_url(urls,roomId);
         }
         return urls;
     };
@@ -170,6 +178,9 @@ public class LiveRoomService {
         if ("cc".equals(platForm)){
             roomInfo = CC.getRoomInfo(roomId);
         }
+        if ("egame".equals(platForm)){
+            roomInfo = Egame.getRoomInfo(roomId);
+        }
         int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
         roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
         return roomInfo;
@@ -185,6 +196,7 @@ public class LiveRoomService {
         Bilibili.refreshArea();
         Huya.refreshArea();
         CC.refreshArea();
+        Egame.refreshArea();
         long end = System.currentTimeMillis();
 //        log.info("刷新平台分区缓存完成,耗时：" + (end-start) + "毫秒");
     }
@@ -260,6 +272,15 @@ public class LiveRoomService {
         }
         String areaTypeKey = areaType.substring(0,2);
         Map<String, AreaInfo> map = Global.AllAreaMap.get(areaTypeKey).get(area);
+        if (Global.EgameCateMapVer.containsKey(area)){
+            Thread t = new Thread(new MyThread("egame", Global.EgameCateMapVer.get(area), list));
+            t.start();
+            try {
+                t.join();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
         for (Map.Entry<String, AreaInfo> entry : map.entrySet()) {
             if ("douyu".equals(entry.getKey())){
                 Thread t = new Thread(new MyThread("douyu", area, list));
@@ -297,6 +318,7 @@ public class LiveRoomService {
                     e.printStackTrace();
                 }
             }
+
         }
         return list;
     }
