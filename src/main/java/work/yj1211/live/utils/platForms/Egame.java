@@ -12,13 +12,17 @@ import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Egame {
+    private static final Pattern PATTERN = Pattern.compile("anchorList:[" + "([\\s\\S]*?)" + "],");
+    private static final Pattern PATTERNroomid = Pattern.compile("a href=\"([\\s\\S]*?)\"");
+    private static final Pattern PATTERNroomPic = Pattern.compile("imgsrc=\"([\\s\\S]*?)\"");
+    private static final Pattern PATTERNname = Pattern.compile("alt=\"([\\s\\S]*?)\"");
+    private static final Pattern PATTERNfollow = Pattern.compile("<spandata-v-4c015061>([\\s\\S]*?)</span>");
 
     /**
      * 获取企鹅电竞分区房间
@@ -176,9 +180,10 @@ public class Egame {
             liveRoomInfo.setCategoryName(room_info.getString("appname"));
             liveRoomInfo.setRoomName(room_info.getString("title"));
             liveRoomInfo.setOwnerName(owner_info.getString("nick_name"));
+            liveRoomInfo.setRoomPic(room_info.getString("url"));
             liveRoomInfo.setOwnerHeadPic(owner_info.getString("face_url"));
             liveRoomInfo.setIsLive((owner_info.getInteger("is_live") == 1) ? 1 : 0);
-            live_addr = room_info.getString("live_addr");
+            live_addr = room_info.getString("pid");
         }
 
         //获取观看人数
@@ -273,5 +278,46 @@ public class Egame {
             return "FD";
         }
         return null;
+    }
+
+    /**
+     * 搜索
+     * @param keyWords  搜索关键字
+     * @param isLive 是否搜索直播中的信息
+     * @return
+     */
+    public static List<Owner> search(String keyWords, String isLive) {
+        List<Owner> list = new ArrayList<>();
+        try {
+            String room_url = "https://egame.qq.com/search/anchor?kw=" + keyWords;
+            String response = HttpUtil.doGet(room_url);
+            Matcher matcher = PATTERN.matcher(response);
+            int p = 0;
+            while (p<5 && matcher.find()) {
+                String result = matcher.group(1);
+                Matcher matcherOwnerName = PATTERNname.matcher(result);
+                Matcher matcherOwnerPic = PATTERNroomPic.matcher(result);
+                Matcher matcherRoomId = PATTERNroomid.matcher(result);
+                Matcher matcherISLIVE = PATTERNfollow.matcher(result);
+                if (!(matcherOwnerName.find() && matcherOwnerPic.find() && matcherRoomId.find()
+                        && matcherISLIVE.find())){
+                    System.out.println("获取房间信息异常");
+                    return list;
+                }
+                Owner owner = new Owner();
+                owner.setPlatform("egame");
+                owner.setRoomId(matcherRoomId.group());
+                owner.setHeadPic(matcherOwnerPic.group());
+                owner.setNickName(matcherOwnerName.group());
+                String follow = matcherISLIVE.group();
+                owner.setIsLive(follow.indexOf("关注") > 0 ? "0" : "1");
+                owner.setFollowers(follow.indexOf("关注") > 0 ? Douyu.DouyuNumStringToInt(follow) : null);
+                p++;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

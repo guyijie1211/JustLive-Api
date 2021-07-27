@@ -368,7 +368,7 @@ public class Douyu {
      * @param number
      * @return
      */
-    private static Integer DouyuNumStringToInt(String number){
+    public static Integer DouyuNumStringToInt(String number){
         int num = 0;
         if(number.contains("万")){
             int index = number.indexOf(".");
