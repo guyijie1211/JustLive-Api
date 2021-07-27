@@ -348,11 +348,17 @@ public class LiveRoomService {
             List<Owner> ccList = CC.search(keyWords, isLive);
             list.addAll(ccList);
         }
+        if ("egame".equals(platform)){
+            List<Owner> egameList = Egame.search(keyWords, isLive);
+            list.addAll(egameList);
+        }
         if ("all".equals(platform)){
             List<Owner> douyuList = Douyu.search(keyWords, isLive);
             List<Owner> bilibiliList = Bilibili.search(keyWords, isLive);
             List<Owner> huyaList = Huya.search(keyWords, isLive);
             List<Owner> ccList = CC.search(keyWords, isLive);
+            List<Owner> egameList = Egame.search(keyWords, isLive);
+            list.addAll(egameList);
             list.addAll(ccList);
             list.addAll(huyaList);
             list.addAll(bilibiliList);

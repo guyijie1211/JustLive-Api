@@ -18,11 +18,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Egame {
-    private static final Pattern PATTERN = Pattern.compile("anchorList:[" + "([\\s\\S]*?)" + "],");
-    private static final Pattern PATTERNroomid = Pattern.compile("a href=\"([\\s\\S]*?)\"");
-    private static final Pattern PATTERNroomPic = Pattern.compile("imgsrc=\"([\\s\\S]*?)\"");
-    private static final Pattern PATTERNname = Pattern.compile("alt=\"([\\s\\S]*?)\"");
-    private static final Pattern PATTERNfollow = Pattern.compile("<spandata-v-4c015061>([\\s\\S]*?)</span>");
+    private static final Pattern PATTERN = Pattern.compile("anchorList:\\[\\{([\\s\\S]*?)}]");
+    private static final Pattern PATTERNeach = Pattern.compile("\\{anchorName([\\s\\S]*?)},");
+    private static final Pattern PATTERNroomid = Pattern.compile("anchorId:([\\s\\S]*?),");
+    private static final Pattern PATTERNroomPic = Pattern.compile("anchorFaceUrl:\"([\\s\\S]*?)\"");
+    private static final Pattern PATTERNname = Pattern.compile("anchorName:\"([\\s\\S]*?)\"");
+    private static final Pattern PATTERNfollow = Pattern.compile("fansCount:([\\s\\S]*?),");
+    private static final Pattern PATTERNisLive = Pattern.compile("liveName:([\\s\\S]*?),");
 
     /**
      * 获取企鹅电竞分区房间
@@ -33,8 +35,9 @@ public class Egame {
      */
     public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
+        String realArea = Global.EgameCateMapVer.get(area);
         String urlFront = "https://share.egame.qq.com/cgi-bin/pgg_live_async_fcgi?param=";
-        String urlAfter = "{\"key\":{\"module\":\"pgg_live_read_ifc_mt_svr\",\"method\":\"get_pc_live_list\",\"param\":{\"appid\":\"" + area + "\",\"page_num\":" + page + ",\"page_size\":" + size + ",\"tag_id\":0,\"tag_id_str\":\"\"}}}";
+        String urlAfter = "{\"key\":{\"module\":\"pgg_live_read_ifc_mt_svr\",\"method\":\"get_pc_live_list\",\"param\":{\"appid\":\"" + realArea + "\",\"page_num\":" + page + ",\"page_size\":" + size + ",\"tag_id\":0,\"tag_id_str\":\"\"}}}";
         String reqUrl = null;
 
         try {
@@ -292,27 +295,42 @@ public class Egame {
             String room_url = "https://egame.qq.com/search/anchor?kw=" + keyWords;
             String response = HttpUtil.doGet(room_url);
             Matcher matcher = PATTERN.matcher(response);
-            int p = 0;
-            while (p<5 && matcher.find()) {
-                String result = matcher.group(1);
-                Matcher matcherOwnerName = PATTERNname.matcher(result);
-                Matcher matcherOwnerPic = PATTERNroomPic.matcher(result);
-                Matcher matcherRoomId = PATTERNroomid.matcher(result);
-                Matcher matcherISLIVE = PATTERNfollow.matcher(result);
-                if (!(matcherOwnerName.find() && matcherOwnerPic.find() && matcherRoomId.find()
-                        && matcherISLIVE.find())){
-                    System.out.println("获取房间信息异常");
-                    return list;
+            while (matcher.find()) {
+                String result = matcher.group();
+                Matcher matcherEach = PATTERNeach.matcher(result);
+                int p = 0;
+                while (p<5 && matcherEach.find()) {
+                    String resulteach = matcherEach.group();
+                    Matcher matcherOwnerName = PATTERNname.matcher(resulteach);
+                    Matcher matcherOwnerPic = PATTERNroomPic.matcher(resulteach);
+                    Matcher matcherRoomId = PATTERNroomid.matcher(resulteach);
+                    Matcher matcherFollow = PATTERNfollow.matcher(resulteach);
+                    Matcher matcherIslive = PATTERNisLive.matcher(resulteach);
+                    if (!(matcherOwnerName.find() && matcherOwnerPic.find() && matcherRoomId.find()
+                            && matcherFollow.find() && matcherIslive.find())){
+                        System.out.println("获取房间信息异常");
+                        return list;
+                    }
+                    Owner owner = new Owner();
+                    owner.setPlatform("egame");
+                    owner.setRoomId(matcherRoomId.group(1));
+                    String headPic = matcherOwnerPic.group(1).replaceAll("\\\\u002F","/");
+                    owner.setHeadPic(headPic);
+                    owner.setNickName(matcherOwnerName.group(1));
+                    String idLive = matcherIslive.group(1);
+                    owner.setIsLive(idLive.equals("b") ? "0" : "1");
+                    owner.setFollowers(Integer.valueOf(matcherFollow.group(1)));
+                    if (isLive.equals("1")) {
+                        if (owner.getIsLive().equals("1")) {
+                            list.add(owner);
+                            p++;
+                            continue;
+                        }
+                        continue;
+                    }
+                    list.add(owner);
+                    p++;
                 }
-                Owner owner = new Owner();
-                owner.setPlatform("egame");
-                owner.setRoomId(matcherRoomId.group());
-                owner.setHeadPic(matcherOwnerPic.group());
-                owner.setNickName(matcherOwnerName.group());
-                String follow = matcherISLIVE.group();
-                owner.setIsLive(follow.indexOf("关注") > 0 ? "0" : "1");
-                owner.setFollowers(follow.indexOf("关注") > 0 ? Douyu.DouyuNumStringToInt(follow) : null);
-                p++;
             }
 
         } catch (Exception e) {
