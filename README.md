@@ -10,33 +10,9 @@
 
 ## 直播支持
 
-虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）
-
-目前返回的都是hls协议的直播地址
+虎牙、斗鱼、BILIBILI直播、网易cc（cc暂无清晰度切换）、企鹅电竞
 
 直播源获取参考	[wbt5/real-url](https://github.com/wbt5/real-url)
-
-## 弹幕支持(暂不支持弹幕发送)
-
-斗鱼、BILIBILI直播
-
-斗鱼弹幕协议参考	[斗鱼开放平台](https://open.douyu.com/source/api/63)
-
-BILIBILI直播弹幕协议参考	[lovelyyoshino/Bilibili-Live-API](https://github.com/lovelyyoshino/Bilibili-Live-API)
-
-## 更新路线
-
-- [X] 斗鱼直播Https直播源地址
-
-- [X] 虎牙弹幕获取
-
-- [ ] 弹幕发送
-
-- [ ] 更多平台支持
-
-- [X] 弹幕屏蔽
-
-- [ ] 历史记录
 
 ## 接口说明
 
@@ -48,7 +24,7 @@ BILIBILI直播弹幕协议参考	[lovelyyoshino/Bilibili-Live-API](https://githu
 |   /getRecommendByPlatform   |       String platform, int page, int size        | 根据分页信息获取**指定直播平台**的推荐直播间（根据观看人数降序排序） |
 | /getRecommendByPlatformArea | String platform, String area, int page, int size |      获取指定直播平台下特定分区（area）的推荐直播间信息      |
 |   /getRecommendByAreaAll    |      String areaType, String area, int page      |   获取特定分区下所有直播平台的直播间信息（一页10个直播间）   |
-|         /getRealUrl         |          String platform, String roomId          | 获取指定平台直播间的真实直播推流地址（除斗鱼外，都是Https协议源头地址） |
+|         /getRealUrl         |          String platform, String roomId          | 获取指定平台直播间的真实直播推流地址 |
 |        /getRoomInfo         |    String uid, String platform, String roomId    | 获取指定平台直播间的房间信息（uid用来确定改用户是否已关注次直播间） |
 |         /getRoomsOn         |                    String uid                    |                 获取用户所有关注的直播间信息                 |
 |        /refreshArea         |                        无                        |                 更新缓存中所有平台的分区信息                 |
