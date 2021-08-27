@@ -50,7 +50,7 @@
                     egameLevel,
                     allContent,
                     selectedContent)
-        values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','','');
+        values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','1','','');
     </insert>
 
     <insert id="followRoom">
