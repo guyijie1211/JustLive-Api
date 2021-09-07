@@ -84,29 +84,35 @@ public class CC {
      * @return
      */
     public static LiveRoomInfo getRoomInfo(String roomId) {
-        String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
-        String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-        if ("OK".equals(resultJsonObj.getString("code"))){
-            String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInteger("channel_id").toString();
-            String urlToGetReal = "https://cc.163.com/live/channel/?channelids="+channelId;
-            String resultReal = HttpUtil.doGet(urlToGetReal);
-            JSONObject resultRealJsonObj = JSON.parseObject(resultReal);
-            if (null != resultRealJsonObj){
-                JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
-                liveRoomInfo.setPlatForm("cc");
-                liveRoomInfo.setRoomId(roomInfo.getString("cuteid"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("cate_id"));//分类id不对
-                liveRoomInfo.setCategoryName(roomInfo.getString("gamename"));
-                liveRoomInfo.setRoomName(roomInfo.getString("title"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("poster"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("purl"));
-                liveRoomInfo.setOnline(roomInfo.getInteger("visitor"));
-                liveRoomInfo.setIsLive((roomInfo.getInteger("status") !=null && roomInfo.getInteger("status") == 1) ? 1 : 0);
+        try {
+            String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
+            String result = HttpUtil.doGet(url);
+            JSONObject resultJsonObj = JSON.parseObject(result);
+
+            if ("OK".equals(resultJsonObj.getString("code"))){
+                String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInteger("channel_id").toString();
+                String urlToGetReal = "https://cc.163.com/live/channel/?channelids="+channelId;
+                String resultReal = HttpUtil.doGet(urlToGetReal);
+                JSONObject resultRealJsonObj = JSON.parseObject(resultReal);
+                if (null != resultRealJsonObj){
+                    JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
+                    liveRoomInfo.setPlatForm("cc");
+                    liveRoomInfo.setRoomId(roomInfo.getString("cuteid"));
+                    liveRoomInfo.setCategoryId(roomInfo.getString("cate_id"));//分类id不对
+                    liveRoomInfo.setCategoryName(roomInfo.getString("gamename"));
+                    liveRoomInfo.setRoomName(roomInfo.getString("title"));
+                    liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
+                    liveRoomInfo.setRoomPic(roomInfo.getString("poster"));
+                    liveRoomInfo.setOwnerHeadPic(roomInfo.getString("purl"));
+                    liveRoomInfo.setOnline(roomInfo.getInteger("visitor"));
+                    liveRoomInfo.setIsLive((roomInfo.getInteger("status") !=null && roomInfo.getInteger("status") == 1) ? 1 : 0);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return liveRoomInfo;
     }
 
