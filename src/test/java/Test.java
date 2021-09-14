@@ -1,10 +1,7 @@
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import lombok.Data;
-import lombok.SneakyThrows;
 import okhttp3.*;
 import okio.ByteString;
 
@@ -12,18 +9,19 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.rmi.server.ExportException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 public class Test {
     public static void main(String[] args) {
-        String roomId = "709710";
+        String roomId = "3125893";
         OkHttpClient mClient = new OkHttpClient.Builder()
                 .readTimeout(3, TimeUnit.SECONDS)//设置读取超时时间
                 .writeTimeout(3, TimeUnit.SECONDS)//设置写的超时时间
-                .connectTimeout(3, TimeUnit.SECONDS)//设置连接超时时间
+                .connectTimeout(3, TimeUnit.SECONDS)//设置连接超时时间]
                 .build();
         //连接地址
         String douyuUrl = "wss://danmuproxy.douyu.com:8503/";
@@ -59,13 +57,18 @@ public class Test {
                 System.out.println("onMessageString");
             }
 
-            @SneakyThrows
             @Override
             public void onMessage(WebSocket webSocket, ByteString bytes) {
                 super.onMessage(webSocket, bytes);
-                System.out.println("onMessageByteString");
-                JSONObject jsonObject = douyuDecode(bytes);
-                System.out.println(11);
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = douyuDecode(bytes);
+                    if (jsonObject.getString("type").equals("chatmsg")) {
+                        System.out.println(jsonObject.getString("nn") + "：" + jsonObject.getString("txt"));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 //                String result = "";
 //                try {
 //                    result = handleMessage(bytes.toByteArray());
@@ -115,9 +118,16 @@ public class Test {
         String joinGroupMsg ="type@=joingroup/rid@=" + roomId + "/gid@=1/";
         String heartMsg ="type@=mrkl/";
 
+        ByteString heart = douyuEncode(heartMsg);
         webSocket.send(douyuEncode(loginMsg));
         webSocket.send(douyuEncode(joinGroupMsg));
-        webSocket.send(douyuEncode(heartMsg));
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                webSocket.send(heart);
+            }
+        }, 1000, 45000);
     }
 
     //斗鱼编码
@@ -129,20 +139,18 @@ public class Test {
         return new ByteString(loginMessage);
     }
 
-    //斗鱼解码   读取顺序不对
+    //斗鱼解码
     public static JSONObject douyuDecode(ByteString byteString) throws IOException {
         byte[] data = byteString.toByteArray();
-        DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(data));
-        int msgLength = inputStream.readInt();
-        inputStream.readInt();
-        int op = inputStream.readShort();
+        int msgLength = bytes2IntLittle(data, 0);
+        int op = bytes2IntLittle(data, 8);
         if(op == 690){
-            byte[] msgBody = new byte[msgLength];
-            inputStream.read(msgBody, 2, msgLength);
+            byte[] msgBody = subByte(data, 12, msgLength - 10);
             String jsonStr = new String(msgBody, StandardCharsets.UTF_8);
             jsonStr = jsonStr.replaceAll("@=", "\":\"").replaceAll("/", "\",\"");
             jsonStr = jsonStr.replaceAll("@A", "@").replaceAll("@S", "/");
-            JSONObject jsonObject = JSONObject.parseObject(jsonStr);
+            String body = "{\"" + jsonStr + "\"}";
+            JSONObject jsonObject = JSONObject.parseObject(body);
             return jsonObject;
         }
         return null;
@@ -220,6 +228,19 @@ public class Test {
         return pretty;
     }
 
+    /**
+     * 截取byte数组   不改变原数组
+     * @param b 原数组
+     * @param off 偏差值（索引）
+     * @param length 长度
+     * @return 截取后的数组
+     */
+    public static byte[] subByte(byte[] b,int off,int length){
+        byte[] b1 = new byte[length];
+        System.arraycopy(b, off, b1, 0, length);
+        return b1;
+    }
+
     //int 转 byte[]   低字节在前（小端整数,斗鱼）
     public static byte[] intToByteLittle(int n) {
         byte[] b = new byte[4];
@@ -231,18 +252,16 @@ public class Test {
     }
 
     //byte数组到int的转换(小端)
-    public static int bytes2IntLittle(byte[] bytes )
-    {
-        int int1=bytes[0]&0xff;
-        int int2=(bytes[1]&0xff)<<8;
-        int int3=(bytes[2]&0xff)<<16;
-        int int4=(bytes[3]&0xff)<<24;
+    public static int bytes2IntLittle(byte[] bytes, int startIndex) {
+        int int1=bytes[0 + startIndex]&0xff;
+        int int2=(bytes[1 + startIndex]&0xff)<<8;
+        int int3=(bytes[2 + startIndex]&0xff)<<16;
+        int int4=(bytes[3 + startIndex]&0xff)<<24;
 
         return int1|int2|int3|int4;
     }
     //byte数组到int的转换(大端)
-    public static int bytes2IntBig(byte[] bytes )
-    {
+    public static int bytes2IntBig(byte[] bytes ) {
         int int1=bytes[3]&0xff;
         int int2=(bytes[2]&0xff)<<8;
         int int3=(bytes[1]&0xff)<<16;
