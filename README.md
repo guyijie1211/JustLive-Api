@@ -1,8 +1,10 @@
-# MixLive
+# JustLive
 
 直播聚合（后端项目）
 
-前端项目    [MixLive-vue](https://github.com/guyijie1211/MixLive-vue)
+Android项目 [JustLive-Android](https://github.com/guyijie1211/JustLive-Android)
+
+前端Web项目    [JustLive-Web](https://github.com/guyijie1211/JustLive-Web)
 
 网站页面    [live.yj1211.work](live.yj1211.work)
 
