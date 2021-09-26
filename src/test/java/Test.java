@@ -1,4 +1,5 @@
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
@@ -8,29 +9,32 @@ import okio.ByteString;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 public class Test {
+    public static byte[] nullBytes = new byte[16];
+
     public static void main(String[] args) {
-        String roomId = "3125893";
+        long roomId = 5050;
+
         OkHttpClient mClient = new OkHttpClient.Builder()
                 .readTimeout(3, TimeUnit.SECONDS)//设置读取超时时间
                 .writeTimeout(3, TimeUnit.SECONDS)//设置写的超时时间
                 .connectTimeout(3, TimeUnit.SECONDS)//设置连接超时时间]
                 .build();
         //连接地址
-        String douyuUrl = "wss://danmuproxy.douyu.com:8503/";
         String bilibiliUrl = "wss://broadcastlv.chat.bilibili.com:2245/sub";
         //构建一个连接请求对象
-        Request request = new Request.Builder().get().url(douyuUrl).build();
+        Request request = new Request.Builder().get().url(bilibiliUrl).build();
 
         AddRoomData addRoomData = new AddRoomData();
-        addRoomData.setRoomId(6136246);
+        addRoomData.setRoomId(roomId);
         String data = JSON.toJSONString(addRoomData);
         int dataLen = data.length() + 16;
         byte[] openMessage = byteMergerAll(intToByteBig(dataLen), shortToByteBig((short)16), shortToByteBig((short)1),
@@ -44,48 +48,42 @@ public class Test {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
                 super.onOpen(webSocket, response);
-//                webSocket.send(byteString);
-//                webSocket.send(byteStringHeart);
-                sendOpenMsgDouyu(webSocket, roomId);
+                webSocket.send(byteString);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        webSocket.send(byteStringHeart);
+                    }
+                }, 10, 30000);
+
                 System.out.println("onOpen");
             }
 
             @Override
             public void onMessage(WebSocket webSocket, String text) {
                 super.onMessage(webSocket, text);
-                //收到消息...（一般是这里处理json）
-                System.out.println("onMessageString");
             }
 
             @Override
             public void onMessage(WebSocket webSocket, ByteString bytes) {
                 super.onMessage(webSocket, bytes);
-                JSONObject jsonObject = null;
+                String result = "";
                 try {
-                    jsonObject = douyuDecode(bytes);
-                    if (jsonObject.getString("type").equals("chatmsg")) {
-                        System.out.println(jsonObject.getString("nn") + "：" + jsonObject.getString("txt"));
-                    }
+                    result = handleMessage(bytes.toByteArray());
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return;
                 }
-//                String result = "";
-//                try {
-//                    result = handleMessage(bytes.toByteArray());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    return;
-//                }
-//                JSONObject jsonObject = JSON.parseObject(result);
-//                if (jsonObject != null) {
-//                    String msgType = jsonObject.getString("cmd");
-//                    if ("DANMU_MSG".equals(msgType)) {
-//                        JSONArray obj = jsonObject.getJSONArray("info");
-//                        String userName = obj.getJSONArray(2).getString(1);
-//                        String danmu = obj.getString(1);
-//                        System.out.println(userName + "：" + danmu);
-//                    }
-//                }
+                JSONObject jsonObject = JSON.parseObject(result);
+                if (jsonObject != null) {
+                    String msgType = jsonObject.getString("cmd");
+                    if ("DANMU_MSG".equals(msgType)) {
+                        JSONArray obj = jsonObject.getJSONArray("info");
+                        String userName = obj.getJSONArray(2).getString(1);
+                        String danmu = obj.getString(1);
+                        System.out.println(userName + "：" + danmu);
+                    }
+                }
             }
 
             @Override
@@ -112,22 +110,18 @@ public class Test {
         private long roomId;
     }
 
-    //斗鱼发送入场消息
-    public static void sendOpenMsgDouyu(WebSocket webSocket, String roomId) {
-        String loginMsg = "type@=loginreq/roomid@=" + roomId + "/";
-        String joinGroupMsg ="type@=joingroup/rid@=" + roomId + "/gid@=1/";
-        String heartMsg ="type@=mrkl/";
-
-        ByteString heart = douyuEncode(heartMsg);
-        webSocket.send(douyuEncode(loginMsg));
-        webSocket.send(douyuEncode(joinGroupMsg));
-        Timer myTimer = new Timer();
-        myTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                webSocket.send(heart);
+    public static String MapToUrlString(Map<String,Object> paramsMap){
+        if (null == paramsMap)
+            return null;
+        String preStr = "?";
+        for (Map.Entry<String,Object> entry:paramsMap.entrySet()){
+            try {
+                preStr = preStr + entry.getKey() + "=" + URLEncoder.encode(entry.getValue().toString(),"UTF-8") + "&";
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
             }
-        }, 1000, 45000);
+        }
+        return preStr.substring(0,preStr.length() - 1);
     }
 
     //斗鱼编码
@@ -166,7 +160,7 @@ public class Test {
         else {
             DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(data));
             int msgLength = inputStream.readInt();
-            System.out.println(msgLength);
+//            System.out.println(msgLength);
             if (msgLength < 16) {
                 System.out.println("maybe need expand size of cache");
             } else if (msgLength > 16 && msgLength == dataLength) {
@@ -177,7 +171,6 @@ public class Test {
                 int action = inputStream.readInt() - 1;
                 // 直播间在线用户数目
                 if (action == 2) {
-                    System.out.println("用户数目消息");
                 } else if (action == 4) {
                     int param = inputStream.readInt();
                     int msgBodyLength = dataLength - 16;
@@ -192,20 +185,31 @@ public class Test {
                         while (!inflater.finished()) {
                             byte[] header = new byte[16];
                             inflater.inflate(header, 0, 16);
-                            DataInputStream headerStream  = new DataInputStream(new ByteArrayInputStream(header));
-                            int innerMsgLen = headerStream.readInt();
-                            short innerHeaderLength = headerStream.readShort();
-                            short innerVersion = headerStream.readShort();
-                            int innerAction = headerStream.readInt() - 1;
-                            int innerParam = headerStream.readInt();
-                            byte[] innerData = new byte[innerMsgLen - 16];
-                            inflater.inflate(innerData, 0, innerData.length);
-                            if (innerAction == 4) {
-//                                System.out.println("======================\npppppppppppppppppppppppppp\nppppppppppppppppppppppp\nppppppppppppppppppppppppppppppppppp");
-                                String jsonStr = new String(innerData, StandardCharsets.UTF_8);
-                                return jsonStr;
-                            } else if (innerAction == 2) {
-                                // pass
+                            while (!header.equals(nullBytes)) {
+                                DataInputStream headerStream  = new DataInputStream(new ByteArrayInputStream(header));
+                                int innerMsgLen = headerStream.readInt();
+                                headerStream.readShort();
+                                headerStream.readShort();
+                                int innerAction = headerStream.readInt() - 1;
+                                headerStream.readInt();
+                                byte[] innerData = new byte[innerMsgLen - 16];
+                                inflater.inflate(innerData, 0, innerData.length);
+                                if (innerAction == 4) {
+                                    String jsonStr = new String(innerData, StandardCharsets.UTF_8);
+                                    if (jsonStr.equals(new String(new byte[innerMsgLen - 16], 0, innerMsgLen - 16, StandardCharsets.UTF_8))) break;
+                                    JSONObject jsonObject = JSON.parseObject(jsonStr);
+                                    if (jsonObject != null) {
+                                        String msgType = jsonObject.getString("cmd");
+                                        if ("DANMU_MSG".equals(msgType)) {
+                                            JSONArray obj = jsonObject.getJSONArray("info");
+                                            String userName = obj.getJSONArray(2).getString(1);
+                                            String danmu = obj.getString(1);
+                                            System.out.println(userName + "：" + danmu);
+                                        }
+                                    }
+//                                    return jsonStr;
+                                }
+                                inflater.inflate(header, 0, 16);
                             }
                         }
                     }
