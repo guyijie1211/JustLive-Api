@@ -17,7 +17,7 @@ Android项目 [JustLive-Android](https://github.com/guyijie1211/JustLive-Android
 直播源获取参考	[wbt5/real-url](https://github.com/wbt5/real-url)
 
 ## 接口说明
-
+（仅供参考，接口已经更新过多次，实际代码可能和以下说明不符）
 直播相关接口都采用 HTTP GET 方法请求
 
 |          请求地址           |                       参数                       |                           接口说明                           |
