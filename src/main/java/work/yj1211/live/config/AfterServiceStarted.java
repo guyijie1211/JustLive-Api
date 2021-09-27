@@ -21,6 +21,7 @@ public class AfterServiceStarted implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         liveRoomService.refreshArea();
+        liveRoomService.refreshUpdate();
         tvLiveService.refreshM3U();
     }
 }

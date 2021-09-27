@@ -4,11 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.LiveRoomService;
-import work.yj1211.live.utils.platForms.Bilibili;
 import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.Result;
-import work.yj1211.live.vo.SimpleRoomInfo;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import javax.websocket.server.PathParam;
@@ -131,5 +129,17 @@ public class LiveRoomCrl {
         }
         Collections.sort(roomInfoList);
         return ResultFactory.buildSuccessResult(roomInfoList);
+    }
+
+    /**
+     * 刷新版本信息
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/versionRefresh", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result versionRefresh(){
+        String result = liveRoomService.refreshUpdate();
+        return ResultFactory.buildSuccessResult(result);
     }
 }

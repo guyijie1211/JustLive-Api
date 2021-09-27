@@ -3,6 +3,7 @@ package work.yj1211.live.utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.vo.TV;
+import work.yj1211.live.vo.UpdateInfo;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import java.util.*;
@@ -21,15 +22,27 @@ public class Global {
     public static List<String> AreaTypeSortList = new ArrayList<>();
     public static Map<String, List<String>> AreaInfoSortMap = new HashMap<>();
     private static String m3uPath;
+    private static String updateFilePath;
     public static List<TV> m3uResult;
+    public static UpdateInfo updateInfo;
+
 
     @Value("${path.m3uPath}")
     public void setM3uPath(String m3uPath) {
         Global.m3uPath = m3uPath;
     }
 
+    @Value("${path.updateFilePath}")
+    public void setUpdateFilePath(String updateFilePath) {
+        Global.updateFilePath = updateFilePath;
+    }
+
     public static String getM3uPath() {
         return m3uPath;
+    }
+
+    public static String getUpdateFilePath() {
+        return updateFilePath;
     }
 
     public static AreaInfo getAreaInfo(String platform, String areaName){

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.UserService;
 import work.yj1211.live.vo.Result;
+import work.yj1211.live.vo.UpdateInfo;
 import work.yj1211.live.vo.UserInfo;
 
 import javax.websocket.server.PathParam;
@@ -137,5 +138,17 @@ public class UserInfoCrl {
             log.info(userName + "---修改密码成功");
             return ResultFactory.buildSuccessResult("密码修改成功");
         }
+    }
+
+    /**
+     * AndroidApp版本更新接口
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/versionUpdate", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result versionUpdate(){
+        UpdateInfo updateInfo = userService.checkUpdate();
+        return ResultFactory.buildSuccessResult(updateInfo);
     }
 }
