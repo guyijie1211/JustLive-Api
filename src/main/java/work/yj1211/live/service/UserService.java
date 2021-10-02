@@ -3,7 +3,9 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.UserMapper;
+import work.yj1211.live.utils.Global;
 import work.yj1211.live.vo.BanInfo;
+import work.yj1211.live.vo.UpdateInfo;
 import work.yj1211.live.vo.UserInfo;
 
 import java.util.List;
@@ -45,4 +47,9 @@ public class UserService {
     public void changePassword(String userName, String password){
         userMapper.changePassword(userName, password);
     }
+
+    public UpdateInfo checkUpdate() {
+        return Global.updateInfo;
+    }
+
 }

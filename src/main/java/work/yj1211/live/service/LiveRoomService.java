@@ -1,15 +1,18 @@
 package work.yj1211.live.service;
 
+import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.platForms.*;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Owner;
-import work.yj1211.live.vo.SimpleRoomInfo;
+import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 @Service
@@ -197,8 +200,46 @@ public class LiveRoomService {
         Huya.refreshArea();
         CC.refreshArea();
         Egame.refreshArea();
-        long end = System.currentTimeMillis();
-//        log.info("刷新平台分区缓存完成,耗时：" + (end-start) + "毫秒");
+    }
+
+    /**
+     * 刷新平台分类的缓存
+     * @return
+     */
+    public String refreshUpdate(){
+        String readResult = readTxtFile(Global.getUpdateFilePath());
+        UpdateInfo updateInfo;
+        try {
+            updateInfo = JSON.parseObject(readResult, UpdateInfo.class);
+        } catch (Exception e) {
+            return readResult;
+        }
+        Global.updateInfo = updateInfo;
+        return JSON.toJSONString(updateInfo);
+    }
+
+    private String readTxtFile(String filePath){
+        String readResult = "";
+        try {
+            String encoding="UTF-8";
+            File file=new File(filePath);
+            if(file.isFile() && file.exists()){ //判断文件是否存在
+                InputStreamReader read = new InputStreamReader(
+                        new FileInputStream(file),encoding);//考虑到编码格式
+                BufferedReader bufferedReader = new BufferedReader(read);
+                String lineTxt = null;
+                while((lineTxt = bufferedReader.readLine()) != null){
+                    readResult = readResult + lineTxt;
+                }
+                read.close();
+            }else{
+                readResult = "找不到指定的文件";
+            }
+        } catch (Exception e) {
+            readResult = "读取文件内容出错";
+        }
+
+        return readResult;
     }
 
     /**
