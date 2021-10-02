@@ -97,16 +97,36 @@ public class Huya {
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
-            urls.put("OD", "http://tx.flv.huya.com" + finalResult.substring(finalResult.indexOf("/src")));
+            int lastFirst = finalResult.lastIndexOf("/");
+            int secondFirst = finalResult.substring(0, lastFirst).lastIndexOf("/");
+            urls.put("OD", "http://tx.flv.huya.com" + finalResult.substring(secondFirst));
             for (int i = 0; i < qnList.size() ; i++) {
                 int qn = qnList.get(i);
                 if (qn != 0) {
-                    urls.put(qnString.get(i), "http://tx.flv.huya.com" + finalResult.substring(finalResult.indexOf("/src")) + "&ratio=" + qnList.get(i));
+                    urls.put(qnString.get(i), "http://tx.flv.huya.com" + finalResult.substring(secondFirst) + "&ratio=" + qnList.get(i));
                 }
             }
         }catch (Exception e){
             return;
         }
+    }
+
+    /**
+     * 获取倒数寄几个
+     * @param str
+     * @param num
+     * @return
+     */
+    private static String getSubStr(String str, int num) {
+        String result = "";
+        int i = 0;
+        while(i < num) {
+            int lastFirst = str.lastIndexOf('/');
+            result = str.substring(lastFirst) + result;
+            str = str.substring(0, lastFirst);
+            i++;
+        }
+        return result.substring(1);
     }
 
     /**
