@@ -35,7 +35,18 @@
     </select>
 
     <select id="findUserByName" resultType="work.yj1211.live.vo.UserInfo">
-        select uid,userName,nickName,password,head from userinfo where userName = #{userName}
+        select uid,
+                userName,
+                nickName,
+                head,
+                isActived,
+                allContent,
+                selectedContent,
+                douyuLevel,
+                bilibiliLevel,
+                huyaLevel,
+                ccLevel,
+                egameLevel from userinfo where userName = #{userName}
     </select>
 
     <insert id="register" parameterType="work.yj1211.live.vo.UserInfo">
