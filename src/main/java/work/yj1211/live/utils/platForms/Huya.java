@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.util.DigestUtils;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
@@ -13,6 +15,9 @@ import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +32,11 @@ public class Huya {
     private static final Pattern AREA = Pattern.compile("\"sGameFullName\":\"([\\s\\S]*?)\",");
     private static final Pattern Num = Pattern.compile("\"lActivityCount\":([\\s\\S]*?),");
     private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
+
+    private static final Pattern URLPATTERN = Pattern.compile("window.HNF_GLOBAL_INIT =([\\s\\S]*?) </script>");
     private static List<String> qnString = new ArrayList<>();
+
+    private static DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
     static {
 //        qnString.add("OD");
@@ -92,18 +101,54 @@ public class Huya {
         }
         try{
             result = result.substring(result.indexOf("\":\"")+3, result.lastIndexOf("\""));
+//            if (result.equals("")) {
+//                String baseFinalUrl =finalUrl.substring(finalUrl.lastIndexOf('/'));
+//                Matcher matcherURL = URLPATTERN.matcher(response);
+//                if (matcherURL.find()) {
+//                    String urlJSON = matcherURL.group();
+//                    String urlResult = getMatchResult(urlJSON, "= ", " </script>");
+//                    JSONObject jsonObject = JSON.parseObject(urlResult);
+//                    JSONObject liveInfo = jsonObject.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo");
+//                    JSONObject bitObject = liveInfo.getJSONObject("vBitRateInfo");
+//                    Map<String, Integer> bitMap = new HashMap<>();
+//                    JSONArray bitArray = bitObject.getJSONArray("value");
+//                    for (int i = 0 ; i < bitArray.size(); i ++) {
+//                        JSONObject item = bitArray.getJSONObject(i);
+//                        bitMap.put(item.getString("sDisplayName"), item.getIntValue("iBitRate"));
+//                    }
+//                    Map<String, Map<String, String>> urlMap = new HashMap<>();
+//                    JSONArray urlArray = liveInfo.getJSONObject("vStreamInfo").getJSONArray("value");
+//                    for (int i = 0 ; i < urlArray.size(); i ++) {
+//                        JSONObject item = urlArray.getJSONObject(i);
+//                        String type = item.getString("sCdnType");
+//                        Map<String, String> itemMap = new HashMap<>();
+//                        String urlBase = "";
+//                        if (baseFinalUrl.contains(".flv")) {
+//                            urlBase = item.getString("sFlvUrl") + baseFinalUrl;
+//                        } else if (baseFinalUrl.contains(".m3u8")) {
+//                            urlBase = item.getString("sHlsUrl") + baseFinalUrl;
+//                        }
+//
+//                        urlBase = urlBase.replace("http", "https");
+//                        for (Map.Entry<String, Integer> entry : bitMap.entrySet()) {
+//                            itemMap.put(entry.getKey(), urlBase + "&ratio=" + entry.getValue());
+//                        }
+//                        urlMap.put(type, itemMap);
+//                    }
+//                    System.out.println(111);
+//                }
+//            }
             result = new String(Base64.getDecoder().decode(result), "utf-8");
             String finalResult = result.replaceAll("(ratio=[^&]*)&", "").replaceAll("m3u8", "flv");
+            String finalUrl = formatUrl(finalResult).replace("hls", "flv");
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
-            int lastFirst = finalResult.lastIndexOf("/");
-            int secondFirst = finalResult.substring(0, lastFirst).lastIndexOf("/");
-            urls.put("OD", "http://tx.flv.huya.com" + finalResult.substring(secondFirst));
+            urls.put("OD", "https:" + finalUrl);
             for (int i = 0; i < qnList.size() ; i++) {
                 int qn = qnList.get(i);
                 if (qn != 0) {
-                    urls.put(qnString.get(i), "http://tx.flv.huya.com" + finalResult.substring(secondFirst) + "&ratio=" + qnList.get(i));
+                    urls.put(qnString.get(i), "https:" + finalUrl + "&ratio=" + qnList.get(i));
                 }
             }
         }catch (Exception e){
@@ -390,5 +435,50 @@ public class Huya {
         String result;
         result = str.substring(str.indexOf(indexStartStr)+indexStartStr.length(),str.lastIndexOf(indexEndStr));
         return result;
+    }
+
+    private static String formatUrl(String liveLineUrl) throws UnsupportedEncodingException {
+        String i = liveLineUrl.split("\\?")[0];
+        String b = liveLineUrl.split("\\?")[1];
+        String r[] = i.split("/");
+        String s = r[r.length-1].split(".flv")[0];
+        String c[] = b.split("&");
+        Map<String, String> n = getNMap(c);
+        String fm = URLDecoder.decode(n.get("fm"));
+        String u = new String(Base64.getDecoder().decode(fm), "UTF-8");
+        String p = u.split("_")[0];
+        String seqid = String.valueOf(getmicTime()) + "0";
+        String ctype = n.get("ctype");
+        String t = n.get("t");
+        String mf = DigestUtils.md5DigestAsHex((seqid + "|" + ctype + "|" + t).getBytes("UTF-8"));
+        String ll = n.get("wsTime");
+        String ratio = n.get("ratio");
+        if (ratio == null) ratio = "";
+        String uid = "1279523789849";
+        String h = p + "_" + uid + "_" + s + "_" + mf + "_" + ll;
+        String m = DigestUtils.md5DigestAsHex(h.getBytes("UTF-8"));
+        String txyp = n.get("txyp");
+        String fs = n.get("fs");
+        return String.format("%s?wsSecret=%s&wsTime=%s&uuid=&uid=%s&seqid=%s&ratio=%s&txyp=%s&fs=%s&ctype=%s&ver=1&t=%s",
+                i, m, ll, uid, seqid, ratio, txyp, fs, ctype, t);
+    }
+
+    private static Map<String, String> getNMap(String[] c) {
+        Map<String, String> result = new HashMap<>();
+        for (String item: c) {
+            if (item.equals("")) continue;
+            String temp[] = item.split("=");
+            result.put(temp[0], temp[1]);
+        }
+        return result;
+    }
+
+    /**
+     * @return返回微秒
+     */
+    public static Long getmicTime() {
+        Long cutime = System.currentTimeMillis() * 1000; // 微秒
+        Long nanoTime = System.nanoTime(); // 纳秒
+        return cutime + (nanoTime - nanoTime / 1000000 * 1000000) / 1000;
     }
 }

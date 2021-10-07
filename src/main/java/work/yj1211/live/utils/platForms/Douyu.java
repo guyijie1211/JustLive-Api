@@ -3,6 +3,7 @@ package work.yj1211.live.utils.platForms;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.MD5Util;
@@ -17,6 +18,9 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -24,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class Douyu {
     //Douyu清晰度 1流畅；2高清；3超清；4蓝光4M；0蓝光8M或10M
     private static List<String> qnList = new ArrayList<>();
@@ -244,20 +249,23 @@ public class Douyu {
         if (404 == response.getCode()){
             return null;
         }
-        JSONObject room_info = response.getBodyJson().getJSONObject("data");
-        LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-        liveRoomInfo.setPlatForm("douyu");
-        liveRoomInfo.setRoomId(room_info.getString("room_id"));
-        liveRoomInfo.setCategoryId(room_info.getString("cate_id"));//分类id不对
-        liveRoomInfo.setCategoryName(room_info.getString("cate_name"));
-        liveRoomInfo.setRoomName(room_info.getString("room_name"));
-        liveRoomInfo.setOwnerName(room_info.getString("owner_name"));
-        liveRoomInfo.setRoomPic(room_info.getString("room_thumb"));
-        liveRoomInfo.setOwnerHeadPic(room_info.getString("avatar"));
-        liveRoomInfo.setOnline(room_info.getInteger("online"));
-        liveRoomInfo.setIsLive((room_info.getInteger("room_status") == 1) ? 1 : 0);
 
-        return liveRoomInfo;
+        if (response.getBodyJson().getInteger("error") == 0) {
+            JSONObject room_info = response.getBodyJson().getJSONObject("data");
+            LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+            liveRoomInfo.setPlatForm("douyu");
+            liveRoomInfo.setRoomId(room_info.getString("room_id"));
+            liveRoomInfo.setCategoryId(room_info.getString("cate_id"));//分类id不对
+            liveRoomInfo.setCategoryName(room_info.getString("cate_name"));
+            liveRoomInfo.setRoomName(room_info.getString("room_name"));
+            liveRoomInfo.setOwnerName(room_info.getString("owner_name"));
+            liveRoomInfo.setRoomPic(room_info.getString("room_thumb"));
+            liveRoomInfo.setOwnerHeadPic(room_info.getString("avatar"));
+            liveRoomInfo.setOnline(room_info.getInteger("online"));
+            liveRoomInfo.setIsLive((room_info.getInteger("room_status") == 1) ? 1 : 0);
+            return liveRoomInfo;
+        }
+        return null;
     }
 
     /**
@@ -516,27 +524,49 @@ public class Douyu {
      * @param isLive 是否搜索直播中的信息
      * @return
      */
-    public static List<Owner> search(String keyWords, String isLive){
+    public static List<Owner> search(String keyWords, String isLive) {
         List<Owner> list = new ArrayList<>();
-        String url = "https://www.douyu.com/japi/search/api/searchAnchor?kw="+ keyWords + "&page=1&pageSize=5&filterType=" + isLive;
-        String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("error") == 0) {
-            JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("relateAnchor");
-            Iterator<Object> it = ownerList.iterator();
-            while(it.hasNext()){
-                JSONObject responseOwner = (JSONObject) it.next();
-                Owner owner = new Owner();
-                owner.setNickName(responseOwner.getString("nickName"));
-                owner.setCateName(responseOwner.getString("cateName"));
-                owner.setHeadPic(responseOwner.getString("avatar"));
-                owner.setPlatform("douyu");
-                owner.setRoomId(responseOwner.getString("rid"));
-                owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
-                owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("followerCount")));
+        LiveRoomInfo roomInfo = getRoomInfo(keyWords);
+        if (roomInfo != null) {
+            Owner owner = new Owner();
+            owner.setNickName(roomInfo.getOwnerName());
+            owner.setCateName(roomInfo.getCategoryName());
+            owner.setHeadPic(roomInfo.getOwnerHeadPic());
+            owner.setPlatform("douyu");
+            owner.setRoomId(roomInfo.getRoomId());
+            owner.setIsLive((roomInfo.getIsLive() == 1) ? "1" : "0");
+            owner.setFollowers(roomInfo.getOnline());
+            if (isLive.equals("0") || owner.getIsLive().equals("1")) {
                 list.add(owner);
             }
         }
+//        try {
+//            String url = "https://www.douyu.com/japi/search/api/searchAnchor?kw=" + URLEncoder.encode(keyWords, "UTF-8") + "&page=1&pageSize=5&filterType=" + isLive;
+//            log.info(url);
+//            String result = HttpUtil.doGet(url);
+//            log.info(result);
+//            JSONObject resultJsonObj = JSON.parseObject(result);
+//            if (resultJsonObj.getInteger("error") == 0) {
+//                JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("relateAnchor");
+//                Iterator<Object> it = ownerList.iterator();
+//                while (it.hasNext()) {
+//                    JSONObject responseOwner = (JSONObject) it.next();
+//                    log.info(responseOwner.toJSONString());
+//                    Owner owner = new Owner();
+//                    owner.setNickName(responseOwner.getString("nickName"));
+//                    owner.setCateName(responseOwner.getString("cateName"));
+//                    owner.setHeadPic(responseOwner.getString("avatar"));
+//                    owner.setPlatform("douyu");
+//                    owner.setRoomId(responseOwner.getString("rid"));
+//                    owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
+//                    owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("followerCount")));
+//                    list.add(owner);
+//                }
+//            }
+//        } catch (Exception e){
+//            log.info(String.valueOf(e));
+//            e.printStackTrace();
+//        }
         return list;
     }
 }
