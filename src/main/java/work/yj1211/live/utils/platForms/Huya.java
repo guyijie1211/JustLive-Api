@@ -139,8 +139,8 @@ public class Huya {
 //                }
 //            }
             result = new String(Base64.getDecoder().decode(result), "utf-8");
-            String finalResult = result.replaceAll("(ratio=[^&]*)&", "").replaceAll("m3u8", "flv");
-            String finalUrl = formatUrl(finalResult).replace("hls", "flv");
+            String finalResult = result.replaceAll("(ratio=[^&]*)&", "");
+            String finalUrl = formatUrl(finalResult);
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
