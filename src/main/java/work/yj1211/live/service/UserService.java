@@ -55,12 +55,13 @@ public class UserService {
     }
 
     public UpdateInfo checkUpdate() {
-        UpdateInfo updateInfo = new UpdateInfo(Global.updateInfo);
-        String real_updateUrl = getDownloadUrl(updateInfo.getUpdateUrl());
-        updateInfo.setUpdateUrl(real_updateUrl);
-        return updateInfo;
+//        UpdateInfo updateInfo = new UpdateInfo(Global.updateInfo);
+//        String real_updateUrl = getDownloadUrl(updateInfo.getUpdateUrl());
+//        updateInfo.setUpdateUrl(real_updateUrl);
+        return Global.updateInfo;
     }
 
+    //蓝奏根据端id获取直链
     public String getDownloadUrl(String shortUrl) {
         String share_url = "https://wwe.lanzoui.com/tp/" + shortUrl;
         String response = HttpRequest.create(share_url)
