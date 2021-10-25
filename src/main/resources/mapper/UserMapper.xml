@@ -17,6 +17,12 @@
         <result column="egameLevel" property="egameLevel"/>
     </resultMap>
 
+    <resultMap id="areaInfoMap" type="work.yj1211.live.vo.platformArea.AreaSimple">
+        <result column="uid" property="uid"/>
+        <result column="areaType" property="areaType"/>
+        <result column="area" property="area"/>
+    </resultMap>
+
     <select id="login" resultMap="userInfoMap">
         select  uid,
                 userName,
@@ -67,6 +73,18 @@
     <insert id="followRoom">
         insert into follows(uid,platform,roomId) values (#{uid}, #{platform}, #{roomId})
     </insert>
+
+    <insert id="followArea">
+        insert into areaFollow(uid,areaType,area) values (#{uid}, #{areaType}, #{area})
+    </insert>
+
+    <select id="getAreasByUid" parameterType="String" resultMap="areaInfoMap">
+        select uid, areaType, area from areaFollow where uid = #{uid}
+    </select>
+
+    <delete id="unFollowArea">
+        delete from areaFollow where uid = #{uid} and areaType = #{areaType} and area = #{area}
+    </delete>
 
     <delete id="unFollowRoom">
         delete from follows where uid = #{uid} and platform = #{platform} and roomId = #{roomId}

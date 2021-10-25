@@ -7,11 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.UserService;
+import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Result;
 import work.yj1211.live.vo.UpdateInfo;
 import work.yj1211.live.vo.UserInfo;
+import work.yj1211.live.vo.platformArea.AreaSimple;
 
 import javax.websocket.server.PathParam;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -69,6 +73,49 @@ public class UserInfoCrl {
         log.info(username+"---注册成功");
         logger.info(username+"---注册成功");
         return ResultFactory.buildSuccessResult(user);
+    }
+
+    /**
+     * 关注分区
+     * @param uid
+     * @param areaType
+     * @param area
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/followArea", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result followArea(@PathParam("uid")String uid, @PathParam("areaType")String areaType, @PathParam("area")String area){
+        userService.followArea(areaType, area, uid);
+        return ResultFactory.buildSuccessResult("关注成功");
+    }
+
+    /**
+     * 取消关注分区
+     * @param uid
+     * @param areaType
+     * @param area
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/unFollowArea", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result unFollowArea(@PathParam("uid")String uid, @PathParam("areaType")String areaType, @PathParam("area")String area){
+        userService.unFollowArea(areaType, area, uid);
+        return ResultFactory.buildSuccessResult("已经取消关注");
+    }
+
+    /**
+     * 获取用户关注的所有分区
+     * @param uid 用户账户id
+     * @return 所有关注的直播间的List
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getFollowedAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getFollowedAreas(@PathParam("uid")String uid){
+        List<AreaSimple> areaList = userService.getAreasByUid(uid);
+        return ResultFactory.buildSuccessResult(areaList);
     }
 
     /**

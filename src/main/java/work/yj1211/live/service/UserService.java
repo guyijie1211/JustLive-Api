@@ -6,10 +6,10 @@ import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.vo.BanInfo;
-import work.yj1211.live.vo.UpdateInfo;
-import work.yj1211.live.vo.UserInfo;
+import work.yj1211.live.vo.*;
+import work.yj1211.live.vo.platformArea.AreaSimple;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,8 +38,26 @@ public class UserService {
         userMapper.followRoom(platform, roomId, uid);
     }
 
+    public void followArea(String areaType, String area, String uid){
+        userMapper.followArea(areaType, area, uid);
+    }
+
+    /**
+     * 获取用户关注的所有分类
+     * @param uid     用户uid
+     * @return
+     */
+    public List<AreaSimple> getAreasByUid(String uid){
+        List<AreaSimple> areaList = userMapper.getAreasByUid(uid);
+        return areaList;
+    }
+
     public void unFollowRoom(String platform, String roomId, String uid){
         userMapper.unFollowRoom(platform, roomId, uid);
+    }
+
+    public void unFollowArea(String areaType, String area, String uid){
+        userMapper.unFollowArea(areaType, area, uid);
     }
 
     public void changeUserInfo(UserInfo userInfo){
