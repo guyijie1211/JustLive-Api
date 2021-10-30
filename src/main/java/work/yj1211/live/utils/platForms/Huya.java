@@ -33,6 +33,9 @@ public class Huya {
     private static final Pattern Num = Pattern.compile("\"lActivityCount\":([\\s\\S]*?),");
     private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
 
+    //wsSecret=%s&wsTime=%s&uuid=&uid=%s&seqid=%s&txyp=%s&fs=%s&ctype=%s&ver=1&t=%s
+    private static final Pattern wsSecretPattern = Pattern.compile("wsSecret:([\\s\\S]*?)&");
+
     private static final Pattern URLPATTERN = Pattern.compile("window.HNF_GLOBAL_INIT =([\\s\\S]*?) </script>");
     private static List<String> qnString = new ArrayList<>();
 
@@ -452,15 +455,14 @@ public class Huya {
         String t = n.get("t");
         String mf = DigestUtils.md5DigestAsHex((seqid + "|" + ctype + "|" + t).getBytes("UTF-8"));
         String ll = n.get("wsTime");
-        String ratio = n.get("ratio");
-        if (ratio == null) ratio = "";
         String uid = "1279523789849";
-        String h = p + "_" + uid + "_" + s + "_" + mf + "_" + ll;
+        String h = p + "_" + "0" + "_" + s + "_" + seqid + "_" + ll;
         String m = DigestUtils.md5DigestAsHex(h.getBytes("UTF-8"));
         String txyp = n.get("txyp");
         String fs = n.get("fs");
-        return String.format("%s?wsSecret=%s&wsTime=%s&uuid=&uid=%s&seqid=%s&ratio=%s&txyp=%s&fs=%s&ctype=%s&ver=1&t=%s",
-                i, m, ll, uid, seqid, ratio, txyp, fs, ctype, t);
+//        return String.format("%s?wsSecret=%s&wsTime=%s&u=0s&seqid=%s&%s",
+//                i, m, ll, seqid,c);
+        return liveLineUrl.replaceAll("wsSecret=([\\s\\S]*?)&", "wsSecret=" + m + "&") + "&uid=0&seqid=" + seqid;
     }
 
     private static Map<String, String> getNMap(String[] c) {
