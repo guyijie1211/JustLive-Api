@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.platForms.*;
+import work.yj1211.live.utils.thread.AsyncService;
 import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
@@ -14,12 +15,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 @Service
-public class LiveRoomService {
+public class LiveRoomService{
 
     @Autowired
     private RoomMapper roomMapper;
+
+    @Autowired
+    private AsyncService asyncService;
 
     /**
      * 获取总推荐
@@ -151,15 +156,25 @@ public class LiveRoomService {
      * @return
      */
     public List<LiveRoomInfo> getRoomsByUid(String uid){
+        long start = System.currentTimeMillis();
         List<LiveRoomInfo> roomList = new ArrayList<>();
         List<SimpleRoomInfo> simpleRoomInfoList = roomMapper.getRoomsByUid(uid);
-        LiveRoomInfo liveRoomInfo;
+        CountDownLatch countDownLatch = new CountDownLatch(simpleRoomInfoList.size());
         for(SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList){
-            liveRoomInfo = getRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId());
-            roomList.add(liveRoomInfo);
+            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
         }
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            roomList.clear();
+        }
+        long end = System.currentTimeMillis();
+        System.out.println(end-start);
         return roomList;
     }
+
+
 
     /**
      * 获取单个直播间信息
