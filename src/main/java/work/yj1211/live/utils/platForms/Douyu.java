@@ -402,7 +402,11 @@ public class Douyu {
         String url = "https://m.douyu.com/api/cate/list";//获取bilibili所有分类的请求地址
         List<List<AreaInfo>> resultList = new ArrayList<>();
         Map<String, List<AreaInfo>> areaMapTemp = new HashMap<>();
-        String result = HttpUtil.doGet(url);
+//        String result = HttpUtil.doGet(url);
+        String result = HttpRequest.create(url)
+                .setContentType(HttpContentType.FORM)
+                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .get().getBody();
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (resultJsonObj.getInteger("code") == 0) {
             JSONArray cate1Info = resultJsonObj.getJSONObject("data").getJSONArray("cate1Info");
