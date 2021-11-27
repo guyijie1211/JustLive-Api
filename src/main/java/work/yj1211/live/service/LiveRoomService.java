@@ -147,6 +147,9 @@ public class LiveRoomService{
         if ("egame".equals(platForm)){
             Egame.get_real_url(urls,roomId);
         }
+        if ("huyaTest".equals(platForm)){
+            Huya.getRealUrlTest(urls, roomId);
+        }
         return urls;
     };
 

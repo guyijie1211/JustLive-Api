@@ -79,6 +79,30 @@ public class Huya {
     }
 
     /**
+     * 测试
+     * @param urls
+     * @param roomId
+     */
+    public static void getRealUrlTest(Map<String, String> urls, String roomId) {
+        String room_url = "https://m.huya.com/" + roomId;
+        String response = HttpRequest.create(room_url)
+                .setContentType(HttpContentType.FORM)
+                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .get().getBody();
+        Matcher matcher2 = PATTERN2.matcher(response);
+        if (!matcher2.find()){
+            System.out.println("没提取到虎牙ayyuid");
+        }
+        String result2 = matcher2.group();
+        try{
+            urls.put("ayyuid", result2);
+            urls.put("OD", "http://yj1211.work:8089/huya/" + roomId);
+        }catch (Exception e){
+            return;
+        }
+    }
+
+    /**
      * 获取真实地址
      * @param urls
      * @param roomId
@@ -104,43 +128,6 @@ public class Huya {
         }
         try{
             result = result.substring(result.indexOf("\":\"")+3, result.lastIndexOf("\""));
-//            if (result.equals("")) {
-//                String baseFinalUrl =finalUrl.substring(finalUrl.lastIndexOf('/'));
-//                Matcher matcherURL = URLPATTERN.matcher(response);
-//                if (matcherURL.find()) {
-//                    String urlJSON = matcherURL.group();
-//                    String urlResult = getMatchResult(urlJSON, "= ", " </script>");
-//                    JSONObject jsonObject = JSON.parseObject(urlResult);
-//                    JSONObject liveInfo = jsonObject.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo");
-//                    JSONObject bitObject = liveInfo.getJSONObject("vBitRateInfo");
-//                    Map<String, Integer> bitMap = new HashMap<>();
-//                    JSONArray bitArray = bitObject.getJSONArray("value");
-//                    for (int i = 0 ; i < bitArray.size(); i ++) {
-//                        JSONObject item = bitArray.getJSONObject(i);
-//                        bitMap.put(item.getString("sDisplayName"), item.getIntValue("iBitRate"));
-//                    }
-//                    Map<String, Map<String, String>> urlMap = new HashMap<>();
-//                    JSONArray urlArray = liveInfo.getJSONObject("vStreamInfo").getJSONArray("value");
-//                    for (int i = 0 ; i < urlArray.size(); i ++) {
-//                        JSONObject item = urlArray.getJSONObject(i);
-//                        String type = item.getString("sCdnType");
-//                        Map<String, String> itemMap = new HashMap<>();
-//                        String urlBase = "";
-//                        if (baseFinalUrl.contains(".flv")) {
-//                            urlBase = item.getString("sFlvUrl") + baseFinalUrl;
-//                        } else if (baseFinalUrl.contains(".m3u8")) {
-//                            urlBase = item.getString("sHlsUrl") + baseFinalUrl;
-//                        }
-//
-//                        urlBase = urlBase.replace("http", "https");
-//                        for (Map.Entry<String, Integer> entry : bitMap.entrySet()) {
-//                            itemMap.put(entry.getKey(), urlBase + "&ratio=" + entry.getValue());
-//                        }
-//                        urlMap.put(type, itemMap);
-//                    }
-//                    System.out.println(111);
-//                }
-//            }
             result = new String(Base64.getDecoder().decode(result), "utf-8");
             String finalResult = result.replaceAll("(ratio=[^&]*)&", "").replaceAll("m3u8", "flv");
             String finalUrl = formatUrl(finalResult).replace("hls", "flv");
