@@ -34,8 +34,8 @@ public class Douyu {
     private static List<String> qnList = new ArrayList<>();
 
     //存储获取的房间唯一标识(每次都去获取唯一标识太慢了，并且同一房间一段时间内标识是不变的，所以用缓存来保存)
-    private static Map<String, String> roomUrlMap = new ConcurrentHashMap<>();
-    private static Map<String, List<Integer>> roomRateMap = new ConcurrentHashMap<>();
+    private static Map<String, String> roomUrlMap = new HashMap<>();
+    private static Map<String, List<Integer>> roomRateMap = new HashMap<>();
 
     //    private static final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
     private static final Pattern PATTERN = Pattern.compile("(vdwdae325w_64we[\\s\\S]*function ub98484234[\\s\\S]*?)function");
