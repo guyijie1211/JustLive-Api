@@ -40,7 +40,7 @@ public class AsyncServiceImpl implements AsyncService {
             roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
             roomList.add(roomInfo);
         } catch (Exception e) {
-            System.out.println(roomId);
+
         } finally {
             countDownLatch.countDown();
         }

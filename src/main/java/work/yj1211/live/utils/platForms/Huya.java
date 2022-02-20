@@ -96,7 +96,7 @@ public class Huya {
         String result2 = matcher2.group();
         try{
             urls.put("ayyuid", result2);
-            urls.put("OD", "http://yj1211.work:8089/huya/" + roomId);
+            urls.put("OD", "http://yj1211.work:8089/huya/" + roomId + ".m3u8");
         }catch (Exception e){
             return;
         }
