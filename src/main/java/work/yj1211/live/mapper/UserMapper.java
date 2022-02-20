@@ -16,6 +16,7 @@ public interface UserMapper {
     UserInfo login(String userName, String password);
     UserInfo findUserByName(String userName);
     List<AreaSimple> getAreasByUid(String uid);
+    SimpleRoomInfo checkFollowed(@Param("platform") String platform, @Param("roomId")String roomId, @Param("uid")String uid);
     void register(UserInfo user);
     void followRoom(@Param("platform") String platform, @Param("roomId")String roomId, @Param("uid")String uid);
     void followArea(@Param("areaType") String areaType, @Param("area")String area, @Param("uid")String uid);

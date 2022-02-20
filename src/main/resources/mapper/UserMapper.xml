@@ -70,6 +70,12 @@
         values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','1','','');
     </insert>
 
+    <select id="checkFollowed" resultType="work.yj1211.live.vo.SimpleRoomInfo">
+        select platform, roomId from follows where uid = #{uid}
+                                               and platform = #{platform}
+                                            and roomId = #{roomId}
+    </select>
+
     <insert id="followRoom">
         insert into follows(uid,platform,roomId) values (#{uid}, #{platform}, #{roomId})
     </insert>

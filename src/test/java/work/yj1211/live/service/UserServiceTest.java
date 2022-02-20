@@ -11,14 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
-class LiveRoomServiceTest {
+class UserServiceTest {
 
     @Autowired
-    private LiveRoomService liveRoomService;
+    private UserService userService;
 
     @Test
-    void getRoomsByUid() {
-        Long start = System.currentTimeMillis();
-        liveRoomService.getRoomsByUid("4ee7d7afa8844db2997bf446c16a1359");
+    void followRoom() {
+        userService.followRoom("douyu", "71415", "0eb26a33e68d4582858a74abf5a645d5");
     }
 }

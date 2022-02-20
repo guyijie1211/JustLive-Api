@@ -182,6 +182,13 @@ public class Douyu {
         return url;
     }
 
+    public static String getRealRoomId(String rid) {
+        String roomUrl = "https://www.douyu.com/" + rid;
+        String response = HttpRequest.create(roomUrl).get().getBody();
+        String realRid = response.substring(response.indexOf("$ROOM.room_id =") + "$ROOM.room_id =".length());
+        return realRid.substring(0, realRid.indexOf(";")).trim();
+    }
+
     /**
      *
      * @param rid
@@ -529,6 +536,8 @@ public class Douyu {
      * @return
      */
     public static List<Owner> search(String keyWords, String isLive) {
+        //靓号转真实房间号
+        keyWords = getRealRoomId(keyWords);
         List<Owner> list = new ArrayList<>();
         LiveRoomInfo roomInfo = getRoomInfo(keyWords);
         if (roomInfo != null) {

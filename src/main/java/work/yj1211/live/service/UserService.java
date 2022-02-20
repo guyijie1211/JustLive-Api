@@ -6,6 +6,7 @@ import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
+import work.yj1211.live.utils.platForms.Douyu;
 import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaSimple;
 
@@ -35,7 +36,12 @@ public class UserService {
     }
 
     public void followRoom(String platform, String roomId, String uid){
-        userMapper.followRoom(platform, roomId, uid);
+        if (platform.equalsIgnoreCase("douyu")) {
+            roomId = Douyu.getRealRoomId(roomId);
+        }
+        if (userMapper.checkFollowed(platform, roomId, uid) == null) {
+            userMapper.followRoom(platform, roomId, uid);
+        }
     }
 
     public void followArea(String areaType, String area, String uid){

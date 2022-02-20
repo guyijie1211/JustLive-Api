@@ -19,25 +19,30 @@ public class AsyncServiceImpl implements AsyncService {
     @Async("asyncServiceExecutor")
     @Override
     public void addRoomInfo(String uid, String platForm, String roomId, CountDownLatch countDownLatch, List<LiveRoomInfo> roomList) {
-        LiveRoomInfo roomInfo = null;
-        if ("bilibili".equals(platForm)){
-            roomInfo = Bilibili.get_single_roomInfo(roomId);
+        try {
+            LiveRoomInfo roomInfo = null;
+            if ("bilibili".equals(platForm)){
+                roomInfo = Bilibili.get_single_roomInfo(roomId);
+            }
+            if ("douyu".equals(platForm)){
+                roomInfo = Douyu.getRoomInfo(roomId);
+            }
+            if ("huya".equals(platForm)){
+                roomInfo = Huya.getRoomInfo(roomId);
+            }
+            if ("cc".equals(platForm)){
+                roomInfo = CC.getRoomInfo(roomId);
+            }
+            if ("egame".equals(platForm)){
+                roomInfo = Egame.getRoomInfo(roomId);
+            }
+            int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
+            roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
+            roomList.add(roomInfo);
+        } catch (Exception e) {
+            System.out.println(roomId);
+        } finally {
+            countDownLatch.countDown();
         }
-        if ("douyu".equals(platForm)){
-            roomInfo = Douyu.getRoomInfo(roomId);
-        }
-        if ("huya".equals(platForm)){
-            roomInfo = Huya.getRoomInfo(roomId);
-        }
-        if ("cc".equals(platForm)){
-            roomInfo = CC.getRoomInfo(roomId);
-        }
-        if ("egame".equals(platForm)){
-            roomInfo = Egame.getRoomInfo(roomId);
-        }
-        int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
-        roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
-        roomList.add(roomInfo);
-        countDownLatch.countDown();
     }
 }
