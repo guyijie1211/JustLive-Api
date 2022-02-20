@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.MD5Util;
@@ -537,7 +538,9 @@ public class Douyu {
      */
     public static List<Owner> search(String keyWords, String isLive) {
         //靓号转真实房间号
-        keyWords = getRealRoomId(keyWords);
+        if (StringUtils.isNumeric(keyWords)){
+            keyWords = getRealRoomId(keyWords);
+        }
         List<Owner> list = new ArrayList<>();
         LiveRoomInfo roomInfo = getRoomInfo(keyWords);
         if (roomInfo != null) {
