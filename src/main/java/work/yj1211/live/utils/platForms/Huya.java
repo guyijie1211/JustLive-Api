@@ -103,6 +103,20 @@ public class Huya {
     }
 
     /**
+     * 判断是否是一起看
+     * @param urls
+     * @param roomId
+     */
+    public static void getUrl(Map<String, String> urls, String roomId) {
+        String categoryName = getRoomInfo(roomId).getCategoryName();
+        if (categoryName.equalsIgnoreCase("一起看") || categoryName.equalsIgnoreCase("原创")) {
+            getRealUrlTest(urls, roomId);
+        } else {
+            getRealUrl(urls, roomId);
+        }
+    }
+
+    /**
      * 获取真实地址
      * @param urls
      * @param roomId
