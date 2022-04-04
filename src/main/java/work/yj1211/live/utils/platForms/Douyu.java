@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.MD5Util;
@@ -55,16 +56,17 @@ public class Douyu {
             rateList = roomRateMap.get(rid);
         }
         try{
-            for (int i = 0; i < rateList.size(); i++){
-                String qnString = qnList.get(i);
-                String qn;
-                if ("OD".equals(qnString)){
-                    qn = "";
-                }else {
-                    qn = "_"+rateList.get(i).toString();
-                }
-                urls.put(qnString, get_single_url(rid, qn));
-            }
+//            for (int i = 0; i < rateList.size(); i++){
+//                String qnString = qnList.get(i);
+//                String qn;
+//                if ("OD".equals(qnString)){
+//                    qn = "";
+//                }else {
+//                    qn = "_"+rateList.get(i).toString();
+//                }
+//                urls.put(qnString, get_single_url(rid, qn));
+//            }
+            urls.put("OD", get_single_url(rid, ""));
         }catch (Exception e){
             return;
         }finally {
@@ -83,7 +85,9 @@ public class Douyu {
     private static String get_single_url(String roomId, String qn){
         //获取房间唯一标识，第一次获取时去请求
         String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
-        String result = "http://dyscdnali1.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
+//        String result = "http://dyscdnali1.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
+        StringBuffer sb = new StringBuffer(roomUrl);
+        String result = sb.insert(roomUrl.indexOf(".flv"), qn).toString();
         return result;
     }
 
@@ -173,8 +177,8 @@ public class Douyu {
         if (data == null){
             return null;
         }
-        String url = data.getString("rtmp_live");
-        url = handleUrl(url);
+        String url = data.getString("rtmp_url") + "/" + data.getString("rtmp_live");
+//        url = handleUrl(url);
         roomUrlMap.put(rid, url);
         List<Integer> rateList = handleRate(data.getJSONArray("multirates"));
         roomRateMap.put(rid, rateList);
@@ -537,7 +541,9 @@ public class Douyu {
      */
     public static List<Owner> search(String keyWords, String isLive) {
         //靓号转真实房间号
-        keyWords = getRealRoomId(keyWords);
+        if (StringUtils.isNumeric(keyWords)){
+            keyWords = getRealRoomId(keyWords);
+        }
         List<Owner> list = new ArrayList<>();
         LiveRoomInfo roomInfo = getRoomInfo(keyWords);
         if (roomInfo != null) {

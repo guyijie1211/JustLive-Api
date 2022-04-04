@@ -138,8 +138,8 @@ public class LiveRoomService{
         if ("douyu".equals(platForm)){
             Douyu.get_real_url(urls, roomId);
         }
-        if ("huya".equals(platForm)){
-            Huya.getRealUrl(urls,roomId);
+        if ("huya".equals(platForm) || "huyaTest".equals(platForm)){
+            Huya.getUrl(urls,roomId);
         }
         if ("cc".equals(platForm)){
             CC.getRealUrl(urls,roomId);
