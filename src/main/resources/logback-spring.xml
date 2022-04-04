@@ -122,6 +122,21 @@
         </root>
     </springProfile>
 
+    <springProfile name="github">
+        <logger name="work.yj1211.live.controller.UserInfoCrl" level="info" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="work.yj1211.live.vo.UserInfo" level="info" additivity="false">
+            <appender-ref ref="USER_STAFF"/>
+        </logger>
+        <logger name="work.yj1211.live.utils.http" level="WARN" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <root level="info">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
     <springProfile name="prod">
         <logger name="work.yj1211.live.controller.UserInfoCrl" level="info" additivity="false">
             <appender-ref ref="MIX_LIVE"/>
