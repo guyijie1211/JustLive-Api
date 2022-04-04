@@ -8,7 +8,11 @@ Android项目 [JustLive-Android](https://github.com/guyijie1211/JustLive-Android
 
 网站页面    [live.yj1211.work](live.yj1211.work)
 
-数据库结构	[MixLive.sql](https://github.com/guyijie1211/MixLive/blob/master/MixLive.sql)
+数据库结构	[mixlive.sql](https://github.com/guyijie1211/MixLive/blob/master/mixlive.sql)
+
+## 部署方式
+- 修改 配置文件(src/main/resources/application-github.properties) 中的数据库信息
+- 运行 src/main/java/work/yj1211/live/LiveApplication.java 启动
 
 ## 直播支持
 
