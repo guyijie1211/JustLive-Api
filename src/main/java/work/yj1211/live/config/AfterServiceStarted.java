@@ -22,5 +22,6 @@ public class AfterServiceStarted implements ApplicationRunner {
     public void run(ApplicationArguments args){
         liveRoomService.refreshArea();
         liveRoomService.refreshUpdate();
+        //tvLiveService.refreshM3U();
     }
 }
