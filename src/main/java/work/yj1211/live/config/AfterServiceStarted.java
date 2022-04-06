@@ -19,9 +19,8 @@ public class AfterServiceStarted implements ApplicationRunner {
      * 会在服务启动完成后立即执行
      */
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args){
         liveRoomService.refreshArea();
         liveRoomService.refreshUpdate();
-        tvLiveService.refreshM3U();
     }
 }
