@@ -15,6 +15,8 @@ import java.util.concurrent.CountDownLatch;
 public class AsyncServiceImpl implements AsyncService {
     @Autowired
     private RoomMapper roomMapper;
+    @Autowired
+    private Bilibili bilibili;
 
     @Async("asyncServiceExecutor")
     @Override
@@ -22,7 +24,7 @@ public class AsyncServiceImpl implements AsyncService {
         try {
             LiveRoomInfo roomInfo = null;
             if ("bilibili".equals(platForm)){
-                roomInfo = Bilibili.get_single_roomInfo(roomId);
+                roomInfo = bilibili.get_single_roomInfo(roomId);
             }
             if ("douyu".equals(platForm)){
                 roomInfo = Douyu.getRoomInfo(roomId);

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="work.yj1211.live.mapper.AllRoomsMapper">
+    <resultMap id="RoomInfoMap" type="work.yj1211.live.vo.LiveRoomInfo">
+        <result column="platform" property="platform"/>
+        <result column="roomId" property="roomId"/>
+        <result column="online" property="online"/>
+        <result column="isLive" property="isLive"/>
+        <result column="owner" property="ownerName"/>
+        <result column="roomName" property="roomId"/>
+        <result column="areaName" property="categoryName"/>
+    </resultMap>
+
+    <insert id="updateRooms" useGeneratedKeys="true">
+        insert into all_rooms(platform, roomId, owner, roomName, areaName, isLive, online)
+        values
+        <foreach collection="list" item="room" separator=",">
+            (#{room.platForm}, #{room.roomId}, #{room.ownerName}, #{room.roomName}, #{room.categoryName}, #{room.isLive}, #{room.online})
+        </foreach>
+        on duplicate key update
+        owner = values(owner), roomName = values(roomName), areaName = values(areaName), isLive = values(isLive), online = values(online)
+    </insert>
+
+    <insert id="updateOneRoom" parameterType="work.yj1211.live.vo.LiveRoomInfo">
+        insert into all_rooms(platform, roomId, owner, roomName, areaName, isLive, online)
+        values (#{room.platForm}, #{room.roomId}, #{room.ownerName}, #{room.roomName}, #{room.categoryName}, #{room.isLive}, #{room.online})
+        on duplicate key update
+        owner = values(owner), roomName = values(roomName), areaName = values(areaName), isLive = values(isLive), online = values(online)
+    </insert>
+
+</mapper>

@@ -26,6 +26,9 @@ public class LiveRoomService{
     @Autowired
     private AsyncService asyncService;
 
+    @Autowired
+    private Bilibili bilibili;
+
     /**
      * 获取总推荐
      * @param page
@@ -79,7 +82,7 @@ public class LiveRoomService{
     public List<LiveRoomInfo> getRecommendByPlatform(String platform, int page, int size){
         List<LiveRoomInfo> list = null;
         if ("bilibili".equals(platform)){
-            list = Bilibili.getRecommend(page, size);
+            list = bilibili.getRecommend(page, size);
         }
         if("douyu".equals(platform)){
             list = Douyu.getRecommend(page, size);
@@ -107,7 +110,7 @@ public class LiveRoomService{
     public List<LiveRoomInfo> getRecommendByPlatformArea(String platform, String area, int page, int size){
         List<LiveRoomInfo> list = null;
         if ("bilibili".equals(platform)){
-            list = Bilibili.getAreaRoom(area, page, size);
+            list = bilibili.getAreaRoom(area, page, size);
         }
         if("douyu".equals(platform)){
             list = Douyu.getAreaRoom(area, page, size);
@@ -133,7 +136,7 @@ public class LiveRoomService{
     public Map<String, String> getRealUrl(String platForm, String roomId){
         Map<String, String> urls = new HashMap<>();
         if ("bilibili".equals(platForm)){
-            Bilibili.get_real_url(urls, roomId);
+            bilibili.get_real_url(urls, roomId);
         }
         if ("douyu".equals(platForm)){
             Douyu.get_real_url(urls, roomId);
@@ -188,7 +191,7 @@ public class LiveRoomService{
     public LiveRoomInfo getRoomInfo(String uid, String platForm, String roomId){
         LiveRoomInfo roomInfo = null;
         if ("bilibili".equals(platForm)){
-            roomInfo = Bilibili.get_single_roomInfo(roomId);
+            roomInfo = bilibili.get_single_roomInfo(roomId);
         }
         if ("douyu".equals(platForm)){
             roomInfo = Douyu.getRoomInfo(roomId);
@@ -214,7 +217,7 @@ public class LiveRoomService{
     public void refreshArea(){
         long start = System.currentTimeMillis();
         Douyu.refreshArea();
-        Bilibili.refreshArea();
+        bilibili.refreshArea();
         Huya.refreshArea();
         CC.refreshArea();
         Egame.refreshArea();
@@ -396,7 +399,7 @@ public class LiveRoomService{
             list.addAll(douyuList);
         }
         if ("bilibili".equals(platform)){
-            List<Owner> bilibiliList = Bilibili.search(keyWords, isLive);
+            List<Owner> bilibiliList = bilibili.search(keyWords, isLive);
             list.addAll(bilibiliList);
         }
         if ("huya".equals(platform)){
@@ -413,7 +416,7 @@ public class LiveRoomService{
         }
         if ("all".equals(platform)){
             List<Owner> douyuList = Douyu.search(keyWords, isLive);
-            List<Owner> bilibiliList = Bilibili.search(keyWords, isLive);
+            List<Owner> bilibiliList = bilibili.search(keyWords, isLive);
             List<Owner> huyaList = Huya.search(keyWords, isLive);
             List<Owner> ccList = CC.search(keyWords, isLive);
             List<Owner> egameList = Egame.search(keyWords, isLive);
