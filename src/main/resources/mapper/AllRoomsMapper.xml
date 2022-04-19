@@ -29,4 +29,17 @@
         owner = values(owner), roomName = values(roomName), areaName = values(areaName), isLive = values(isLive), online = values(online)
     </insert>
 
+    <select id="getRecommendRooms" resultMap="RoomInfoMap">
+        SELECT *
+        FROM all_rooms
+        WHERE isLive = '1'
+        ORDER BY online
+        LIMIT (#{page}-1) * #{size}, #{size}
+    </select>
+
+    <update id="setOffLine">
+        UPDATE isLive = '0'
+        WHERE platform = #{platform} and modified lt #{time}
+    </update>
+
 </mapper>

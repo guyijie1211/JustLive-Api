@@ -2,7 +2,9 @@ package work.yj1211.live.service;
 
 import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.platForms.*;
@@ -22,6 +24,9 @@ public class LiveRoomService{
 
     @Autowired
     private RoomMapper roomMapper;
+
+    @Autowired
+    private AllRoomsMapper allRoomsMapper;
 
     @Autowired
     private AsyncService asyncService;
@@ -70,6 +75,17 @@ public class LiveRoomService{
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * 获取总推荐(数据库获取)
+     * @param page
+     * @param size
+     * @return
+     */
+    public List<LiveRoomInfo> getRecommendFromLocal(int page, int size){
+        List<LiveRoomInfo> roomList = allRoomsMapper.getRecommendRooms(page, size);
+        return roomList;
     }
 
     /**
