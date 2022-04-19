@@ -378,7 +378,7 @@ public class Huya {
                 liveRoomInfo.setRoomId(roomInfo.getString("profileRoom"));
                 liveRoomInfo.setCategoryId(roomInfo.getString("gid"));
                 liveRoomInfo.setCategoryName(roomInfo.getString("gameFullName"));
-                liveRoomInfo.setRoomName(roomInfo.getString("introduction"));
+                liveRoomInfo.setRoomName(roomInfo.getString("roomName"));
                 liveRoomInfo.setOwnerName(roomInfo.getString("nick"));
                 liveRoomInfo.setRoomPic(roomInfo.getString("screenshot"));
                 liveRoomInfo.setOwnerHeadPic(roomInfo.getString("avatar180"));
