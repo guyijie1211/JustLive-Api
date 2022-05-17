@@ -4,6 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -12,22 +16,27 @@ import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
+@Component
 public class Bilibili {
+    @Autowired
+    private AllRoomsMapper allRoomsMapper;
+
     //Bilibili清晰度
-    private static String bilibiliFD = "80";
-    private static String bilibiliLD = "150";
-    private static String bilibiliSD = "250";
-    private static String bilibiliHD = "400";
-    private static String bilibiliOD = "10000";
+    private String bilibiliFD = "80";
+    private String bilibiliLD = "150";
+    private String bilibiliSD = "250";
+    private String bilibiliHD = "400";
+    private String bilibiliOD = "10000";
 
     /**
      * 获取真实直播间id
      * @param rid
      * @return
      */
-    public static JSONObject get_real_rid(String rid) {
+    public JSONObject get_real_rid(String rid) {
         String room_url = "https://api.live.bilibili.com/room/v1/Room/room_init?id=" + rid;
         JSONObject response = HttpRequest.create(room_url).get().getBodyJson();
         int code = response.getInteger("code");
@@ -48,7 +57,7 @@ public class Bilibili {
      * @param urls
      * @param rid
      */
-    public static void get_real_url(Map<String, String> urls, String rid) {
+    public void get_real_url(Map<String, String> urls, String rid) {
         JSONObject roomInfo = get_real_rid(rid);
 
         if (roomInfo == null) {
@@ -86,7 +95,7 @@ public class Bilibili {
      * @param qn
      * @return
      */
-    private static String get_single_url(Long roomId, String qn){
+    private String get_single_url(Long roomId, String qn){
         String room_url = "https://api.live.bilibili.com/xlive/web-room/v1/playUrl/playUrl?"
                 + "cid=" + roomId
                 + "&qn=" + qn
@@ -109,7 +118,7 @@ public class Bilibili {
      * @param roomId 房间号
      * @return
      */
-    public static LiveRoomInfo get_single_roomInfo(String roomId){
+    public LiveRoomInfo get_single_roomInfo(String roomId){
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         try{
             String req_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/" +
@@ -140,7 +149,7 @@ public class Bilibili {
      * @param size 每页大小
      * @return
      */
-    public static List<LiveRoomInfo> getRecommend(int page, int size){
+    public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         String url = "https://api.live.bilibili.com/room/v1/room/get_user_recommend?page=" + page + "&page_size=" + size;
         String result = HttpUtil.doGet(url);
@@ -173,7 +182,7 @@ public class Bilibili {
      * 刷新分类缓存
      * @return
      */
-    public static void refreshArea(){
+    public void refreshArea(){
         try {
             String url = "https://api.live.bilibili.com/xlive/web-interface/v1/index/getWebAreaList?source_id=2";//获取bilibili所有分类的请求地址
             List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
@@ -229,7 +238,7 @@ public class Bilibili {
      * @param size
      * @return
      */
-    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         try {
             AreaInfo areaInfo = Global.getAreaInfo("bilibili", area);
@@ -270,7 +279,7 @@ public class Bilibili {
      * @param isLive 是否搜索直播中的信息
      * @return
      */
-    public static List<Owner> search(String keyWords, String isLive){
+    public List<Owner> search(String keyWords, String isLive){
         int i = 0;
         List<Owner> list = new ArrayList<>();
         String url = "https://api.bilibili.com/x/web-interface/search/" +
@@ -310,9 +319,54 @@ public class Bilibili {
         return list;
     }
 
-    private static String getUserName(String responseName){
+    private String getUserName(String responseName){
         String str1 = responseName.replaceAll("<em class=\"keyword\">","");
         String result = str1.replaceAll("</em>","");
         return result;
+    }
+
+    /**
+     * 拉取所有直播间
+     */
+    public void updateAllRooms() {
+        for (int i = 0; i <= 7; i++) {
+//            updateAllRoomByPage(i*100 + 1);
+        }
+
+    }
+
+    @Async("asyncServiceExecutor")
+    public void updateAllRoomByPage(int page, CountDownLatch countDownLatch) {
+        int endPage = page + 99;
+        while (true) {
+            log.info("Bilibili全量拉取直播间===page:" + page);
+            List<LiveRoomInfo> list = new ArrayList<>();
+            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getUserRecommend?page=" + page + "&page_size=30&platform=web";
+            String result = HttpUtil.doGet(url);
+            JSONObject resultJsonObj = JSON.parseObject(result);
+            if (resultJsonObj.getInteger("code") == 0) {
+                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
+                Iterator<Object> it = data.iterator();
+                while(it.hasNext()){
+                    JSONObject roomInfo = (JSONObject) it.next();
+                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+                    liveRoomInfo.setPlatForm("bilibili");
+                    liveRoomInfo.setRoomId(roomInfo.getString("roomid"));
+                    liveRoomInfo.setCategoryName(roomInfo.getString("area_name"));
+                    liveRoomInfo.setRoomName(roomInfo.getString("title"));
+                    liveRoomInfo.setOwnerName(roomInfo.getString("uname"));
+                    liveRoomInfo.setOnline(roomInfo.getInteger("online"));
+                    liveRoomInfo.setIsLive(1);
+                    list.add(liveRoomInfo);
+                }
+                allRoomsMapper.updateRooms(list);
+                if (page >= endPage || resultJsonObj.getJSONObject("data").getInteger("has_more") != 1 || list.get(0).getOnline() < 10) {
+                    break;
+                } else {
+                    page++;
+                }
+            }
+        }
+        countDownLatch.countDown();
     }
 }
