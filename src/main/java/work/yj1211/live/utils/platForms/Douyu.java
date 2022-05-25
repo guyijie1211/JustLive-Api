@@ -56,17 +56,16 @@ public class Douyu {
             rateList = roomRateMap.get(rid);
         }
         try{
-//            for (int i = 0; i < rateList.size(); i++){
-//                String qnString = qnList.get(i);
-//                String qn;
-//                if ("OD".equals(qnString)){
-//                    qn = "";
-//                }else {
-//                    qn = "_"+rateList.get(i).toString();
-//                }
-//                urls.put(qnString, get_single_url(rid, qn));
-//            }
-            urls.put("OD", get_single_url(rid, ""));
+            for (int i = 0; i < rateList.size(); i++){
+                String qnString = qnList.get(i);
+                String qn;
+                if ("OD".equals(qnString)){
+                    qn = "";
+                }else {
+                    qn = "_"+rateList.get(i).toString();
+                }
+                urls.put(qnString, get_single_url(rid, qn));
+            }
         }catch (Exception e){
             return;
         }finally {
@@ -85,9 +84,7 @@ public class Douyu {
     private static String get_single_url(String roomId, String qn){
         //获取房间唯一标识，第一次获取时去请求
         String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
-//        String result = "http://dyscdnali1.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
-        StringBuffer sb = new StringBuffer(roomUrl);
-        String result = sb.insert(roomUrl.indexOf(".flv"), qn).toString();
+        String result = "http://akm-tct.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
         return result;
     }
 
@@ -177,8 +174,8 @@ public class Douyu {
         if (data == null){
             return null;
         }
-        String url = data.getString("rtmp_url") + "/" + data.getString("rtmp_live");
-//        url = handleUrl(url);
+        String url = data.getString("rtmp_live");
+        url = handleUrl(url);
         roomUrlMap.put(rid, url);
         List<Integer> rateList = handleRate(data.getJSONArray("multirates"));
         roomRateMap.put(rid, rateList);
