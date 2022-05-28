@@ -38,8 +38,8 @@ public class AsyncServiceImpl implements AsyncService {
             if ("egame".equals(platForm)){
                 roomInfo = Egame.getRoomInfo(roomId);
             }
-            int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
-            roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
+//            int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
+//            roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
             roomList.add(roomInfo);
         } catch (Exception e) {
 
