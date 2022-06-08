@@ -120,4 +120,17 @@
         </trim>
         where userName = #{userName}
     </update>
+    <select id="findByUid" resultType="work.yj1211.live.vo.UserInfo">
+        select
+        *
+        from userinfo
+        where
+        uid = #{uid,jdbcType=VARCHAR}
+    </select>
+    <select id="selectAllByUidAndPassword" resultType="work.yj1211.live.vo.UserInfo">
+        select
+        *
+        from userinfo
+        where uid = #{uid} and password = #{password}
+    </select>
 </mapper>

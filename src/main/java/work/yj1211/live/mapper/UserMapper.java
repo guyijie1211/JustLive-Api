@@ -14,7 +14,9 @@ import java.util.List;
 @Repository
 public interface UserMapper {
     UserInfo login(String userName, String password);
+    UserInfo selectAllByUidAndPassword(@Param("uid") String uid, @Param("password")String password);
     UserInfo findUserByName(String userName);
+    UserInfo findByUid(@Param("uid") String uid);
     List<AreaSimple> getAreasByUid(String uid);
     SimpleRoomInfo checkFollowed(@Param("platform") String platform, @Param("roomId")String roomId, @Param("uid")String uid);
     void register(UserInfo user);

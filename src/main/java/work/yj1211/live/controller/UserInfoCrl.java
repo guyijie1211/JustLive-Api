@@ -1,16 +1,16 @@
 package work.yj1211.live.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
+import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.service.UserService;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Result;
-import work.yj1211.live.vo.UpdateInfo;
-import work.yj1211.live.vo.UserInfo;
+import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaSimple;
 
 import javax.websocket.server.PathParam;
@@ -26,6 +26,8 @@ public class UserInfoCrl {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserMailMapper mailMapper;
 
     /**
      * 用户登录接口
@@ -57,7 +59,7 @@ public class UserInfoCrl {
     @CrossOrigin
     @RequestMapping(value = "/api/register", method = RequestMethod.POST, produces = "application/json; charset = UTF-8")
     @ResponseBody
-    public Result register(@PathParam("username")String username, @PathParam("nickname")String nickname, @PathParam("password")String password){
+    public Result register(@PathParam("username")String username, @PathParam("nickname")String nickname, @PathParam("password")String password, @PathParam("mail")String mail){
         if(null != userService.findUserByName(username)){
             log.info(username+"---注册失败---用户名已存在");
             return ResultFactory.buildFailResult("用户名已存在");
@@ -70,9 +72,34 @@ public class UserInfoCrl {
         user.setNickName(nickname);
         user.setPassword(password);
         userService.register(user);
+        if (StringUtils.isNotEmpty(mail)) {
+            try {
+                userService.bindMail(uuid, mail);
+            } catch (Exception e) {
+                return ResultFactory.buildFailResult("邮箱已被绑定");
+            }
+        }
         log.info(username+"---注册成功");
         logger.info(username+"---注册成功");
         return ResultFactory.buildSuccessResult(user);
+    }
+
+    /**
+     * 绑定邮箱
+     * @param userName
+     * @param mail
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/bindMail", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result bindMail(@PathParam("userName")String userName, @PathParam("mail")String mail){
+        try {
+            userService.bindMail(userName, mail);
+        } catch (Exception e) {
+            return ResultFactory.buildFailResult("邮箱已被绑定");
+        }
+        return ResultFactory.buildSuccessResult("成功");
     }
 
     /**
@@ -184,6 +211,59 @@ public class UserInfoCrl {
             userService.changePassword(userName, newPassword);
             log.info(userName + "---修改密码成功");
             return ResultFactory.buildSuccessResult("密码修改成功");
+        }
+    }
+
+    /**
+     * 找回密码
+     * @param mail
+     * @param newPassword
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/changePasswordByMail", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result changePassword(@PathParam("mail")String mail, @PathParam("newPassword")String newPassword){
+        String changeResult = userService.changePassByMail(mail, newPassword);
+        if ("此邮箱未绑定账号".equalsIgnoreCase(changeResult)) {
+            return ResultFactory.buildFailResult(changeResult);
+        } else {
+            return ResultFactory.buildSuccessResult(changeResult);
+        }
+    }
+
+    /**
+     * 发送邮件
+     * @param mail 邮件地址
+     * @param code 验证码
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/sendMail", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result sendMail(@PathParam("mail")String mail, @PathParam("code")String code, @PathParam("action")String action) {
+        String sendResult = userService.sendMail(mail, code, action);
+        if ("邮件已发送".equalsIgnoreCase(sendResult)) {
+            return ResultFactory.buildSuccessResult(sendResult);
+        } else {
+            return ResultFactory.buildFailResult(sendResult);
+        }
+    }
+
+    /**
+     * 获取绑定邮件
+     * @param uid uid
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getBindMail", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getBindMail(@PathParam("uid")String uid) {
+        List<UserMail> mails = mailMapper.selectAllByUid(uid);
+        if (CollectionUtils.isEmpty(mails)) {
+            return ResultFactory.buildSuccessResult("");
+        } else {
+            return ResultFactory.buildSuccessResult(mails.get(0).getMail());
         }
     }
 
