@@ -40,6 +40,9 @@ public class Huya {
     private static List<String> qnString = new ArrayList<>();
 
     private static DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    private static final Pattern SFlvUrl = Pattern.compile("\"sFlvUrl\":\"([\\s\\S]*?)\",");
+    private static final Pattern SFlvAntiCode = Pattern.compile("\"sFlvAntiCode\":\"([\\s\\S]*?)\",");
+    private static final Pattern SStreamName = Pattern.compile("\"sStreamName\":\"([\\s\\S]*?)\",");
 
     static {
 //        qnString.add("OD");
@@ -129,33 +132,41 @@ public class Huya {
                 .get().getBody();
         Matcher matcher = PATTERN.matcher(response);
         Matcher matcher2 = PATTERN2.matcher(response);
-        if (!matcher2.find()){
+        Matcher matcher3 = SFlvUrl.matcher(response);
+        Matcher matcher4 = SFlvAntiCode.matcher(response);
+        Matcher matcher5 = SStreamName.matcher(response);
+        if (!matcher2.find()) {
             System.out.println("没提取到虎牙ayyuid");
         }
-        if (!matcher.find()) {
+        if (!matcher.find() || !matcher3.find() || !matcher4.find() || !matcher5.find()) {
             return;
         }
         String result = matcher.group();
         String result2 = matcher2.group();
+        String sFlvUrlGroup = matcher3.group();
+        String sFlvAntiCodeGroup = matcher4.group();
+        String sStreamNameGroup = matcher5.group();
         if (result.contains("replay")){
             return;
         }
         try{
-            result = result.substring(result.indexOf("\":\"")+3, result.lastIndexOf("\""));
-            result = new String(Base64.getDecoder().decode(result), "utf-8");
-            String finalResult = result.replaceAll("(ratio=[^&]*)&", "").replaceAll("m3u8", "flv");
-            String finalUrl = formatUrl(finalResult).replace("hls", "flv");
+            String sFlvUrl = sFlvUrlGroup.substring(sFlvUrlGroup.indexOf("\":\"") + 3, sFlvUrlGroup.lastIndexOf("\""));
+            String sStreamName = sStreamNameGroup.substring(sStreamNameGroup.indexOf("\":\"") + 3, sStreamNameGroup.lastIndexOf("\""));
+            String sFlvAntiCode = sFlvAntiCodeGroup.substring(sFlvAntiCodeGroup.indexOf("\":\"") + 3, sFlvAntiCodeGroup.lastIndexOf("\""));
+            String finalUrl = String.format("%s/%s.flv?%s", sFlvUrl, sStreamName, sFlvAntiCode);
+
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
             urls.put("ayyuid", result2);
-            urls.put("OD", "https:" + finalUrl);
+            urls.put("OD", finalUrl);
             for (int i = 0; i < qnList.size() ; i++) {
                 int qn = qnList.get(i);
                 if (qn != 0) {
-                    urls.put(qnString.get(i), "https:" + finalUrl + "&ratio=" + qnList.get(i));
+                    urls.put(qnString.get(i), finalUrl + "&ratio=" + qnList.get(i));
                 }
             }
         }catch (Exception e){
+            e.printStackTrace();
             return;
         }
     }
@@ -202,9 +213,13 @@ public class Huya {
         Matcher matcher = pJson.matcher(html);
         matcher.find();
         JSONObject obj = JSONObject.parseObject(matcher.group(1));
-        String stream = obj.getString("stream");
-        stream = new String(Base64.getDecoder().decode(stream), "UTF-8");
-        obj = JSONObject.parseObject(stream);
+        try {
+            obj = obj.getJSONObject("stream");
+        } catch(JSONException e) {
+            String stream = obj.getString("stream");
+            stream = new String(Base64.getDecoder().decode(stream), "UTF-8");
+            obj = JSONObject.parseObject(stream);
+        }
 
         List<Integer> qnList = new ArrayList<>();
         JSONArray qns = obj.getJSONArray("vMultiStreamInfo");
