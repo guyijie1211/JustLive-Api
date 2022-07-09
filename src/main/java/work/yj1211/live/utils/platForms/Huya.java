@@ -213,9 +213,13 @@ public class Huya {
         Matcher matcher = pJson.matcher(html);
         matcher.find();
         JSONObject obj = JSONObject.parseObject(matcher.group(1));
-        String stream = obj.getString("stream");
-//        stream = new String(Base64.getDecoder().decode(stream), "UTF-8");
-        obj = JSONObject.parseObject(stream);
+        try {
+            obj = obj.getJSONObject("stream");
+        } catch(JSONException e) {
+            String stream = obj.getString("stream");
+            stream = new String(Base64.getDecoder().decode(stream), "UTF-8");
+            obj = JSONObject.parseObject(stream);
+        }
 
         List<Integer> qnList = new ArrayList<>();
         JSONArray qns = obj.getJSONArray("vMultiStreamInfo");
