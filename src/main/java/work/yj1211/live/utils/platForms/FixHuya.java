@@ -36,6 +36,7 @@ public class FixHuya {
         List<Integer> ratioList = rateArray
                 .stream()
                 .map(HuyaDTO.DataDTO.StreamDTO.HlsDTO.RateArrayDTO::getIBitRate)
+                .filter(item -> item != 0)
                 .sorted()
                 .collect(Collectors.toList());
         Collections.reverse(ratioList);
