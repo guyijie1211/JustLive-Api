@@ -112,11 +112,11 @@ public class Huya {
      */
     public static void getUrl(Map<String, String> urls, String roomId) {
         String categoryName = getRoomInfo(roomId).getCategoryName();
-        if (categoryName.equalsIgnoreCase("一起看") || categoryName.equalsIgnoreCase("原创")) {
-            getRealUrlTest(urls, roomId);
-        } else {
+//        if (categoryName.equalsIgnoreCase("一起看") || categoryName.equalsIgnoreCase("原创")) {
+//            getRealUrlTest(urls, roomId);
+//        } else {
             getRealUrl(urls, roomId);
-        }
+//        }
     }
 
     /**
@@ -154,6 +154,7 @@ public class Huya {
             String sStreamName = sStreamNameGroup.substring(sStreamNameGroup.indexOf("\":\"") + 3, sStreamNameGroup.lastIndexOf("\""));
             String sFlvAntiCode = sFlvAntiCodeGroup.substring(sFlvAntiCodeGroup.indexOf("\":\"") + 3, sFlvAntiCodeGroup.lastIndexOf("\""));
             String finalUrl = String.format("%s/%s.flv?%s", sFlvUrl, sStreamName, sFlvAntiCode);
+            finalUrl = finalUrl.replace("&ctype=tars_mobile","");
 
             List<Integer> qnList = getQns(roomId);
             result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
