@@ -33,7 +33,8 @@ public class LiveRoomService{
 
     @Autowired
     private Bilibili bilibili;
-
+    @Autowired
+    private FixBilili fixBilili;
     /**
      * 获取总推荐
      * @param page
@@ -152,7 +153,7 @@ public class LiveRoomService{
     public Map<String, String> getRealUrl(String platForm, String roomId){
         Map<String, String> urls = new HashMap<>();
         if ("bilibili".equals(platForm)){
-            bilibili.get_real_url(urls, roomId);
+            fixBilili.get_real_url(urls, roomId);
         }
         if ("douyu".equals(platForm)){
             Douyu.get_real_url(urls, roomId);
