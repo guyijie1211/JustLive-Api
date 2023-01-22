@@ -172,7 +172,6 @@ public class LiveRoomService{
      * @return
      */
     public List<LiveRoomInfo> getRoomsByUid(String uid){
-        long start = System.currentTimeMillis();
         List<LiveRoomInfo> roomList = new ArrayList<>();
         List<SimpleRoomInfo> simpleRoomInfoList = roomMapper.getRoomsByUid(uid);
         CountDownLatch countDownLatch = new CountDownLatch(simpleRoomInfoList.size());
@@ -185,8 +184,6 @@ public class LiveRoomService{
             e.printStackTrace();
             roomList.clear();
         }
-        long end = System.currentTimeMillis();
-        System.out.println(end-start);
         return roomList;
     }
 

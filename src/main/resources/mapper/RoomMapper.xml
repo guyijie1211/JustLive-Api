@@ -8,7 +8,7 @@
     </resultMap>
 
     <select id="getRoomsByUid" parameterType="String" resultMap="RoomInfoMap">
-        select platform, roomId from follows where uid = #{uid}
+        select platform, roomId from follows where uid = #{uid} and platform != 'egame'
     </select>
 
     <select id="ifIsFollowed" resultType="Integer">
