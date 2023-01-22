@@ -8,7 +8,7 @@ fi
 #打印当前路径
 echo $currentPath
 #存放pid的文件路径配置
-pidFile="$currentPath/justlive-test.pid"
+pidFile="$currentPath/test.pid"
 #jar包的路径配置
 jarPath="$currentPath/target/JustLive-back.jar"
 #当pid文件存在时，读出pid文件的内容，kill掉该pid的进程
@@ -28,5 +28,5 @@ cd $currentPath
 # 2>&1 即所有类型日志的输出 &表示后台运行，后面>表示把pid保存到当前目录的test.pid文件中
 #便于后续杀进程重启
 echo "$jarPath"
-nohup java -jar $jarPath --spring.profiles.active=prod > /dev/null 2>&1 & echo $! >"$currentPath/justlive-test.pid"
+nohup java -jar $jarPath --spring.profiles.active=prod > /dev/null 2>&1 & echo $! >"$currentPath/test.pid"
 echo "执行启动java程序指令完成!"

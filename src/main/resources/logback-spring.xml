@@ -21,7 +21,7 @@
         <property name="logging.path" value="/Users/a1234/IdeaProjects/logs"/>
     </springProfile>
     <springProfile name="prod">
-        <property name="logging.path" value="/usr/local/jar/logs"/>
+        <property name="logging.path" value="/home/admin/app/just-live/logs"/>
     </springProfile>
 
     <!--0. 日志格式和颜色渲染 -->
