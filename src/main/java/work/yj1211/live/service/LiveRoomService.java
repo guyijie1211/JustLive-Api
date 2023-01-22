@@ -58,16 +58,16 @@ public class LiveRoomService{
         Thread t1 = new Thread(new MyThread("bilibili", list));
         Thread t2 = new Thread(new MyThread("douyu", list));
         Thread t3 = new Thread(new MyThread("huya", list));
-        Thread t4 = new Thread(new MyThread("cc", list));
+//        Thread t4 = new Thread(new MyThread("cc", list));
         t1.start();
         t2.start();
         t3.start();
-        t4.start();
+//        t4.start();
         try{
             t1.join();
             t2.join();
             t3.join();
-            t4.join();
+//            t4.join();
         }catch (Exception e){
             e.printStackTrace();
         }
