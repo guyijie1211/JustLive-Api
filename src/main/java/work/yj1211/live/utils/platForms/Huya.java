@@ -26,7 +26,7 @@ public class Huya {
     private static final Pattern PATTERN = Pattern.compile("\"liveLineUrl\":\"([\\s\\S]*?)\",");
     private static final Pattern PATTERN2 = Pattern.compile("\"lUid\":([\\s\\S]*?),");
     private static final Pattern OwnerName = Pattern.compile("\"sNick\":\"([\\s\\S]*?)\",");
-    private static final Pattern RoomName = Pattern.compile("\"sRoomName\":\"([\\s\\S]*?)\",");
+    private static final Pattern RoomName = Pattern.compile("\"sIntroduction\":\"([\\s\\S]*?)\",");
     private static final Pattern RoomPic = Pattern.compile("\"sScreenshot\":\"([\\s\\S]*?)\",");
     private static final Pattern OwnerPic = Pattern.compile("\"sAvatar180\":\"([\\s\\S]*?)\",");
     private static final Pattern AREA = Pattern.compile("\"sGameFullName\":\"([\\s\\S]*?)\",");
@@ -398,7 +398,7 @@ public class Huya {
                 liveRoomInfo.setRoomId(roomInfo.getString("profileRoom"));
                 liveRoomInfo.setCategoryId(roomInfo.getString("gid"));
                 liveRoomInfo.setCategoryName(roomInfo.getString("gameFullName"));
-                liveRoomInfo.setRoomName(roomInfo.getString("roomName"));
+                liveRoomInfo.setRoomName(roomInfo.getString("introduction"));
                 liveRoomInfo.setOwnerName(roomInfo.getString("nick"));
                 liveRoomInfo.setRoomPic(roomInfo.getString("screenshot"));
                 liveRoomInfo.setOwnerHeadPic(roomInfo.getString("avatar180"));
