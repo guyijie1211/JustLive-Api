@@ -10,7 +10,7 @@ echo $currentPath
 #存放pid的文件路径配置
 pidFile="$currentPath/test.pid"
 #jar包的路径配置
-jarPath="$currentPath/target/JustLive-back.jar"
+jarPath="$currentPath/target/mixed-live-back.jar"
 #当pid文件存在时，读出pid文件的内容，kill掉该pid的进程
 if [ -f $pidFile ]; then
     echo "后台正在运行!"

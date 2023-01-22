@@ -15,6 +15,10 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <!-- 自定义默认的编码格式 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 自定义默认的时间格式 年-月-日-时-分 -->
+        <maven.build.timestamp.format>yyyy-MM-dd_HH_mm</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
@@ -100,7 +104,17 @@
     </dependencies>
 
     <build>
+        <!-- 打包包名 -->
+        <finalName>${project.artifactId}</finalName>
         <plugins>
+            <!-- maven 打包时跳过测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
