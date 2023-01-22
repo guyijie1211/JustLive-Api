@@ -150,8 +150,12 @@ public class Huya {
             return;
         }
         try{
-            String sFlvUrl = sFlvUrlGroup.substring(sFlvUrlGroup.indexOf("\":\"") + 3, sFlvUrlGroup.lastIndexOf("\""));
+            String sFlvUrl = cn.hutool.core.codec.Base64.decodeStr(result.substring(result.indexOf("\":\"") + 3, result.lastIndexOf("\"")));
             String sStreamName = sStreamNameGroup.substring(sStreamNameGroup.indexOf("\":\"") + 3, sStreamNameGroup.lastIndexOf("\""));
+            String[] iSplit = sFlvUrl.split("\\?");
+//            String i = iSplit[0];
+//            String b = iSplit[1];
+
             String sFlvAntiCode = sFlvAntiCodeGroup.substring(sFlvAntiCodeGroup.indexOf("\":\"") + 3, sFlvAntiCodeGroup.lastIndexOf("\""));
             String finalUrl = String.format("%s/%s.flv?%s", sFlvUrl, sStreamName, sFlvAntiCode);
             finalUrl = finalUrl.replace("&ctype=tars_mobile","");
@@ -485,7 +489,9 @@ public class Huya {
     private static Map<String, String> getNMap(String[] c) {
         Map<String, String> result = new HashMap<>();
         for (String item: c) {
-            if (item.equals("")) continue;
+            if (item.equals("")) {
+                continue;
+            }
             String temp[] = item.split("=");
             result.put(temp[0], temp[1]);
         }

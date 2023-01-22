@@ -1,5 +1,6 @@
 package work.yj1211.live.utils.platForms;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
+import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
@@ -96,17 +98,39 @@ public class Bilibili {
      * @return
      */
     private String get_single_url(Long roomId, String qn){
-        String room_url = "https://api.live.bilibili.com/xlive/web-room/v1/playUrl/playUrl?"
-                + "cid=" + roomId
+        String room_url = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?"
+                + "room_id=" + roomId
+                + "&protocol=0,1"
+                + "&format=0,1,2"
+                + "&codec=0,1"
                 + "&qn=" + qn
                 + "&platform=h5"
-                + "&https_url_req=1"
-                + "&ptype=16";
-        JSONObject response = HttpRequest.create(room_url).get().getBodyJson();
-        JSONArray durl = response.getJSONObject("data").getJSONArray("durl");
-        if (durl != null) {
-            String result = durl.getJSONObject(0).getString("url");
-            return result;
+                + "&ptype=8";
+        JSONObject response = HttpRequest.create(room_url).putHeader("User-Agent", "Mozilla/5.0 (iPod; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1").get().getBodyJson();
+        JSONArray jsonArray = response.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("stream");
+        final String suffix = "ts";
+        List<String> list = new ArrayList<>();
+        jsonArray.forEach(e -> {
+            JSONObject data = (JSONObject) e;
+            JSONArray formatArray = data.getJSONArray("format");
+            JSONObject format = (JSONObject) formatArray.get(formatArray.size() - 1);
+            String formatName = ((JSONObject) formatArray.get(0)).getString("format_name");
+            if (formatName.equals(suffix)) {
+                JSONArray codec = format.getJSONArray("codec");
+                JSONObject jsonObject = (JSONObject) codec.get(0);
+                String base_url = jsonObject.getString("base_url");
+                JSONArray url_info = jsonObject.getJSONArray("url_info");
+                url_info.forEach(q -> {
+                    JSONObject object = (JSONObject) q;
+                    String host = object.getString("host");
+                    String extra = object.getString("extra");
+                    list.add(host + base_url + extra);
+                });
+
+            }
+        });
+        if (CollectionUtil.isNotEmpty(list)) {
+            return list.get(0);
         } else {
             log.error("BILIBILI---获取真实地址异常---roomId：" + roomId);
             return "获取失败";
@@ -286,7 +310,11 @@ public class Bilibili {
                 "type?context=&search_type=live_user&cover_type=user_cover" +
                 "&page=1&order=&keyword=" + keyWords + "&category_id=&__refresh__=true" +
                 "&_extra=&highlight=1&single_column=0";
-        String result = HttpUtil.doGet(url);
+//        String result = HttpUtil.doGet(url);
+        String result = HttpRequest.create(url)
+                .setContentType(HttpContentType.FORM)
+                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .get().getBody();
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (resultJsonObj.getInteger("code") == 0) {
             JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("result");

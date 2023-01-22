@@ -109,9 +109,9 @@ public class LiveRoomService{
         if("cc".equals(platform)){
             list = CC.getRecommend(page, size);
         }
-        if("egame".equals(platform)){
-            list = Egame.getRecommend(page, size);
-        }
+//        if("egame".equals(platform)){
+//            list = Egame.getRecommend(page, size);
+//        }
         return list;
     }
 
@@ -137,9 +137,9 @@ public class LiveRoomService{
         if("cc".equals(platform)){
             list = CC.getAreaRoom(area, page, size);
         }
-        if("egame".equals(platform)){
-            list = Egame.getAreaRoom(area, page, size);
-        }
+//        if("egame".equals(platform)){
+//            list = Egame.getAreaRoom(area, page, size);
+//        }
         return list;
     }
 
@@ -163,9 +163,9 @@ public class LiveRoomService{
         if ("cc".equals(platForm)){
             CC.getRealUrl(urls,roomId);
         }
-        if ("egame".equals(platForm)){
-            Egame.get_real_url(urls,roomId);
-        }
+//        if ("egame".equals(platForm)){
+//            Egame.get_real_url(urls,roomId);
+//        }
         return urls;
     };
 
@@ -215,9 +215,9 @@ public class LiveRoomService{
         if ("cc".equals(platForm)){
             roomInfo = CC.getRoomInfo(roomId);
         }
-        if ("egame".equals(platForm)){
-            roomInfo = Egame.getRoomInfo(roomId);
-        }
+//        if ("egame".equals(platForm)){
+//            roomInfo = Egame.getRoomInfo(roomId);
+//        }
         int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
         roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
         return roomInfo;
@@ -233,7 +233,7 @@ public class LiveRoomService{
         bilibili.refreshArea();
         Huya.refreshArea();
         CC.refreshArea();
-        Egame.refreshArea();
+//        Egame.refreshArea();
     }
 
     /**
@@ -423,17 +423,17 @@ public class LiveRoomService{
             List<Owner> ccList = CC.search(keyWords, isLive);
             list.addAll(ccList);
         }
-        if ("egame".equals(platform)){
-            List<Owner> egameList = Egame.search(keyWords, isLive);
-            list.addAll(egameList);
-        }
+//        if ("egame".equals(platform)){
+//            List<Owner> egameList = Egame.search(keyWords, isLive);
+//            list.addAll(egameList);
+//        }
         if ("all".equals(platform)){
             List<Owner> douyuList = Douyu.search(keyWords, isLive);
             List<Owner> bilibiliList = bilibili.search(keyWords, isLive);
             List<Owner> huyaList = Huya.search(keyWords, isLive);
             List<Owner> ccList = CC.search(keyWords, isLive);
-            List<Owner> egameList = Egame.search(keyWords, isLive);
-            list.addAll(egameList);
+//            List<Owner> egameList = Egame.search(keyWords, isLive);
+//            list.addAll(egameList);
             list.addAll(ccList);
             list.addAll(huyaList);
             list.addAll(bilibiliList);

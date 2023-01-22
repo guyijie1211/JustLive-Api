@@ -538,9 +538,9 @@ public class Douyu {
      */
     public static List<Owner> search(String keyWords, String isLive) {
         //靓号转真实房间号
-        if (StringUtils.isNumeric(keyWords)){
-            keyWords = getRealRoomId(keyWords);
-        }
+//        if (StringUtils.isNumeric(keyWords)){
+//            keyWords = getRealRoomId(keyWords);
+//        }
         List<Owner> list = new ArrayList<>();
         LiveRoomInfo roomInfo = getRoomInfo(keyWords);
         if (roomInfo != null) {
