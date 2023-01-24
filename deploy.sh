@@ -10,7 +10,7 @@ echo $currentPath
 #存放pid的文件路径配置
 pidFile="$currentPath/test.pid"
 #jar包的路径配置
-jarPath="$currentPath/target/mixed-live-back.jar"
+jarPath="$currentPath/mixed-live-back.jar"
 #当pid文件存在时，读出pid文件的内容，kill掉该pid的进程
 if [ -f $pidFile ]; then
     echo "后台正在运行!"
@@ -27,6 +27,6 @@ cd $currentPath
 #部署jar包的指令，nohup是指忽略挂起  > /dev/null是把nohup的输入丢到一个空设备，即直接丢弃的意思
 # 2>&1 即所有类型日志的输出 &表示后台运行，后面>表示把pid保存到当前目录的test.pid文件中
 #便于后续杀进程重启
-echo "$jarPath"
-nohup java -jar $jarPath --spring.profiles.active=prod & echo $! >"$currentPath/test.pid"
+echo "java -jar $jarPath & echo $! >\"$currentPath/test.pid\""
+nohup java -jar $jarPath & echo $! >"$currentPath/test.pid"
 echo "执行启动java程序指令完成!"
