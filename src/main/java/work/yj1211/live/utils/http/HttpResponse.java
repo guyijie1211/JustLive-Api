@@ -9,9 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +35,7 @@ public class HttpResponse {
     private HttpRequest request;
     private String body;
     private byte[] bodyBytes;
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, List<String>> headers = new HashMap<>();
     private String encoding;
     private String contentType;
 
@@ -79,7 +77,13 @@ public class HttpResponse {
 
     HttpResponse header(org.apache.http.HttpResponse response) {
         for (Header item : response.getAllHeaders()) {
-            headers.put(item.getName(), item.getValue());
+            if (headers.containsKey(item.getName())) {
+                headers.get(item.getName()).add(item.getValue());
+            } else {
+                List<String> headList = new ArrayList<>();
+                headList.add(item.getValue());
+                headers.put(item.getName(), headList);
+            }
             // 从 header 的 content-type 声明中获取编码
             if (item.getName().equalsIgnoreCase(HeaderKey.CONTENT_TYPE)) {
                 Matcher matcher = PATTERN_MATCH_CHARSET.matcher(item.getValue());
@@ -107,7 +111,7 @@ public class HttpResponse {
             return body;
         }
 
-        String contentType = headers.get(HeaderKey.CONTENT_TYPE);
+        String contentType = headers.get(HeaderKey.CONTENT_TYPE).get(0);
         this.contentType = Optional.ofNullable(contentType).orElse("");
         if (StringUtils.isNotEmpty(contentType) && contentType.toLowerCase().contains("image")) {
             return Base64.encodeBase64String(bodyBytes);
@@ -182,8 +186,18 @@ public class HttpResponse {
         return request;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return headers;
+    }
+
+    public String getCookieString() {
+        StringBuilder cookieString = new StringBuilder();
+        List<String> cookieList = headers.get("Set-Cookie");
+        cookieList.forEach(cookie->{
+            String[] cookieArray = cookie.split(";");
+            cookieString.append(cookieArray[0]).append(";");
+        });
+        return cookieString.toString();
     }
 
     public String getEncoding() {

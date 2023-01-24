@@ -1,6 +1,7 @@
 package work.yj1211.live.utils.platForms;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.http.Header;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -306,14 +307,12 @@ public class Bilibili {
     public List<Owner> search(String keyWords, String isLive){
         int i = 0;
         List<Owner> list = new ArrayList<>();
-        String url = "https://api.bilibili.com/x/web-interface/search/" +
-                "type?context=&search_type=live_user&cover_type=user_cover" +
-                "&page=1&order=&keyword=" + keyWords + "&category_id=&__refresh__=true" +
-                "&_extra=&highlight=1&single_column=0";
-//        String result = HttpUtil.doGet(url);
+        String cookieUrl = "https://bilibili.com";
+        String cookie  = HttpRequest.create(cookieUrl).get().getCookieString();
+
+        String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=live_user&keyword=" + keyWords;
         String result = HttpRequest.create(url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .putHeader("Cookie",cookie)
                 .get().getBody();
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (resultJsonObj.getInteger("code") == 0) {
