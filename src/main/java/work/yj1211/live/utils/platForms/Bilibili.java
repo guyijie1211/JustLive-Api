@@ -177,24 +177,24 @@ public class Bilibili extends BasePlatform{
     @Override
     public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-        String url = "https://api.live.bilibili.com/room/v1/room/get_user_recommend?page=" + page + "&page_size=" + size;
+        String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getListByArea?sort=online&platform=web&page=" + page + "&page_size=" + size;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (resultJsonObj.getInteger("code") == 0) {
-            JSONArray data = resultJsonObj.getJSONArray("data");
+            JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
             Iterator<Object> it = data.iterator();
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("bilibili");
                 liveRoomInfo.setRoomId(roomInfo.getString("roomid"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("area"));
-                liveRoomInfo.setCategoryName(getRoomInfo(roomInfo.getString("roomid")).getCategoryName());
+                liveRoomInfo.setCategoryId(roomInfo.getString("area_id"));
+                liveRoomInfo.setCategoryName(roomInfo.getString("area_name"));
                 liveRoomInfo.setRoomName(roomInfo.getString("title"));
                 liveRoomInfo.setOwnerName(roomInfo.getString("uname"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("system_cover"));
+                liveRoomInfo.setRoomPic(roomInfo.getString("cover"));
                 liveRoomInfo.setOwnerHeadPic(roomInfo.getString("face"));
-                liveRoomInfo.setOnline(roomInfo.getInteger("online"));
+                liveRoomInfo.setOnline(roomInfo.getJSONObject("watched_show").getInteger("num"));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }
