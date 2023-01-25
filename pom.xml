@@ -14,7 +14,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <java.version>1.8</java.version>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <!-- 自定义默认的编码格式 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- 自定义默认的时间格式 年-月-日-时-分 -->
