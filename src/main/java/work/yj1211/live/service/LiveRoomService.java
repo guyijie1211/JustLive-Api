@@ -423,7 +423,7 @@ public class LiveRoomService{
                 list.addAll(CC.search(keyWords, isLive));
             }
         } catch (Exception e) {
-            log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
+//            log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
         }
         return list;
     }
