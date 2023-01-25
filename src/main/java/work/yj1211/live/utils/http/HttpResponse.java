@@ -193,10 +193,12 @@ public class HttpResponse {
     public String getCookieString() {
         StringBuilder cookieString = new StringBuilder();
         List<String> cookieList = headers.get("Set-Cookie");
-        cookieList.forEach(cookie->{
-            String[] cookieArray = cookie.split(";");
-            cookieString.append(cookieArray[0]).append(";");
-        });
+        if (cookieList.size()>0) {
+            cookieList.forEach(cookie->{
+                String[] cookieArray = cookie.split(";");
+                cookieString.append(cookieArray[0]).append(";");
+            });
+        }
         return cookieString.toString();
     }
 
