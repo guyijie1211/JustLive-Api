@@ -28,5 +28,5 @@ cd $currentPath
 # 2>&1 即所有类型日志的输出 &表示后台运行，后面>表示把pid保存到当前目录的test.pid文件中
 #便于后续杀进程重启
 echo "$jarPath"
-nohup java -jar $jarPath --spring.profiles.active=prod > /dev/null 2>&1 & echo $! >"$currentPath/test.pid"
+nohup java -javaagent:/home/admin/app/JustLive/ArmsAgent/arms-bootstrap-1.7.0-SNAPSHOT.jar -Darms.licenseKey=a565w6lvfc@3d9fbcecb8115bc -Darms.appName=mixed-live-back -jar $jarPath --spring.profiles.active=prod > /dev/null 2>&1 & echo $! >"$currentPath/test.pid"
 echo "执行启动java程序指令完成!"
