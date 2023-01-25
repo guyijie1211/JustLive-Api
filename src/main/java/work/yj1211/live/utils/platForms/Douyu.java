@@ -141,7 +141,7 @@ public class Douyu {
                 params = (String) ((Invocable) docjs_new).invokeFunction("sign", rid, "10000000000000000000000000001501", tt); // 执行方法
             }
         } catch (Exception e) {
-            System.out.println("表达式runtime错误:" + e.getMessage());
+            log.error("表达式runtime错误:", e);
         }
         return params;
     }

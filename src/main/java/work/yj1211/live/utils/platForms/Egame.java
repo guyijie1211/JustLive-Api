@@ -308,7 +308,6 @@ public class Egame {
                     Matcher matcherIslive = PATTERNisLive.matcher(resulteach);
                     if (!(matcherOwnerName.find() && matcherOwnerPic.find() && matcherRoomId.find()
                             && matcherFollow.find() && matcherIslive.find())){
-                        System.out.println("获取房间信息异常");
                         return list;
                     }
                     Owner owner = new Owner();

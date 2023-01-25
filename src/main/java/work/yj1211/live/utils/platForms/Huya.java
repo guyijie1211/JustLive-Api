@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.util.DigestUtils;
 import work.yj1211.live.utils.Global;
@@ -22,6 +23,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class Huya {
     private static final Pattern PATTERN = Pattern.compile("\"liveLineUrl\":\"([\\s\\S]*?)\",");
     private static final Pattern PATTERN2 = Pattern.compile("\"lUid\":([\\s\\S]*?),");
@@ -94,7 +96,7 @@ public class Huya {
                 .get().getBody();
         Matcher matcher2 = PATTERN2.matcher(response);
         if (!matcher2.find()){
-            System.out.println("没提取到虎牙ayyuid");
+            log.info("没提取到虎牙ayyuid,roomId:[{}]",roomId);
         }
         String result2 = matcher2.group();
         try{
@@ -136,7 +138,7 @@ public class Huya {
         Matcher matcher4 = SFlvAntiCode.matcher(response);
         Matcher matcher5 = SStreamName.matcher(response);
         if (!matcher2.find()) {
-            System.out.println("没提取到虎牙ayyuid");
+            log.info("没提取到虎牙ayyuid,roomId:[{}]",roomId);
         }
         if (!matcher.find() || !matcher3.find() || !matcher4.find() || !matcher5.find()) {
             return;
@@ -343,8 +345,7 @@ public class Huya {
         if (!(matcherOwnerName.find() && matcherRoomName.find() && matcherRoomPic.find()
                 && matcherOwnerPic.find() && matcherAREA.find() && matcherNum.find()
                 && matcherISLIVE.find())){
-            System.out.println("获取房间信息异常");
-            return new LiveRoomInfo();
+            log.info("虎牙获取房间信息异常,roomId:[{}]",roomId);
         }
         String resultOwnerName = matcherOwnerName.group();
         String resultRoomName = matcherRoomName.group();
