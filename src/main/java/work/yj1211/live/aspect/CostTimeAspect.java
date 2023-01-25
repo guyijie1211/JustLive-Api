@@ -1,11 +1,17 @@
 package work.yj1211.live.aspect;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author YJ1211
@@ -75,6 +81,15 @@ public class CostTimeAspect {
             log.error("切面costTimeAround异常\n{}", throwable);
         }
         return obj;
+    }
+
+    @Before("costTime()")
+    public void doBefore(JoinPoint joinPoint) {
+        // 接收到请求，记录请求内容
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes.getRequest();
+        // 记录请求的地址
+        log.info("IP:[{}],URL:[{}]", request.getRemoteAddr(), request.getRequestURL().toString());
     }
 
 }
