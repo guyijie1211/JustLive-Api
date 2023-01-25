@@ -160,7 +160,7 @@ public class HttpResponse {
      */
     public void log() {
         if (success()) {
-            LOG.info("http success({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody().replace(System.lineSeparator(), ""));
+//            LOG.info("http success({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody().replace(System.lineSeparator(), ""));
         } else {
             LOG.error("http fail({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody(), error);
         }

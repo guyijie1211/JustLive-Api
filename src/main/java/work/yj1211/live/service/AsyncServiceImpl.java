@@ -24,7 +24,7 @@ public class AsyncServiceImpl implements AsyncService {
         try {
             LiveRoomInfo roomInfo = null;
             if ("bilibili".equals(platForm)){
-                roomInfo = bilibili.get_single_roomInfo(roomId);
+                roomInfo = bilibili.getRoomInfo(roomId);
             }
             if ("douyu".equals(platForm)){
                 roomInfo = Douyu.getRoomInfo(roomId);

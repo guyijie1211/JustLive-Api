@@ -1,8 +1,9 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.mapper.RoomMapper;
@@ -19,6 +20,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+@Slf4j
 @Service
 public class LiveRoomService{
 
@@ -149,7 +151,7 @@ public class LiveRoomService{
     public Map<String, String> getRealUrl(String platForm, String roomId){
         Map<String, String> urls = new HashMap<>();
         if ("bilibili".equals(platForm)){
-            bilibili.get_real_url(urls, roomId);
+            bilibili.getRealUrl(urls, roomId);
         }
         if ("douyu".equals(platForm)){
             Douyu.get_real_url(urls, roomId);
@@ -198,7 +200,7 @@ public class LiveRoomService{
     public LiveRoomInfo getRoomInfo(String uid, String platForm, String roomId){
         LiveRoomInfo roomInfo = null;
         if ("bilibili".equals(platForm)){
-            roomInfo = bilibili.get_single_roomInfo(roomId);
+            roomInfo = bilibili.getRoomInfo(roomId);
         }
         if ("douyu".equals(platForm)){
             roomInfo = Douyu.getRoomInfo(roomId);
@@ -401,31 +403,27 @@ public class LiveRoomService{
      */
     public List<Owner> search(String platform, String keyWords, String isLive){
         List<Owner> list = new ArrayList<>();
-        if ("douyu".equals(platform)){
-            List<Owner> douyuList = Douyu.search(keyWords, isLive);
-            list.addAll(douyuList);
-        }
-        if ("bilibili".equals(platform)){
-            List<Owner> bilibiliList = bilibili.search(keyWords, isLive);
-            list.addAll(bilibiliList);
-        }
-        if ("huya".equals(platform)){
-            List<Owner> huyaList = Huya.search(keyWords, isLive);
-            list.addAll(huyaList);
-        }
-//        if ("cc".equals(platform)){
-//            List<Owner> ccList = CC.search(keyWords, isLive);
-//            list.addAll(ccList);
-//        }
-        if ("all".equals(platform)){
-            List<Owner> douyuList = Douyu.search(keyWords, isLive);
-            List<Owner> bilibiliList = bilibili.search(keyWords, isLive);
-            List<Owner> huyaList = Huya.search(keyWords, isLive);
-//            List<Owner> ccList = CC.search(keyWords, isLive);
-//            list.addAll(ccList);
-            list.addAll(huyaList);
-            list.addAll(bilibiliList);
-            list.addAll(douyuList);
+        try {
+            if ("douyu".equals(platform)){
+                list.addAll(Douyu.search(keyWords, isLive));
+            }
+            if ("bilibili".equals(platform)){
+                list.addAll(bilibili.search(keyWords, isLive));
+            }
+            if ("huya".equals(platform)){
+                list.addAll(Huya.search(keyWords, isLive));
+            }
+            if ("cc".equals(platform)){
+                list.addAll(CC.search(keyWords, isLive));
+            }
+            if ("all".equals(platform)){
+                list.addAll(Douyu.search(keyWords, isLive));
+                list.addAll(bilibili.search(keyWords, isLive));
+                list.addAll(Huya.search(keyWords, isLive));
+                list.addAll(CC.search(keyWords, isLive));
+            }
+        } catch (Exception e) {
+            log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
         }
         return list;
     }

@@ -44,8 +44,6 @@ public class UserInfoCrl {
             log.info(username+"---账户密码错误");
             return ResultFactory.buildFailResult("账户密码错误");
         }
-        log.info(username+"---登陆成功");
-        logger.info(username+"---登陆成功");
         return ResultFactory.buildSuccessResult(user);
     }
 

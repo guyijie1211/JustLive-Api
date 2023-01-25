@@ -13,7 +13,7 @@ public abstract class BasePlatform {
 
     abstract List<LiveRoomInfo> getRecommend(int page, int size);
 
-    public void refreshArea() {}
+    abstract void refreshArea();
 
     abstract List<LiveRoomInfo> getAreaRoom(String area, int page, int size);
 

@@ -1,5 +1,8 @@
 package work.yj1211.live.utils.http;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -241,6 +244,7 @@ public class HttpRequest {
     }
 
     private HttpResponse sendRequest(HttpMethod method) {
+        long start = System.currentTimeMillis();
         HttpResponse result = null;
         // 重试
         for (int remainingCount = this.retryCount; remainingCount >= 0; remainingCount--) {
@@ -263,7 +267,11 @@ public class HttpRequest {
                 }
             }
         }
-
+        float requestTime = System.currentTimeMillis() - start;
+        float requestSecond = requestTime/1000;
+        if (requestSecond > 1) {
+            LOG.warn(StrUtil.format("请求时间:{}\n请求内容:{}",requestTime+"="+requestSecond+"s", JSONUtil.toJsonStr(this)));
+        }
         return result;
     }
 
@@ -327,7 +335,7 @@ public class HttpRequest {
             paramMap.forEach((key, value) -> sb.append(key).append(" = ").append(value).append(", "));
             sb.append("]");
 
-            LOG.info("Request : URL = {}, headers = {}, encoding = {}, Content-Type = {}, paramMap = {}, body = {}", url, headers, encoding, contentType, sb.toString(), body);
+//            LOG.info("Request : URL = {}, headers = {}, encoding = {}, Content-Type = {}, paramMap = {}, body = {}", url, headers, encoding, contentType, sb.toString(), body);
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpUriRequest)) {
 
                 response = HttpResponse.create(this, System.currentTimeMillis() - startTime)

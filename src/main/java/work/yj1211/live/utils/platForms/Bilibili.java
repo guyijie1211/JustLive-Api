@@ -1,7 +1,6 @@
 package work.yj1211.live.utils.platForms;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.http.Header;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
-import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
@@ -23,7 +21,7 @@ import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @Component
-public class Bilibili {
+public class Bilibili extends BasePlatform{
     @Autowired
     private AllRoomsMapper allRoomsMapper;
 
@@ -60,7 +58,8 @@ public class Bilibili {
      * @param urls
      * @param rid
      */
-    public void get_real_url(Map<String, String> urls, String rid) {
+    @Override
+    public void getRealUrl(Map<String, String> urls, String rid) {
         JSONObject roomInfo = get_real_rid(rid);
 
         if (roomInfo == null) {
@@ -143,7 +142,8 @@ public class Bilibili {
      * @param roomId 房间号
      * @return
      */
-    public LiveRoomInfo get_single_roomInfo(String roomId){
+    @Override
+    public LiveRoomInfo getRoomInfo(String roomId){
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         try{
             String req_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/" +
@@ -174,6 +174,7 @@ public class Bilibili {
      * @param size 每页大小
      * @return
      */
+    @Override
     public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         String url = "https://api.live.bilibili.com/room/v1/room/get_user_recommend?page=" + page + "&page_size=" + size;
@@ -188,7 +189,7 @@ public class Bilibili {
                 liveRoomInfo.setPlatForm("bilibili");
                 liveRoomInfo.setRoomId(roomInfo.getString("roomid"));
                 liveRoomInfo.setCategoryId(roomInfo.getString("area"));
-                liveRoomInfo.setCategoryName(get_single_roomInfo(roomInfo.getString("roomid")).getCategoryName());
+                liveRoomInfo.setCategoryName(getRoomInfo(roomInfo.getString("roomid")).getCategoryName());
                 liveRoomInfo.setRoomName(roomInfo.getString("title"));
                 liveRoomInfo.setOwnerName(roomInfo.getString("uname"));
                 liveRoomInfo.setRoomPic(roomInfo.getString("system_cover"));
@@ -207,6 +208,7 @@ public class Bilibili {
      * 刷新分类缓存
      * @return
      */
+    @Override
     public void refreshArea(){
         try {
             String url = "https://api.live.bilibili.com/xlive/web-interface/v1/index/getWebAreaList?source_id=2";//获取bilibili所有分类的请求地址
@@ -263,6 +265,7 @@ public class Bilibili {
      * @param size
      * @return
      */
+    @Override
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         try {
@@ -304,6 +307,7 @@ public class Bilibili {
      * @param isLive 是否搜索直播中的信息
      * @return
      */
+    @Override
     public List<Owner> search(String keyWords, String isLive){
         int i = 0;
         List<Owner> list = new ArrayList<>();

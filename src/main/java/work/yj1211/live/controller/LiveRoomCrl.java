@@ -1,5 +1,6 @@
 package work.yj1211.live.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
@@ -12,6 +13,7 @@ import work.yj1211.live.vo.platformArea.AreaInfo;
 import javax.websocket.server.PathParam;
 import java.util.*;
 
+@Slf4j
 @RestController
 public class LiveRoomCrl {
 
@@ -123,11 +125,14 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/search", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("isLive")String isLive){
+        long start = System.currentTimeMillis();
         List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, isLive);
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("获取房间信息失败");
         }
         Collections.sort(roomInfoList);
+        float end = System.currentTimeMillis() - start;
+        log.info("===" + end/1000 + "s");
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 

@@ -537,52 +537,34 @@ public class Douyu {
      * @return
      */
     public static List<Owner> search(String keyWords, String isLive) {
-        //靓号转真实房间号
-//        if (StringUtils.isNumeric(keyWords)){
-//            keyWords = getRealRoomId(keyWords);
-//        }
         List<Owner> list = new ArrayList<>();
-        LiveRoomInfo roomInfo = getRoomInfo(keyWords);
-        if (roomInfo != null) {
-            Owner owner = new Owner();
-            owner.setNickName(roomInfo.getOwnerName());
-            owner.setCateName(roomInfo.getCategoryName());
-            owner.setHeadPic(roomInfo.getOwnerHeadPic());
-            owner.setPlatform("douyu");
-            owner.setRoomId(roomInfo.getRoomId());
-            owner.setIsLive((roomInfo.getIsLive() == 1) ? "1" : "0");
-            owner.setFollowers(roomInfo.getOnline());
-            if (isLive.equals("0") || owner.getIsLive().equals("1")) {
+        String url = null;
+        try {
+            url = "https://www.douyu.com/japi/search/api/searchUser?page=1&pageSize=28&filterType=1&kw=111" + URLEncoder.encode(keyWords, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String result = HttpUtil.doGet(url);
+        JSONObject resultJsonObj = JSON.parseObject(result);
+        if (resultJsonObj.getInteger("error") == 0) {
+            JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("relateUser");
+            Iterator<Object> it = ownerList.iterator();
+            int i = 0;
+            while(i < 5 && it.hasNext()) {
+                JSONObject responseOwner = (JSONObject) it.next();
+                responseOwner = responseOwner.getJSONObject("anchorInfo");
+                Owner owner = new Owner();
+                owner.setNickName(responseOwner.getString("nickName"));
+                owner.setCateName(responseOwner.getString("cateName"));
+                owner.setHeadPic(responseOwner.getString("avatar"));
+                owner.setPlatform("douyu");
+                owner.setRoomId(responseOwner.getString("rid"));
+                owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
+                owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("followerCount")));
                 list.add(owner);
+                i++;
             }
         }
-//        try {
-//            String url = "https://www.douyu.com/japi/search/api/searchAnchor?kw=" + URLEncoder.encode(keyWords, "UTF-8") + "&page=1&pageSize=5&filterType=" + isLive;
-//            log.info(url);
-//            String result = HttpUtil.doGet(url);
-//            log.info(result);
-//            JSONObject resultJsonObj = JSON.parseObject(result);
-//            if (resultJsonObj.getInteger("error") == 0) {
-//                JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("relateAnchor");
-//                Iterator<Object> it = ownerList.iterator();
-//                while (it.hasNext()) {
-//                    JSONObject responseOwner = (JSONObject) it.next();
-//                    log.info(responseOwner.toJSONString());
-//                    Owner owner = new Owner();
-//                    owner.setNickName(responseOwner.getString("nickName"));
-//                    owner.setCateName(responseOwner.getString("cateName"));
-//                    owner.setHeadPic(responseOwner.getString("avatar"));
-//                    owner.setPlatform("douyu");
-//                    owner.setRoomId(responseOwner.getString("rid"));
-//                    owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
-//                    owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("followerCount")));
-//                    list.add(owner);
-//                }
-//            }
-//        } catch (Exception e){
-//            log.info(String.valueOf(e));
-//            e.printStackTrace();
-//        }
         return list;
     }
 }
