@@ -50,7 +50,7 @@ public class CostTimeAspect {
                 }
             }
         } catch (Throwable throwable) {
-            log.error("切面costTimeAround异常\n{}", throwable);
+            log.error("切面costTimeAround异常\n", throwable);
         }
         return obj;
     }
@@ -78,7 +78,7 @@ public class CostTimeAspect {
                 }
             }
         } catch (Throwable throwable) {
-            log.error("切面costTimeAround异常\n{}", throwable);
+            log.error("切面costTimeAround异常\n", throwable);
         }
         return obj;
     }
