@@ -25,11 +25,11 @@
             <fileNamePattern>${LOG_PATH}/JustLive-back-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!-- each file should be at most 10MB, keep 60 days worth of history, but at most 2GB -->
             <!--单个文件大小-->
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>50MB</maxFileSize>
             <!--日志文件保留天数-->
-            <maxHistory>30</maxHistory>
+            <maxHistory>10</maxHistory>
             <!--用来指定日志文件的上限大小，到了这个值就会删除旧日志-->
-            <totalSizeCap>2GB</totalSizeCap>
+            <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
     </appender>
 
