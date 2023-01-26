@@ -1,5 +1,6 @@
 package work.yj1211.live.aspect;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -83,13 +84,18 @@ public class CostTimeAspect {
         return obj;
     }
 
-    @Before("costTime()")
+    @Around("costTime()")
     public void doBefore(JoinPoint joinPoint) {
         // 接收到请求，记录请求内容
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
+        String real_ip = request.getHeader("X-real-ip");
         // 记录请求的地址
-        log.info("IP:[{}],URL:[{}]", request.getRemoteAddr(), request.getRequestURL().toString());
+        if (StrUtil.isEmpty(real_ip)) {
+            log.info("IP:[{}],URL:[{}]", request.getRemoteAddr(), request.getRequestURL().toString());
+        } else {
+            log.info("IP:[{}],URL:[{}]", real_ip, request.getRequestURL().toString());
+        }
     }
 
 }
