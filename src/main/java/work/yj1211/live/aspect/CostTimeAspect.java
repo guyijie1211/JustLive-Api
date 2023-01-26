@@ -45,9 +45,9 @@ public class CostTimeAspect {
             float cost = end - beginTime;
             if (cost > 1000) {
                 if (args.length > 0) {
-                    log.info("接口:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
+                    log.info("【接口返回过久】接口:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
                 } else {
-                    log.info("接口:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
+                    log.info("【接口返回过久】接口:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
                 }
             }
         } catch (Throwable throwable) {
@@ -71,11 +71,11 @@ public class CostTimeAspect {
             //计算耗时
             long end = System.currentTimeMillis();
             float cost = end - beginTime;
-            if (cost > 500) {
+            if (cost > 800) {
                 if (args.length > 0) {
-                    log.info("调用平台:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
+                    log.info("【平台调用过久】调用平台:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
                 } else {
-                    log.info("调用平台:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
+                    log.info("【平台调用过久】调用平台:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
                 }
             }
         } catch (Throwable throwable) {
@@ -92,9 +92,9 @@ public class CostTimeAspect {
         String real_ip = request.getHeader("X-real-ip");
         // 记录请求的地址
         if (StrUtil.isEmpty(real_ip)) {
-            log.info("IP:[{}],URL:[{}],参数{}", request.getRemoteAddr(), request.getRequestURL().toString(),joinPoint.getArgs());
+            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", request.getRemoteAddr(), request.getRequestURL().toString(),joinPoint.getArgs());
         } else {
-            log.info("IP:[{}],URL:[{}],参数{}", real_ip, request.getRequestURL().toString(),joinPoint.getArgs());
+            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", real_ip, request.getRequestURL().toString(),joinPoint.getArgs());
         }
     }
 

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.LiveRoomService;
+import work.yj1211.live.utils.annotation.AccessLimit;
 import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.Result;
@@ -124,15 +125,13 @@ public class LiveRoomCrl {
     @CrossOrigin
     @RequestMapping(value = "/api/live/search", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
+    @AccessLimit
     public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("isLive")String isLive){
-        long start = System.currentTimeMillis();
         List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, isLive);
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("获取房间信息失败");
         }
         Collections.sort(roomInfoList);
-        float end = System.currentTimeMillis() - start;
-        log.info("===" + end/1000 + "s");
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 

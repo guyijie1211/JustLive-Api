@@ -7,12 +7,10 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -330,11 +328,11 @@ public class HttpRequest {
             }
 
             headers.forEach(httpUriRequest::setHeader);
-
+            RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+            ((HttpRequestBase) httpUriRequest).setConfig(defaultConfig);
             StringBuilder sb = new StringBuilder("[");
             paramMap.forEach((key, value) -> sb.append(key).append(" = ").append(value).append(", "));
             sb.append("]");
-
 //            LOG.info("Request : URL = {}, headers = {}, encoding = {}, Content-Type = {}, paramMap = {}, body = {}", url, headers, encoding, contentType, sb.toString(), body);
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpUriRequest)) {
 
