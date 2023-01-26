@@ -16,6 +16,8 @@ import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -313,13 +315,12 @@ public class Bilibili extends BasePlatform{
         List<Owner> list = new ArrayList<>();
         String cookieUrl = "https://bilibili.com";
         String cookie  = HttpRequest.create(cookieUrl).get().getCookieString();
-
         String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=live_user&keyword=" + keyWords;
         String result = HttpRequest.create(url)
                 .putHeader("Cookie",cookie)
                 .get().getBody();
         JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("code") == 0) {
+        if (resultJsonObj != null && resultJsonObj.getInteger("code") == 0) {
             JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("result");
             Iterator<Object> it = ownerList.iterator();
             while(i < 5 && it.hasNext()){

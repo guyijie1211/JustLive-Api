@@ -13,10 +13,7 @@ import work.yj1211.live.utils.thread.AsyncService;
 import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -402,6 +399,7 @@ public class LiveRoomService{
      * @return
      */
     public List<Owner> search(String platform, String keyWords, String isLive){
+        keyWords = keyWords.replaceAll(" ","");
         List<Owner> list = new ArrayList<>();
         try {
             if ("douyu".equals(platform)){
@@ -423,7 +421,7 @@ public class LiveRoomService{
                 list.addAll(CC.search(keyWords, isLive));
             }
         } catch (Exception e) {
-//            log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
+            log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
         }
         return list;
     }
