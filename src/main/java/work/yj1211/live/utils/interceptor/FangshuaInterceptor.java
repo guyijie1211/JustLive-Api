@@ -52,7 +52,7 @@ public class FangshuaInterceptor extends HandlerInterceptorAdapter {
             redisTemplate.opsForValue().set(limitKey, 1, accessLimit.seconds(), TimeUnit.SECONDS);
         } else {
             if (redisCount.intValue() >= accessLimit.maxCount()) {
-                log.info("【防刷】keyword:[{}]  超过请求限制，拦截！！", limitKey);
+                log.warn("【防刷】keyword:[{}]  超过请求限制，拦截！！", limitKey);
                 return true;
             }
             log.info("【防刷】keyword:[{}]  [{}]秒内第[{}]次搜索", limitKey, accessLimit.seconds(), redisCount.intValue()+1);

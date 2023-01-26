@@ -45,9 +45,9 @@ public class CostTimeAspect {
             float cost = end - beginTime;
             if (cost > 1000) {
                 if (args.length > 0) {
-                    log.info("【接口返回过久】接口:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
+                    log.warn("【接口返回过久】接口:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
                 } else {
-                    log.info("【接口返回过久】接口:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
+                    log.warn("【接口返回过久】接口:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
                 }
             }
         } catch (Throwable throwable) {
@@ -73,9 +73,9 @@ public class CostTimeAspect {
             float cost = end - beginTime;
             if (cost > 800) {
                 if (args.length > 0) {
-                    log.info("【平台调用过久】调用平台:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
+                    log.warn("【平台调用过久】调用平台:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
                 } else {
-                    log.info("【平台调用过久】调用平台:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
+                    log.warn("【平台调用过久】调用平台:[{}]耗时:[{}]", className + "." + method, cost / 1000 + "秒");
                 }
             }
         } catch (Throwable throwable) {
