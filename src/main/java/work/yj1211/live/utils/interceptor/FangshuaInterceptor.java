@@ -1,5 +1,6 @@
 package work.yj1211.live.utils.interceptor;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,10 @@ public class FangshuaInterceptor extends HandlerInterceptorAdapter {
     //判断请求是否受限
     public boolean isLimit(HttpServletRequest request, AccessLimit accessLimit) {
         // 受限的redis 缓存key ,因为这里用浏览器做测试，我就用sessionid 来做唯一key,如果是app ,可以使用 用户ID 之类的唯一标识。
-        String limitKey = request.getParameter("keyWords");
+        String limitKey = request.getParameter("uid");
+        if (StrUtil.isEmpty(limitKey)) {
+            return true;
+        }
         // 从缓存中获取，当前这个请求访问了几次
         Integer redisCount = (Integer) redisTemplate.opsForValue().get(limitKey);
         if (redisCount == null) {
@@ -52,10 +56,10 @@ public class FangshuaInterceptor extends HandlerInterceptorAdapter {
             redisTemplate.opsForValue().set(limitKey, 1, accessLimit.seconds(), TimeUnit.SECONDS);
         } else {
             if (redisCount.intValue() >= accessLimit.maxCount()) {
-                log.warn("【防刷】keyword:[{}]  超过请求限制，拦截！！", limitKey);
+                log.warn("【防刷】uid:[{}]  超过请求限制，拦截！！", limitKey);
                 return true;
             }
-            log.info("【防刷】keyword:[{}]  [{}]秒内第[{}]次搜索", limitKey, accessLimit.seconds(), redisCount.intValue()+1);
+            log.info("【防刷】uid:[{}]  [{}]秒内第[{}]次搜索", limitKey, accessLimit.seconds(), redisCount.intValue()+1);
             // 次数自增
             redisTemplate.opsForValue().increment(limitKey);
         }
