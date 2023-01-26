@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.mapper.RoomMapper;
+import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.platForms.*;
 import work.yj1211.live.utils.thread.AsyncService;
@@ -20,9 +21,10 @@ import java.util.concurrent.CountDownLatch;
 @Slf4j
 @Service
 public class LiveRoomService{
-
     @Autowired
     private RoomMapper roomMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private AllRoomsMapper allRoomsMapper;
@@ -395,11 +397,15 @@ public class LiveRoomService{
      * 搜索
      * @param platform 搜索的目标平台，"all"为搜索所有平台
      * @param keyWords 搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     * @param uid 用户id
      * @return
      */
-    public List<Owner> search(String platform, String keyWords, String isLive){
+    public List<Owner> search(String platform, String keyWords, String uid){
+        if (userMapper.findByUid(uid) == null) {
+            return null;
+        }
         keyWords = keyWords.replaceAll(" ","");
+        String isLive = "1";
         List<Owner> list = new ArrayList<>();
         try {
             if ("douyu".equals(platform)){

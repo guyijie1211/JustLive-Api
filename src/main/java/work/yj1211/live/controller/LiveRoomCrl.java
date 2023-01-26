@@ -126,8 +126,8 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/search", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     @AccessLimit
-    public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("isLive")String isLive){
-        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, isLive);
+    public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("uid")String uid){
+        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, uid);
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("获取房间信息失败");
         }

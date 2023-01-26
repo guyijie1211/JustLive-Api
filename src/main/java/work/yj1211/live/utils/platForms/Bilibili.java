@@ -336,8 +336,6 @@ public class Bilibili extends BasePlatform{
                 list.add(owner);
                 i++;
             }
-        } else {
-            log.error("BILIBILI---搜索异常---keyword：" + keyWords);
         }
         if ("1".equals(isLive)){
             List<Owner> resultList = new ArrayList<>();

@@ -28,7 +28,7 @@ public class CC {
             String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
             String result = HttpUtil.doGet(url);
             JSONObject resultJsonObj = JSON.parseObject(result);
-            if (result != null) {
+            if (resultJsonObj != null) {
                 JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
                 Iterator<Object> it = ownerList.iterator();
                 while(it.hasNext()){
@@ -51,7 +51,7 @@ public class CC {
                 return list.subList(0,5);
             }
         } catch (Exception e) {
-            log.error("CC---搜索异常---keyword：" + keyWords);
+            log.error("CC---搜索异常---keyword：" + keyWords, e);
         }
 
         return list;
