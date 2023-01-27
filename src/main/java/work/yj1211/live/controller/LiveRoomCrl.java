@@ -127,13 +127,12 @@ public class LiveRoomCrl {
     @ResponseBody
     @AccessLimit
     public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("uid")String uid){
-//        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, uid);
-//        if (null == roomInfoList){
-//            return ResultFactory.buildFailResult("获取房间信息失败");
-//        }
-//        Collections.sort(roomInfoList);
-//        return ResultFactory.buildSuccessResult(roomInfoList);
-        return ResultFactory.buildSuccessResult(null);
+        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, uid);
+        if (null == roomInfoList){
+            return ResultFactory.buildFailResult("获取房间信息失败");
+        }
+        Collections.sort(roomInfoList);
+        return ResultFactory.buildSuccessResult(roomInfoList);
     }
 
     /**
