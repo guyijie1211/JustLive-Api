@@ -92,9 +92,9 @@ public class CostTimeAspect {
         String real_ip = request.getHeader("X-real-ip");
         // 记录请求的地址
         if (StrUtil.isEmpty(real_ip)) {
-            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", request.getRemoteAddr(), request.getRequestURL().toString(),joinPoint.getArgs());
+//            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", request.getRemoteAddr(), request.getRequestURL().toString(),joinPoint.getArgs());
         } else {
-            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", real_ip, request.getRequestURL().toString(),joinPoint.getArgs());
+//            log.info("【客户端请求】IP:[{}],URL:[{}],参数{}", real_ip, request.getRequestURL().toString(),joinPoint.getArgs());
         }
     }
 

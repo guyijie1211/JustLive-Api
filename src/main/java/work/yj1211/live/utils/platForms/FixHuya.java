@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
  *
  * @author Hangsman
  */
+@Slf4j
 public class FixHuya {
 
     private static final String URL_FORMAT_TEMPLATE = "%s/%s.flv?wsSecret=%s&wsTime=%s&seqid=%s&ctype=%s&ver=1&txyp=%s&fs=%s&u=%s&t=%s&sv=2107230539";
@@ -47,7 +49,7 @@ public class FixHuya {
             urls.put("OD", liveUrl);
             urls.put("ayyuid", liveStreamInfo.getLuid());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("虎牙获取url异常", e);
         }
     }
 
