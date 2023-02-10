@@ -1,0 +1,10 @@
+#使用的配置文件名
+spring:
+  profiles:
+    active: github
+#mybatis配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: work.yj1211.live.mapper
+  configuration:
+    map-underscore-to-camel-case: true

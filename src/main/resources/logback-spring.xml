@@ -20,6 +20,9 @@
     <springProfile name="dev">
         <property name="logging.path" value="C:/Users/YJ211/Desktop/logs"/>
     </springProfile>
+    <springProfile name="github">
+        <property name="logging.path" value="logs"/>
+    </springProfile>
     <springProfile name="prod">
         <property name="logging.path" value="/usr/local/jar/logs"/>
     </springProfile>

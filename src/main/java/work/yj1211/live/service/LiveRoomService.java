@@ -233,7 +233,8 @@ public class LiveRoomService{
         bilibili.refreshArea();
         Huya.refreshArea();
         CC.refreshArea();
-        Egame.refreshArea();
+        // 企鹅电竞凉了
+        //Egame.refreshArea();
     }
 
     /**

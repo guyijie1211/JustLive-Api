@@ -28,12 +28,13 @@ public class Egame {
 
     /**
      * 获取企鹅电竞分区房间
+     *
      * @param area
      * @param page
      * @param size
      * @return
      */
-    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size) {
         List<LiveRoomInfo> list = new ArrayList<>();
         String realArea = Global.EgameCateMapVer.get(area);
         String urlFront = "https://share.egame.qq.com/cgi-bin/pgg_live_async_fcgi?param=";
@@ -69,11 +70,12 @@ public class Egame {
                 list.add(liveRoomInfo);
             }
         }
-        return  list;
+        return list;
     }
 
     /**
      * 刷新分类缓存
+     *
      * @return
      */
     public static void refreshArea() {
@@ -107,11 +109,12 @@ public class Egame {
 
     /**
      * 根据分页获取推荐直播间
+     *
      * @param page 页数
      * @param size 每页大小
      * @return
      */
-    public static List<LiveRoomInfo> getRecommend(int page, int size){
+    public static List<LiveRoomInfo> getRecommend(int page, int size) {
         List<LiveRoomInfo> list = new ArrayList<>();
         String urlFront = "https://share.egame.qq.com/cgi-bin/pgg_async_fcgi?param=";
         String urlAfter = "{\"key\":{\"module\":\"pgg_live_read_ifc_mt_svr\",\"method\":\"get_pc_live_list\",\"param\":{\"appid\":\"hot\",\"page_num\":" + page + ",\"page_size\":" + size + ",\"tag_id\":0,\"tag_id_str\":\"\"}}}";
@@ -151,10 +154,11 @@ public class Egame {
 
     /**
      * 获取单个直播间信息
+     *
      * @param roomId 房间号
      * @return
      */
-    public static LiveRoomInfo getRoomInfo(String roomId){
+    public static LiveRoomInfo getRoomInfo(String roomId) {
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         String live_addr = null;
         Integer online = null;
@@ -213,6 +217,7 @@ public class Egame {
 
     /**
      * 获取直播间所有清晰度的url
+     *
      * @param urls
      * @param rid
      */
@@ -261,6 +266,7 @@ public class Egame {
 
     /**
      * bitrate映射
+     *
      * @param bit 获取到的bit值
      * @return
      */
@@ -285,8 +291,9 @@ public class Egame {
 
     /**
      * 搜索
-     * @param keyWords  搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     *
+     * @param keyWords 搜索关键字
+     * @param isLive   是否搜索直播中的信息
      * @return
      */
     public static List<Owner> search(String keyWords, String isLive) {
@@ -299,7 +306,7 @@ public class Egame {
                 String result = matcher.group();
                 Matcher matcherEach = PATTERNeach.matcher(result);
                 int p = 0;
-                while (p<5 && matcherEach.find()) {
+                while (p < 5 && matcherEach.find()) {
                     String resulteach = matcherEach.group();
                     Matcher matcherOwnerName = PATTERNname.matcher(resulteach);
                     Matcher matcherOwnerPic = PATTERNroomPic.matcher(resulteach);
@@ -307,14 +314,14 @@ public class Egame {
                     Matcher matcherFollow = PATTERNfollow.matcher(resulteach);
                     Matcher matcherIslive = PATTERNisLive.matcher(resulteach);
                     if (!(matcherOwnerName.find() && matcherOwnerPic.find() && matcherRoomId.find()
-                            && matcherFollow.find() && matcherIslive.find())){
+                            && matcherFollow.find() && matcherIslive.find())) {
                         System.out.println("获取房间信息异常");
                         return list;
                     }
                     Owner owner = new Owner();
                     owner.setPlatform("egame");
                     owner.setRoomId(matcherRoomId.group(1));
-                    String headPic = matcherOwnerPic.group(1).replaceAll("\\\\u002F","/");
+                    String headPic = matcherOwnerPic.group(1).replaceAll("\\\\u002F", "/");
                     owner.setHeadPic(headPic);
                     owner.setNickName(matcherOwnerName.group(1));
                     String idLive = matcherIslive.group(1);

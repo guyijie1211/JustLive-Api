@@ -11,7 +11,7 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
-
+logs/
 # Package Files #
 *.jar
 *.war
@@ -35,5 +35,5 @@ hs_err_pid*
 pom.xml
 src/main/resources/application-dev.properties
 src/main/resources/application-prod.properties
-src/main/resources/application.properties
+src/main/resources/application.yml
 /target/
