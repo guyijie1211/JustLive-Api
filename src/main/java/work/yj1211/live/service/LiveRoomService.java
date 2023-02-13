@@ -176,7 +176,7 @@ public class LiveRoomService{
      */
     public List<LiveRoomInfo> getRoomsByUid(String uid){
         long start = System.currentTimeMillis();
-        List<LiveRoomInfo> roomList = new ArrayList<>();
+        List<LiveRoomInfo> roomList = Collections.synchronizedList(new ArrayList<>());
         List<SimpleRoomInfo> simpleRoomInfoList = roomMapper.getRoomsByUid(uid);
         CountDownLatch countDownLatch = new CountDownLatch(simpleRoomInfoList.size());
         for(SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList){
