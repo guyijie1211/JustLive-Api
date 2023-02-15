@@ -540,7 +540,7 @@ public class Douyu {
         List<Owner> list = new ArrayList<>();
         String url = null;
         try {
-            url = "https://www.douyu.com/japi/search/api/searchUser?page=1&pageSize=28&filterType=1&kw=111" + URLEncoder.encode(keyWords, "UTF-8");
+            url = "https://www.douyu.com/japi/search/api/searchUser?page=1&pageSize=28&filterType=1&kw=" + URLEncoder.encode(keyWords, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
