@@ -129,7 +129,7 @@ public class LiveRoomCrl {
     public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("uid")String uid){
         List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, uid);
         if (null == roomInfoList){
-            return ResultFactory.buildFailResult("获取房间信息失败");
+            return ResultFactory.buildFailResult("请求过多");
         }
         Collections.sort(roomInfoList);
         return ResultFactory.buildSuccessResult(roomInfoList);
