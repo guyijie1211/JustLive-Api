@@ -24,36 +24,28 @@ public class CC {
      */
     public static List<Owner> search(String keyWords, String isLive){
         List<Owner> list = new ArrayList<>();
-        try {
-            String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
-            String result = HttpUtil.doGet(url);
-            JSONObject resultJsonObj = JSON.parseObject(result);
-            if (resultJsonObj != null) {
-                JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
-                Iterator<Object> it = ownerList.iterator();
-                while(it.hasNext()){
-                    JSONObject responseOwner = (JSONObject) it.next();
-                    Owner owner = new Owner();
-                    owner.setNickName(responseOwner.getString("nickname"));
-                    owner.setCateName(responseOwner.getString("game_name"));
-                    owner.setHeadPic(responseOwner.getString("portrait"));
-                    owner.setPlatform("cc");
-                    owner.setRoomId(responseOwner.getString("cuteid"));
-                    owner.setIsLive((responseOwner.getInteger("status") !=null && responseOwner.getInteger("status") == 1) ? "1" : "0");
-                    owner.setFollowers(responseOwner.getInteger("follower_num"));
-                    if ("1".equals(isLive) && !"1".equals(owner.getIsLive())){
-                        continue;
-                    }
-                    list.add(owner);
-                }
+        String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
+        String result = HttpUtil.doGet(url);
+        JSONObject resultJsonObj = JSON.parseObject(result);
+        if (resultJsonObj != null) {
+            JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
+            Iterator<Object> it = ownerList.iterator();
+            while(it.hasNext()){
+                JSONObject responseOwner = (JSONObject) it.next();
+                Owner owner = new Owner();
+                owner.setNickName(responseOwner.getString("nickname"));
+                owner.setCateName(responseOwner.getString("game_name"));
+                owner.setHeadPic(responseOwner.getString("portrait"));
+                owner.setPlatform("cc");
+                owner.setRoomId(responseOwner.getString("cuteid"));
+                owner.setIsLive((responseOwner.getInteger("status") !=null && responseOwner.getInteger("status") == 1) ? "1" : "0");
+                owner.setFollowers(responseOwner.getInteger("follower_num"));
+                list.add(owner);
             }
-            if (list.size()>5){
-                return list.subList(0,5);
-            }
-        } catch (Exception e) {
-            log.error("CC---搜索异常---keyword：" + keyWords, e);
         }
-
+        if (list.size()>5){
+            return list.subList(0,5);
+        }
         return list;
     }
 

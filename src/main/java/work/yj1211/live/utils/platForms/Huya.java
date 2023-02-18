@@ -61,7 +61,7 @@ public class Huya {
      */
     public static List<Owner> search(String keyWords, String isLive){
         List<Owner> list = new ArrayList<>();
-        String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + keyWords + "&uid=0&v=4&typ=-5&livestate=" + isLive + "&rows=5&start=0";
+        String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + keyWords + "&uid=0&v=4&typ=-5&livestate=0&rows=5&start=0";
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (result != null) {

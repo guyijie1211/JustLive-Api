@@ -71,7 +71,7 @@ public class CostTimeAspect {
             //计算耗时
             long end = System.currentTimeMillis();
             float cost = end - beginTime;
-            if (cost > 800) {
+            if (cost > 1500) {
                 if (args.length > 0) {
                     log.warn("【平台调用过久】调用平台:[{}]耗时:[{}],参数{}", className + "." + method, cost / 1000 + "秒", args);
                 } else {
