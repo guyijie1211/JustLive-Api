@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated
 public class Egame {
     private static final Pattern PATTERN = Pattern.compile("anchorList:\\[\\{([\\s\\S]*?)}]");
     private static final Pattern PATTERNeach = Pattern.compile("\\{anchorName([\\s\\S]*?)},");
@@ -33,6 +34,7 @@ public class Egame {
      * @param size
      * @return
      */
+    @Deprecated
     public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         String realArea = Global.EgameCateMapVer.get(area);
@@ -76,6 +78,7 @@ public class Egame {
      * 刷新分类缓存
      * @return
      */
+    @Deprecated
     public static void refreshArea() {
         List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
         List<AreaInfo> areaListTemp = new ArrayList<>();
@@ -111,6 +114,7 @@ public class Egame {
      * @param size 每页大小
      * @return
      */
+    @Deprecated
     public static List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         String urlFront = "https://share.egame.qq.com/cgi-bin/pgg_async_fcgi?param=";
@@ -154,6 +158,7 @@ public class Egame {
      * @param roomId 房间号
      * @return
      */
+    @Deprecated
     public static LiveRoomInfo getRoomInfo(String roomId){
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         String live_addr = null;
@@ -216,6 +221,7 @@ public class Egame {
      * @param urls
      * @param rid
      */
+    @Deprecated
     public static void get_real_url(Map<String, String> urls, String rid) {
         String urlFrontToken = "https://share.egame.qq.com/cgi-bin/pgg_async_fcgi?param=";
         String urlAfterToken = "{\"0\": {\"module\": \"pgg.ws_token_go_svr.DefObj\", \"method\": \"get_token\", \"param\": {\"scene_flag\": 16, \"subinfo\": {\"page\": {\"scene\": 1, " +
@@ -289,6 +295,7 @@ public class Egame {
      * @param isLive 是否搜索直播中的信息
      * @return
      */
+    @Deprecated
     public static List<Owner> search(String keyWords, String isLive) {
         List<Owner> list = new ArrayList<>();
         try {
