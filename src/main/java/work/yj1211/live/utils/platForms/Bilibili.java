@@ -337,15 +337,6 @@ public class Bilibili extends BasePlatform{
                 i++;
             }
         }
-        if ("1".equals(isLive)){
-            List<Owner> resultList = new ArrayList<>();
-            for (Owner owner : list){
-                if ("1".equals(owner.getIsLive())){
-                    resultList.add(owner);
-                }
-            }
-            return resultList;
-        }
         return list;
     }
 

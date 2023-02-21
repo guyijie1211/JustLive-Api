@@ -538,29 +538,27 @@ public class Douyu {
      */
     public static List<Owner> search(String keyWords, String isLive) {
         List<Owner> list = new ArrayList<>();
-        String url = null;
-        try {
-            url = "https://www.douyu.com/japi/search/api/searchUser?page=1&pageSize=28&filterType=1&kw=" + URLEncoder.encode(keyWords, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String result = HttpUtil.doGet(url);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("sk", keyWords);
+        paramMap.put("offset", 0);
+        paramMap.put("limit", 20);
+
+        String result= cn.hutool.http.HttpUtil.post("https://m.douyu.com/api/search/anchor", paramMap);
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (resultJsonObj.getInteger("error") == 0) {
-            JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("relateUser");
+            JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("list");
             Iterator<Object> it = ownerList.iterator();
             int i = 0;
             while(i < 5 && it.hasNext()) {
                 JSONObject responseOwner = (JSONObject) it.next();
-                responseOwner = responseOwner.getJSONObject("anchorInfo");
                 Owner owner = new Owner();
-                owner.setNickName(responseOwner.getString("nickName"));
+                owner.setNickName(responseOwner.getString("nickname"));
                 owner.setCateName(responseOwner.getString("cateName"));
                 owner.setHeadPic(responseOwner.getString("avatar"));
                 owner.setPlatform("douyu");
-                owner.setRoomId(responseOwner.getString("rid"));
+                owner.setRoomId(responseOwner.getString("roomId"));
                 owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
-                owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("followerCount")));
+                owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("hn")));
                 list.add(owner);
                 i++;
             }
