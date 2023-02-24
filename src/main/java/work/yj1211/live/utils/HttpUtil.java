@@ -9,6 +9,7 @@ import org.apache.http.util.EntityUtils;
 import work.yj1211.live.utils.http.HttpRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class HttpUtil {
     /**
@@ -17,6 +18,11 @@ public class HttpUtil {
      */
     public static String doGet(String url) {
         return HttpRequest.create(url)
+                .get().getBody();
+    }
+
+    public static String doGetWithHeaders(String url, Map<String, String> headers) {
+        return HttpRequest.create(url).putHeaders(headers)
                 .get().getBody();
     }
 }

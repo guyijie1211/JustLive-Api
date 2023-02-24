@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.util.DigestUtils;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
+import work.yj1211.live.utils.StringUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.vo.LiveRoomInfo;
@@ -61,8 +62,11 @@ public class Huya {
      */
     public static List<Owner> search(String keyWords, String isLive){
         List<Owner> list = new ArrayList<>();
+        String ip = StringUtil.getRandomIp();
         String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + keyWords + "&uid=0&v=4&typ=-5&livestate=0&rows=5&start=0";
-        String result = HttpUtil.doGet(url);
+        Map<String, String> headers = new HashMap<>(1);
+        headers.put("X-Forwarded-For", ip);
+        String result = HttpUtil.doGetWithHeaders(url, headers);
         JSONObject resultJsonObj = JSON.parseObject(result);
         if (result != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("response").getJSONObject("1").getJSONArray("docs");
