@@ -1,5 +1,6 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.date.DateUtil;
 import com.aliyun.dm20151123.models.SingleSendMailRequest;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
@@ -17,6 +18,7 @@ import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaSimple;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,6 +47,18 @@ public class UserService {
             userInfo = userMapper.selectAllByUidAndPassword(uid, password);
         }
         return userInfo;
+    }
+
+    public void updateLastLogin(String uid) {
+        userMapper.updateLastLogin(uid);
+    }
+
+    public void insertActiveUserNum() {
+        Date date = DateUtil.yesterday();
+        List<UserInfo> userInfoList = userMapper.countUserActived(date);
+        ActiveUsers activeUsers = new ActiveUsers();
+        activeUsers.setLoginUserNum(userInfoList.size());
+        userMapper.insertActiveUserNum(activeUsers);
     }
 
     public UserInfo findUserByName(String userName){

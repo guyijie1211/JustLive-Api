@@ -3,6 +3,7 @@ package work.yj1211.live.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -20,4 +21,7 @@ public class UserInfo implements Serializable {
     private String huyaLevel;
     private String ccLevel;
     private String egameLevel;
+    private Date created;
+    private Date modified;
+    private Date lastLogin;
 }

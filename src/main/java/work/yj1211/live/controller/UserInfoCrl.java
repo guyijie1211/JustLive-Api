@@ -44,6 +44,7 @@ public class UserInfoCrl {
             log.info(username+"---账户密码错误");
             return ResultFactory.buildFailResult("账户密码错误");
         }
+        userService.updateLastLogin(user.getUid());
         return ResultFactory.buildSuccessResult(user);
     }
 
