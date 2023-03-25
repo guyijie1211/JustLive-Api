@@ -36,21 +36,23 @@ public class FixHuya {
     private static final Long UID = 1464636405087L;
 
     public static void getRealUrl(Map<String, String> urls, String roomId) {
-        try {
-            LiveStreamInfo liveStreamInfo = getLiveStreamInfo(roomId);
-            if (liveStreamInfo == null) {
-                return;
-            }
-            String liveUrl = decodeLiveUrl(liveStreamInfo.getFlvUrl(), liveStreamInfo.getStreamName(), liveStreamInfo.getAntiCode());
-            List<Integer> qnList = liveStreamInfo.getQnList();
-            for (int i = 0; i < qnList.size(); i++) {
-                urls.put(QN_LIST.get(i), liveUrl + "&ratio=" + qnList.get(i));
-            }
-            urls.put("OD", liveUrl);
-            urls.put("ayyuid", liveStreamInfo.getLuid());
-        } catch (Exception e) {
-            log.error("虎牙获取url异常", e);
+        LiveStreamInfo liveStreamInfo = getLiveStreamInfo(roomId);
+        if (liveStreamInfo == null) {
+            return;
         }
+        String liveUrl;
+        try {
+            liveUrl = decodeLiveUrl(liveStreamInfo.getFlvUrl(), liveStreamInfo.getStreamName(), liveStreamInfo.getAntiCode());
+        } catch (Exception e) {
+            log.error("虎牙获取异常", e);
+            return;
+        }
+        List<Integer> qnList = liveStreamInfo.getQnList();
+        for (int i = 0; i < qnList.size(); i++) {
+            urls.put(QN_LIST.get(i), liveUrl + "&ratio=" + qnList.get(i));
+        }
+        urls.put("OD", liveUrl);
+        urls.put("ayyuid", liveStreamInfo.getLuid());
     }
 
 
