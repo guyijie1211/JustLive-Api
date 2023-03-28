@@ -1,4 +1,4 @@
-package work.yj1211.live.vo.platformArea;
+package work.yj1211.live.model.platformArea;
 
 import lombok.Data;
 

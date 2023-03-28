@@ -14,10 +14,9 @@ import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.utils.platForms.Douyu;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaSimple;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaSimple;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;

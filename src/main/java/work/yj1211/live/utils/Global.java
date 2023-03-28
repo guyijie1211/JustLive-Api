@@ -2,9 +2,9 @@ package work.yj1211.live.utils;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import work.yj1211.live.vo.TV;
-import work.yj1211.live.vo.UpdateInfo;
-import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.model.TV;
+import work.yj1211.live.model.UpdateInfo;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
 

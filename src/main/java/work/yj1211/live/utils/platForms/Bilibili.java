@@ -13,9 +13,9 @@ import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Owner;
-import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;

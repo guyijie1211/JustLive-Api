@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.TvLiveService;
 import work.yj1211.live.utils.Global;
-import work.yj1211.live.vo.Result;
+import work.yj1211.live.model.Result;
 
 @RestController
 public class TvLiveCrl {

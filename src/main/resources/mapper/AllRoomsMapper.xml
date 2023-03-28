@@ -2,8 +2,8 @@
         <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
 <mapper namespace="work.yj1211.live.mapper.AllRoomsMapper">
-    <resultMap id="RoomInfoMap" type="work.yj1211.live.vo.LiveRoomInfo">
-        <result column="platform" property="platform"/>
+    <resultMap id="RoomInfoMap" type="work.yj1211.live.model.LiveRoomInfo">
+        <result column="platform" property="platForm"/>
         <result column="roomId" property="roomId"/>
         <result column="online" property="online"/>
         <result column="isLive" property="isLive"/>
@@ -22,7 +22,7 @@
         owner = values(owner), roomName = values(roomName), areaName = values(areaName), isLive = values(isLive), online = values(online)
     </insert>
 
-    <insert id="updateOneRoom" parameterType="work.yj1211.live.vo.LiveRoomInfo">
+    <insert id="updateOneRoom" parameterType="work.yj1211.live.model.LiveRoomInfo">
         insert into all_rooms(platform, roomId, owner, roomName, areaName, isLive, online)
         values (#{room.platForm}, #{room.roomId}, #{room.ownerName}, #{room.roomName}, #{room.categoryName}, #{room.isLive}, #{room.online})
         on duplicate key update

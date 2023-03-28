@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.service.UserService;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaSimple;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaSimple;
 
 import javax.websocket.server.PathParam;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 

@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.service.LiveRoomService;
 import work.yj1211.live.utils.annotation.AccessLimit;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Owner;
-import work.yj1211.live.vo.Result;
-import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.Result;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import javax.websocket.server.PathParam;
 import java.util.*;
@@ -144,6 +144,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result versionRefresh(){
         String result = liveRoomService.refreshUpdate();
+        if (result == null) {
+            return ResultFactory.buildFailResult("刷新失败, 看下日志报错信息");
+        }
         return ResultFactory.buildSuccessResult(result);
     }
 }

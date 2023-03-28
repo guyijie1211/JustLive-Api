@@ -1,10 +1,9 @@
-package work.yj1211.live.vo;
+package work.yj1211.live.model;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 public class UserInfo implements Serializable {

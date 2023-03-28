@@ -1,8 +1,8 @@
 package work.yj1211.live.utils.platForms;
 
 import org.springframework.stereotype.Component;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Owner;
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
 
 import java.util.List;
 import java.util.Map;

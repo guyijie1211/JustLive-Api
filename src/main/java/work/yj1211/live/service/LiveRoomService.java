@@ -1,8 +1,6 @@
 package work.yj1211.live.service;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.file.FileReader;
-import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -11,16 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.platForms.*;
 import work.yj1211.live.utils.thread.AsyncService;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
-import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -153,9 +149,15 @@ public class LiveRoomService{
      * @return 属性数据
      */
     public String refreshUpdate(){
-        JSONObject jsonObject = JSONUtil.readJSONObject(FileUtil.file(Global.getUpdateFilePath()), StandardCharsets.UTF_8);;
-        Global.updateInfo = jsonObject.toBean(UpdateInfo.class);
-        return JSON.toJSONString(jsonObject);
+        JSONObject jsonObject;
+        try {
+            jsonObject = JSONUtil.readJSONObject(FileUtil.file(Global.getUpdateFilePath()), StandardCharsets.UTF_8);
+            Global.updateInfo = jsonObject.toBean(UpdateInfo.class);
+            return JSON.toJSONString(jsonObject);
+        } catch (Exception e) {
+            log.error("刷新app新版本信息失败", e);
+        }
+        return null;
     }
 
     /**

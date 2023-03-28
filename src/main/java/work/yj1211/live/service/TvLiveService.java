@@ -3,7 +3,7 @@ package work.yj1211.live.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.utils.Global;
-import work.yj1211.live.vo.TV;
+import work.yj1211.live.model.TV;
 
 import java.io.BufferedReader;
 import java.io.File;

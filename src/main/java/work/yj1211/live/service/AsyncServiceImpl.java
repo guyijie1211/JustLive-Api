@@ -3,10 +3,9 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.utils.platForms.*;
 import work.yj1211.live.utils.thread.AsyncService;
-import work.yj1211.live.vo.LiveRoomInfo;
+import work.yj1211.live.model.LiveRoomInfo;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
