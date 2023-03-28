@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
-import work.yj1211.live.utils.MD5Util;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.utils.http.HttpResponse;
@@ -19,29 +19,27 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class Douyu {
+@Component
+public class Douyu implements BasePlatform  {
     //Douyu清晰度 1流畅；2高清；3超清；4蓝光4M；0蓝光8M或10M
-    private static List<String> qnList = new ArrayList<>();
+    private List<String> qnList = new ArrayList<>();
 
     //存储获取的房间唯一标识(每次都去获取唯一标识太慢了，并且同一房间一段时间内标识是不变的，所以用缓存来保存)
-    private static Map<String, String> roomUrlMap = new HashMap<>();
-    private static Map<String, List<Integer>> roomRateMap = new HashMap<>();
+    private Map<String, String> roomUrlMap = new HashMap<>();
+    private Map<String, List<Integer>> roomRateMap = new HashMap<>();
 
-    //    private static final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
-    private static final Pattern PATTERN = Pattern.compile("(vdwdae325w_64we[\\s\\S]*function ub98484234[\\s\\S]*?)function");
+    //    private final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
+    private final Pattern PATTERN = Pattern.compile("(vdwdae325w_64we[\\s\\S]*function ub98484234[\\s\\S]*?)function");
 
-    static {
+    {
         qnList.add("OD");
         qnList.add("HD");
         qnList.add("SD");
@@ -49,7 +47,13 @@ public class Douyu {
         qnList.add("FD");
     }
 
-    public static void get_real_url(Map<String, String> urls, String rid){
+    @Override
+    public String getType() {
+        return Platform.DOUYU.getName();
+    }
+
+    @Override
+    public void getRealUrl(Map<String, String> urls, String rid){
         List<Integer> rateList = roomRateMap.get(rid);
         if (null == rateList){
             get_simple_url(rid);
@@ -67,7 +71,7 @@ public class Douyu {
                 urls.put(qnString, get_single_url(rid, qn));
             }
         }catch (Exception e){
-            return;
+            e.printStackTrace();
         }finally {
             roomUrlMap.clear();
             roomRateMap.clear();
@@ -81,7 +85,7 @@ public class Douyu {
      * @param qn 清晰度
      * @return
      */
-    private static String get_single_url(String roomId, String qn){
+    private String get_single_url(String roomId, String qn){
         //获取房间唯一标识，第一次获取时去请求
         String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
         String result = "http://hw-tct.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
@@ -93,7 +97,7 @@ public class Douyu {
      * @param rid
      * @return
      */
-    public static String get_simple_url(String rid) {
+    public String get_simple_url(String rid) {
         JSONObject tt = getTT();
         String tt1 = tt.getString("tt1");
         String realUrl = null;
@@ -118,7 +122,7 @@ public class Douyu {
      * @throws ScriptException
      * @throws NoSuchAlgorithmException
      */
-    private static String getSign(String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
+    private String getSign(String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
         ScriptEngine docjs = new ScriptEngineManager().getEngineByName("javascript");
         docjs.eval(ub9);
         Invocable invocable = (Invocable) docjs;
@@ -128,7 +132,7 @@ public class Douyu {
             return null;
         }
         String v = matcher.group(1);
-        String md5rb = MD5Util.md5String(rid + "10000000000000000000000000001501" + tt + v);
+        String md5rb = md5String(rid + "10000000000000000000000000001501" + tt + v);
         String ub9_new = functionResult.replaceAll("return rt;}\\);?", "return rt;}");
         ub9_new = ub9_new.replace("(function (", "function sign(");
         ub9_new = ub9_new.replace("CryptoJS.MD5(cb).toString()", "\"" + md5rb + "\"");
@@ -156,7 +160,7 @@ public class Douyu {
      * @throws ScriptException
      * @throws NoSuchAlgorithmException
      */
-    private static String getSignUrl(String qn, String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
+    private String getSignUrl(String qn, String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
         String params = getSign(rid, tt, ub9);
         params = params + "&cdn=ws-h5&rate=" + qn;
         Map<String, Object> paramsMap = handleParams(params);
@@ -183,7 +187,7 @@ public class Douyu {
         return url;
     }
 
-    public static String getRealRoomId(String rid) {
+    public String getRealRoomId(String rid) {
         String roomUrl = "https://www.douyu.com/" + rid;
         String response = HttpRequest.create(roomUrl).get().getBody();
         String realRid = response.substring(response.indexOf("$ROOM.room_id =") + "$ROOM.room_id =".length());
@@ -195,7 +199,7 @@ public class Douyu {
      * @param rid
      * @return
      */
-    private static JSONObject getHomeJs(String rid) {
+    private JSONObject getHomeJs(String rid) {
         String roomUrl = "https://www.douyu.com/" + rid;
         String response = HttpRequest.create(roomUrl).get().getBody();
         String realRid = response.substring(response.indexOf("$ROOM.room_id =") + "$ROOM.room_id =".length());
@@ -220,7 +224,7 @@ public class Douyu {
     /**
      * @return
      */
-    private static JSONObject getTT() {
+    private JSONObject getTT() {
         long nowTime = System.currentTimeMillis();
         String tt1 = String.valueOf(nowTime / 1000);
         String tt2 = String.valueOf(nowTime);
@@ -239,7 +243,7 @@ public class Douyu {
      * @param format
      * @return
      */
-    public static String getTimeStr(long time, String format) {
+    public String getTimeStr(long time, String format) {
         Date date = new Date(time);
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         return sdf.format(date);
@@ -250,7 +254,8 @@ public class Douyu {
      * @param roomId
      * @return
      */
-    public static LiveRoomInfo getRoomInfo(String roomId) {
+    @Override
+    public LiveRoomInfo getRoomInfo(String roomId) {
         String url = DouYuOpenApi.ROOM_INFO + roomId;
         HttpResponse response = HttpRequest.create(url)
                 .setContentType(HttpContentType.FORM).get();
@@ -281,7 +286,7 @@ public class Douyu {
      * @param url
      * @return
      */
-    private static String handleUrl(String url){
+    private String handleUrl(String url){
         url = url.substring(0, url.indexOf("."));
         return url.split("_")[0];
     }
@@ -291,7 +296,7 @@ public class Douyu {
      * @param jsonArray
      * @return
      */
-    private static List<Integer> handleRate(JSONArray jsonArray){
+    private List<Integer> handleRate(JSONArray jsonArray){
         List<Integer> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++){
             list.add(jsonArray.getJSONObject(i).getIntValue("bit"));
@@ -310,7 +315,7 @@ public class Douyu {
      * @param params
      * @return
      */
-    private static Map<String, Object> handleParams(String params){
+    private Map<String, Object> handleParams(String params){
         Map<String, Object> paramsMap = new HashMap<>();
         String[] arr = params.split("&");
         String key;
@@ -331,7 +336,8 @@ public class Douyu {
      * @param size 每页大小
      * @return
      */
-    public static List<LiveRoomInfo> getRecommend(int page, int size){
+    @Override
+    public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = size*(page-1)/8 + ((size*(page-1)%8 == 0) ? 0 : 1);
         start = (start == 0) ? 1 : start;
@@ -353,7 +359,7 @@ public class Douyu {
      * @param url
      * @return
      */
-    private static List<LiveRoomInfo> requestUrl(String url, String categoryName){
+    private List<LiveRoomInfo> requestUrl(String url, String categoryName){
         List<LiveRoomInfo> list = new ArrayList<>();
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSON.parseObject(result);
@@ -384,7 +390,7 @@ public class Douyu {
      * @param number
      * @return
      */
-    public static Integer DouyuNumStringToInt(String number){
+    public Integer DouyuNumStringToInt(String number){
         int num = 0;
         if(number.contains("万")){
             int index = number.indexOf(".");
@@ -406,7 +412,8 @@ public class Douyu {
      * 刷新分类缓存
      * @return
      */
-    public static void refreshArea(){
+    @Override
+    public void refreshArea(){
         String url = "https://m.douyu.com/api/cate/list";//获取bilibili所有分类的请求地址
         List<List<AreaInfo>> resultList = new ArrayList<>();
         Map<String, List<AreaInfo>> areaMapTemp = new HashMap<>();
@@ -482,7 +489,8 @@ public class Douyu {
      * @param size
      * @return
      */
-    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    @Override
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         AreaInfo areaInfo = Global.getAreaInfo("douyu", area);
         int start = size*(page-1)/8 + 1;
@@ -502,7 +510,7 @@ public class Douyu {
         return list;
     }
 
-    public static List<LiveRoomInfo> getRoomTest(String area){
+    public List<LiveRoomInfo> getRoomTest(String area){
         AreaInfo areaInfo = Global.getAreaInfo("douyu", area);
         String url = "https://www.douyu.com/gapi/rkc/directory/mixList/2_"+areaInfo.getAreaId()+"/1";
         List<LiveRoomInfo> list = new ArrayList<>();
@@ -532,11 +540,12 @@ public class Douyu {
 
     /**
      * 搜索
-     * @param keyWords  搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     *
+     * @param keyWords 搜索关键字
      * @return
      */
-    public static List<Owner> search(String keyWords, String isLive) {
+    @Override
+    public List<Owner> search(String keyWords) {
         List<Owner> list = new ArrayList<>();
         HashMap<String, Object> paramMap = new HashMap<>();
         paramMap.put("sk", keyWords);
@@ -564,5 +573,18 @@ public class Douyu {
             }
         }
         return list;
+    }
+
+    private String md5String(String s) throws NoSuchAlgorithmException {
+        byte[] bs = MessageDigest.getInstance("MD5").digest(s.getBytes());
+        StringBuilder sb = new StringBuilder(40);
+        for (byte x : bs) {
+            if ((x & 0xff) >> 4 == 0) {
+                sb.append("0").append(Integer.toHexString(x & 0xff));
+            } else {
+                sb.append(Integer.toHexString(x & 0xff));
+            }
+        }
+        return sb.toString();
     }
 }

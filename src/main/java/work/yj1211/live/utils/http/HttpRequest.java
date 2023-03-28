@@ -1,7 +1,6 @@
 package work.yj1211.live.utils.http;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
@@ -26,7 +25,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import work.yj1211.live.utils.Constant;
 import work.yj1211.live.utils.UrlUtil;
 
 import javax.net.ssl.SSLContext;
@@ -64,7 +62,7 @@ public class HttpRequest {
 
     private String url;
     private HttpContentType contentType;
-    private String encoding = Constant.ENCODING_UTF8;
+    private String encoding = "UTF-8";
     private Map<String, String> headers;
     private String body;
     private boolean isForBytes;

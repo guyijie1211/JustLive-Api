@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
@@ -16,14 +17,12 @@ import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @Component
-public class Bilibili extends BasePlatform{
+public class Bilibili implements BasePlatform {
     @Autowired
     private AllRoomsMapper allRoomsMapper;
 
@@ -53,6 +52,11 @@ public class Bilibili extends BasePlatform{
             log.error("BILIBILI---获取直播间真实id异常---roomId：" + rid);
             return null;
         }
+    }
+
+    @Override
+    public String getType() {
+        return Platform.BILIBILI.getName();
     }
 
     /**
@@ -305,12 +309,12 @@ public class Bilibili extends BasePlatform{
 
     /**
      * 搜索
-     * @param keyWords  搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     *
+     * @param keyWords 搜索关键字
      * @return
      */
     @Override
-    public List<Owner> search(String keyWords, String isLive){
+    public List<Owner> search(String keyWords){
         int i = 0;
         List<Owner> list = new ArrayList<>();
         String cookieUrl = "https://bilibili.com";

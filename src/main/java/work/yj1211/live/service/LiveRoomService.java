@@ -1,10 +1,16 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.file.FileReader;
+import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.AllRoomsMapper;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
@@ -15,8 +21,14 @@ import work.yj1211.live.vo.*;
 import work.yj1211.live.vo.platformArea.AreaInfo;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,15 +37,14 @@ public class LiveRoomService{
     private RoomMapper roomMapper;
     @Autowired
     private UserMapper userMapper;
-
-    @Autowired
-    private AllRoomsMapper allRoomsMapper;
-
     @Autowired
     private AsyncService asyncService;
 
+    private final Map<String,BasePlatform> platformMap;
     @Autowired
-    private Bilibili bilibili;
+    public LiveRoomService(List<BasePlatform> platforms){
+        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getType, Function.identity(), (oldV, newV)-> newV));
+    }
 
     /**
      * 获取总推荐
@@ -43,47 +54,21 @@ public class LiveRoomService{
      */
     public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = Collections.synchronizedList(new ArrayList<>());
-        class MyThread implements Runnable {
-            private String platform;
-            private List<LiveRoomInfo> list;
-            public MyThread(String platform, List<LiveRoomInfo> list){
-                this.platform = platform;
-                this.list = list;
-            }
-            @Override
-            public void run() {
-                list.addAll(getRecommendByPlatform(platform, page, size));
-            }
-        }
-
-        Thread t1 = new Thread(new MyThread("bilibili", list));
-        Thread t2 = new Thread(new MyThread("douyu", list));
-        Thread t3 = new Thread(new MyThread("huya", list));
-//        Thread t4 = new Thread(new MyThread("cc", list));
-        t1.start();
-        t2.start();
-        t3.start();
-//        t4.start();
-        try{
-            t1.join();
-            t2.join();
-            t3.join();
-//            t4.join();
-        }catch (Exception e){
-            e.printStackTrace();
+        // 有几个平台就开几个线程
+        int threadCount = Platform.values().length;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        // 遍历平台 提交获取推荐列表的任务
+        platformMap.values().forEach(platform -> {
+            executorService.execute(() -> list.addAll(platform.getRecommend(page, size)));
+        });
+        executorService.shutdown();
+        try {
+            // 阻塞，直到线程池里所有任务结束
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("获取总推荐报错:", e);
         }
         return list;
-    }
-
-    /**
-     * 获取总推荐(数据库获取)
-     * @param page
-     * @param size
-     * @return
-     */
-    public List<LiveRoomInfo> getRecommendFromLocal(int page, int size){
-        List<LiveRoomInfo> roomList = allRoomsMapper.getRecommendRooms(page, size);
-        return roomList;
     }
 
     /**
@@ -94,23 +79,7 @@ public class LiveRoomService{
      * @return
      */
     public List<LiveRoomInfo> getRecommendByPlatform(String platform, int page, int size){
-        List<LiveRoomInfo> list = null;
-        if ("bilibili".equals(platform)){
-            list = bilibili.getRecommend(page, size);
-        }
-        if("douyu".equals(platform)){
-            list = Douyu.getRecommend(page, size);
-        }
-        if("huya".equals(platform)){
-            list = Huya.getRecommend(page, size);//传的不是20的话，得改代码
-        }
-        if("cc".equals(platform)){
-            list = CC.getRecommend(page, size);
-        }
-//        if("egame".equals(platform)){
-//            list = Egame.getRecommend(page, size);
-//        }
-        return list;
+        return platformMap.get(platform).getRecommend(page, size);
     }
 
     /**
@@ -122,48 +91,18 @@ public class LiveRoomService{
      * @return
      */
     public List<LiveRoomInfo> getRecommendByPlatformArea(String platform, String area, int page, int size){
-        List<LiveRoomInfo> list = null;
-        if ("bilibili".equals(platform)){
-            list = bilibili.getAreaRoom(area, page, size);
-        }
-        if("douyu".equals(platform)){
-            list = Douyu.getAreaRoom(area, page, size);
-        }
-        if("huya".equals(platform)){
-            list = Huya.getAreaRoom(area, page, size);
-        }
-        if("cc".equals(platform)){
-            list = CC.getAreaRoom(area, page, size);
-        }
-//        if("egame".equals(platform)){
-//            list = Egame.getAreaRoom(area, page, size);
-//        }
-        return list;
+        return platformMap.get(platform).getAreaRoom(area, page, size);
     }
 
     /**
      * 获取真实直播地址
-     * @param platForm
+     * @param platform
      * @param roomId
      * @return
      */
-    public Map<String, String> getRealUrl(String platForm, String roomId){
+    public Map<String, String> getRealUrl(String platform, String roomId){
         Map<String, String> urls = new HashMap<>();
-        if ("bilibili".equals(platForm)){
-            bilibili.getRealUrl(urls, roomId);
-        }
-        if ("douyu".equals(platForm)){
-            Douyu.get_real_url(urls, roomId);
-        }
-        if ("huya".equals(platForm) || "huyaTest".equals(platForm)){
-            FixHuya.getRealUrl(urls,roomId);
-        }
-        if ("cc".equals(platForm)){
-            CC.getRealUrl(urls,roomId);
-        }
-//        if ("egame".equals(platForm)){
-//            Egame.get_real_url(urls,roomId);
-//        }
+        platformMap.get(platform).getRealUrl(urls, roomId);
         return urls;
     };
 
@@ -188,32 +127,15 @@ public class LiveRoomService{
         return roomList;
     }
 
-
-
     /**
      * 获取单个直播间信息
-     * @param platForm
+     * @param platform
      * @param roomId
      * @return
      */
-    public LiveRoomInfo getRoomInfo(String uid, String platForm, String roomId){
-        LiveRoomInfo roomInfo = null;
-        if ("bilibili".equals(platForm)){
-            roomInfo = bilibili.getRoomInfo(roomId);
-        }
-        if ("douyu".equals(platForm)){
-            roomInfo = Douyu.getRoomInfo(roomId);
-        }
-        if ("huya".equals(platForm)){
-            roomInfo = Huya.getRoomInfo(roomId);
-        }
-        if ("cc".equals(platForm)){
-            roomInfo = CC.getRoomInfo(roomId);
-        }
-//        if ("egame".equals(platForm)){
-//            roomInfo = Egame.getRoomInfo(roomId);
-//        }
-        int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
+    public LiveRoomInfo getRoomInfo(String uid, String platform, String roomId){
+        LiveRoomInfo roomInfo = platformMap.get(platform).getRoomInfo(roomId);
+        int isFollowed = roomMapper.ifIsFollowed(uid, platform, roomId);
         roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
         return roomInfo;
     }
@@ -223,52 +145,17 @@ public class LiveRoomService{
      * @return
      */
     public void refreshArea(){
-        long start = System.currentTimeMillis();
-        Douyu.refreshArea();
-        bilibili.refreshArea();
-        Huya.refreshArea();
-        CC.refreshArea();
-//        Egame.refreshArea();
+        platformMap.values().forEach(BasePlatform::refreshArea);
     }
 
     /**
      * 刷新平台分类的缓存
-     * @return
+     * @return 属性数据
      */
     public String refreshUpdate(){
-        String readResult = readTxtFile(Global.getUpdateFilePath());
-        UpdateInfo updateInfo;
-        try {
-            updateInfo = JSON.parseObject(readResult, UpdateInfo.class);
-        } catch (Exception e) {
-            return readResult;
-        }
-        Global.updateInfo = updateInfo;
-        return JSON.toJSONString(updateInfo);
-    }
-
-    private String readTxtFile(String filePath){
-        String readResult = "";
-        try {
-            String encoding="UTF-8";
-            File file=new File(filePath);
-            if(file.isFile() && file.exists()){ //判断文件是否存在
-                InputStreamReader read = new InputStreamReader(
-                        new FileInputStream(file),encoding);//考虑到编码格式
-                BufferedReader bufferedReader = new BufferedReader(read);
-                String lineTxt = null;
-                while((lineTxt = bufferedReader.readLine()) != null){
-                    readResult = readResult + lineTxt;
-                }
-                read.close();
-            }else{
-                readResult = "找不到指定的文件";
-            }
-        } catch (Exception e) {
-            readResult = "读取文件内容出错";
-        }
-
-        return readResult;
+        JSONObject jsonObject = JSONUtil.readJSONObject(FileUtil.file(Global.getUpdateFilePath()), StandardCharsets.UTF_8);;
+        Global.updateInfo = jsonObject.toBean(UpdateInfo.class);
+        return JSON.toJSONString(jsonObject);
     }
 
     /**
@@ -306,7 +193,6 @@ public class LiveRoomService{
                 } else if (areaInfoMap.containsKey("huya")){
                     resultList.add(areaInfoMap.get("huya"));
                 } else if (areaInfoMap.containsKey("cc")){
-                    continue;
                 }
             }
             if (resultList.size()<1){
@@ -325,6 +211,7 @@ public class LiveRoomService{
      * @return
      */
     public List<LiveRoomInfo> getRecommendByAreaAll(String areaType, String area, int page, int size){
+        // TODO
         List<LiveRoomInfo> list = new ArrayList<>();
         class MyThread implements Runnable {
             private String platform;
@@ -401,30 +288,20 @@ public class LiveRoomService{
      * @return
      */
     public List<Owner> search(String platform, String keyWords, String uid){
+        // 不允许未注册用户调用搜索, 防刷
         if (userMapper.findByUid(uid) == null) {
             return null;
         }
-        keyWords = keyWords.replaceAll(" ","");
-        String isLive = "1";
+        // 去除关键字中的空格
+        String finalKeyWords = keyWords.replaceAll(" ","");
         List<Owner> list = new ArrayList<>();
         try {
-            if ("douyu".equals(platform)){
-                list.addAll(Douyu.search(keyWords, isLive));
-            }
-            if ("bilibili".equals(platform)){
-                list.addAll(bilibili.search(keyWords, isLive));
-            }
-            if ("huya".equals(platform)){
-                list.addAll(Huya.search(keyWords, isLive));
-            }
-            if ("cc".equals(platform)){
-                list.addAll(CC.search(keyWords, isLive));
-            }
-            if ("all".equals(platform)){
-                list.addAll(Douyu.search(keyWords, isLive));
-                list.addAll(bilibili.search(keyWords, isLive));
-                list.addAll(Huya.search(keyWords, isLive));
-                list.addAll(CC.search(keyWords, isLive));
+            if ("all".equalsIgnoreCase(platform)) {
+                platformMap.values().forEach(basePlatform -> {
+                    list.addAll(basePlatform.search(finalKeyWords));
+                });
+            } else {
+                list.addAll(platformMap.get(platform).search(finalKeyWords));
             }
         } catch (Exception e) {
             log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);

@@ -14,9 +14,13 @@ import java.util.concurrent.CountDownLatch;
 @Service
 public class AsyncServiceImpl implements AsyncService {
     @Autowired
-    private RoomMapper roomMapper;
-    @Autowired
     private Bilibili bilibili;
+    @Autowired
+    private Douyu douyu;
+    @Autowired
+    private Huya huya;
+    @Autowired
+    private CC cc;
 
     @Async("asyncServiceExecutor")
     @Override
@@ -27,19 +31,14 @@ public class AsyncServiceImpl implements AsyncService {
                 roomInfo = bilibili.getRoomInfo(roomId);
             }
             if ("douyu".equals(platForm)){
-                roomInfo = Douyu.getRoomInfo(roomId);
+                roomInfo = douyu.getRoomInfo(roomId);
             }
             if ("huya".equals(platForm)){
-                roomInfo = Huya.getRoomInfo(roomId);
+                roomInfo = huya.getRoomInfo(roomId);
             }
             if ("cc".equals(platForm)){
-                roomInfo = CC.getRoomInfo(roomId);
+                roomInfo = cc.getRoomInfo(roomId);
             }
-//            if ("egame".equals(platForm)){
-//                roomInfo = Egame.getRoomInfo(roomId);
-//            }
-//            int isFollowed = roomMapper.ifIsFollowed(uid, platForm,roomId);
-//            roomInfo.setIsFollowed((isFollowed == 0) ? 0 : 1);
             roomList.add(roomInfo);
         } catch (Exception e) {
 

@@ -38,6 +38,9 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
+    private Douyu douyu;
+
+    @Autowired
     private UserMailMapper mailMapper;
 
     public UserInfo login(String userName, String password){
@@ -71,7 +74,7 @@ public class UserService {
 
     public void followRoom(String platform, String roomId, String uid){
         if (platform.equalsIgnoreCase("douyu")) {
-            roomId = Douyu.getRealRoomId(roomId);
+            roomId = douyu.getRealRoomId(roomId);
         }
         if (userMapper.checkFollowed(platform, roomId, uid) == null) {
             userMapper.followRoom(platform, roomId, uid);

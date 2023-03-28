@@ -1,15 +1,17 @@
 package work.yj1211.live.utils.platForms;
 
+import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
-import work.yj1211.live.utils.StringUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.vo.LiveRoomInfo;
@@ -25,7 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class Huya {
+@Component
+public class Huya implements BasePlatform {
     private static final Pattern PATTERN = Pattern.compile("\"liveLineUrl\":\"([\\s\\S]*?)\",");
     private static final Pattern PATTERN2 = Pattern.compile("\"lUid\":([\\s\\S]*?),");
     private static final Pattern OwnerName = Pattern.compile("\"sNick\":\"([\\s\\S]*?)\",");
@@ -54,15 +57,22 @@ public class Huya {
         qnString.add("LD");
         qnString.add("FD");
     }
+
+    @Override
+    public String getType() {
+        return Platform.HUYA.getName();
+    }
+
     /**
      * 搜索
-     * @param keyWords  搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     *
+     * @param keyWords 搜索关键字
      * @return
      */
-    public static List<Owner> search(String keyWords, String isLive){
+    @Override
+    public List<Owner> search(String keyWords){
         List<Owner> list = new ArrayList<>();
-        String ip = StringUtil.getRandomIp();
+        String ip = NetUtil.longToIpv4(RandomUtil.randomLong());
         String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + keyWords + "&uid=0&v=4&typ=-5&livestate=0&rows=5&start=0";
         Map<String, String> headers = new HashMap<>(1);
         headers.put("X-Forwarded-For", ip);
@@ -92,7 +102,7 @@ public class Huya {
      * @param urls
      * @param roomId
      */
-    public static void getRealUrlTest(Map<String, String> urls, String roomId) {
+    public void getRealUrlTest(Map<String, String> urls, String roomId) {
         String room_url = "https://m.huya.com/" + roomId;
         String response = HttpRequest.create(room_url)
                 .setContentType(HttpContentType.FORM)
@@ -116,7 +126,7 @@ public class Huya {
      * @param urls
      * @param roomId
      */
-    public static void getUrl(Map<String, String> urls, String roomId) {
+    public void getUrl(Map<String, String> urls, String roomId) {
         String categoryName = getRoomInfo(roomId).getCategoryName();
 //        if (categoryName.equalsIgnoreCase("一起看") || categoryName.equalsIgnoreCase("原创")) {
 //            getRealUrlTest(urls, roomId);
@@ -130,56 +140,9 @@ public class Huya {
      * @param urls
      * @param roomId
      */
-    public static void getRealUrl(Map<String, String> urls, String roomId) {
-        String room_url = "https://m.huya.com/" + roomId;
-        String response = HttpRequest.create(room_url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .get().getBody();
-        Matcher matcher = PATTERN.matcher(response);
-        Matcher matcher2 = PATTERN2.matcher(response);
-        Matcher matcher3 = SFlvUrl.matcher(response);
-        Matcher matcher4 = SFlvAntiCode.matcher(response);
-        Matcher matcher5 = SStreamName.matcher(response);
-        if (!matcher2.find()) {
-            log.info("没提取到虎牙ayyuid,roomId:[{}]",roomId);
-        }
-        if (!matcher.find() || !matcher3.find() || !matcher4.find() || !matcher5.find()) {
-            return;
-        }
-        String result = matcher.group();
-        String result2 = matcher2.group();
-        String sFlvUrlGroup = matcher3.group();
-        String sFlvAntiCodeGroup = matcher4.group();
-        String sStreamNameGroup = matcher5.group();
-        if (result.contains("replay")){
-            return;
-        }
-        try{
-            String sFlvUrl = cn.hutool.core.codec.Base64.decodeStr(result.substring(result.indexOf("\":\"") + 3, result.lastIndexOf("\"")));
-            String sStreamName = sStreamNameGroup.substring(sStreamNameGroup.indexOf("\":\"") + 3, sStreamNameGroup.lastIndexOf("\""));
-            String[] iSplit = sFlvUrl.split("\\?");
-//            String i = iSplit[0];
-//            String b = iSplit[1];
-
-            String sFlvAntiCode = sFlvAntiCodeGroup.substring(sFlvAntiCodeGroup.indexOf("\":\"") + 3, sFlvAntiCodeGroup.lastIndexOf("\""));
-            String finalUrl = String.format("%s/%s.flv?%s", sFlvUrl, sStreamName, sFlvAntiCode);
-            finalUrl = finalUrl.replace("&ctype=tars_mobile","");
-
-            List<Integer> qnList = getQns(roomId);
-            result2 = result2.substring(result2.indexOf("\":")+2, result2.lastIndexOf(","));
-            urls.put("ayyuid", result2);
-            urls.put("OD", finalUrl);
-            for (int i = 0; i < qnList.size() ; i++) {
-                int qn = qnList.get(i);
-                if (qn != 0) {
-                    urls.put(qnString.get(i), finalUrl + "&ratio=" + qnList.get(i));
-                }
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            return;
-        }
+    @Override
+    public void getRealUrl(Map<String, String> urls, String roomId) {
+        FixHuya.getRealUrl(urls, roomId);
     }
 
     /**
@@ -188,7 +151,7 @@ public class Huya {
      * @param num
      * @return
      */
-    private static String getSubStr(String str, int num) {
+    private String getSubStr(String str, int num) {
         String result = "";
         int i = 0;
         while(i < num) {
@@ -206,7 +169,7 @@ public class Huya {
      * @return
      * @throws UnsupportedEncodingException
      */
-    public static List<Integer> getQns(String roomId) throws UnsupportedEncodingException {
+    public List<Integer> getQns(String roomId) throws UnsupportedEncodingException {
         HashMap<String,String> headerMap = new HashMap<>();
         headerMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         headerMap.put("Accept-Encoding", "gzip");
@@ -247,7 +210,8 @@ public class Huya {
      * 刷新分类缓存
      * @return
      */
-    public static void refreshArea(){
+    @Override
+    public void refreshArea(){
         List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
         areaMapTemp.add(refreshSingleArea("1", "网游"));
         areaMapTemp.add(refreshSingleArea("2", "单机"));
@@ -261,7 +225,7 @@ public class Huya {
      * @param areaCode
      * @return
      */
-    private static List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
+    private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
         String url = "https://m.huya.com/cache.php?m=Game&do=ajaxGameList&bussType=" + areaCode;
         List<AreaInfo> areaListTemp = new ArrayList<>();
         String result = HttpRequest.create(url)
@@ -305,7 +269,7 @@ public class Huya {
      * @param roomId
      * @return
      */
-    public static LiveRoomInfo getRoomInfoOld(String roomId) {
+    public LiveRoomInfo getRoomInfoOld(String roomId) {
         String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + roomId + "&uid=0&v=4&typ=-5&livestate=0&rows=5&start=0";
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSON.parseObject(result);
@@ -333,7 +297,8 @@ public class Huya {
      * @param roomId
      * @return
      */
-    public static LiveRoomInfo getRoomInfo(String roomId) {
+    @Override
+    public LiveRoomInfo getRoomInfo(String roomId) {
         String room_url = "https://m.huya.com/" + roomId;
         String response = HttpRequest.create(room_url)
                 .setContentType(HttpContentType.FORM)
@@ -383,7 +348,8 @@ public class Huya {
      * @param size 每页大小
      * @return
      */
-    public static List<LiveRoomInfo> getRecommend(int page, int size){
+    @Override
+    public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int realPage = page/6 + 1;
         int start = (page-1)*size%120;
@@ -422,7 +388,8 @@ public class Huya {
      * @param size
      * @return
      */
-    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    @Override
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int realPage = page/6 + 1;
         int start = (page-1)*size%120;
@@ -460,13 +427,13 @@ public class Huya {
      * @param str
      * @return
      */
-    private static String getMatchResult(String str, String indexStartStr, String indexEndStr) {
+    private String getMatchResult(String str, String indexStartStr, String indexEndStr) {
         String result;
         result = str.substring(str.indexOf(indexStartStr)+indexStartStr.length(),str.lastIndexOf(indexEndStr));
         return result;
     }
 
-    private static String formatUrl(String liveLineUrl) throws UnsupportedEncodingException {
+    private String formatUrl(String liveLineUrl) throws UnsupportedEncodingException {
         String i = liveLineUrl.split("\\?")[0];
         String b = liveLineUrl.split("\\?")[1];
         String r[] = i.split("/");
@@ -491,7 +458,7 @@ public class Huya {
         return liveLineUrl.replaceAll("wsSecret=([\\s\\S]*?)&", "wsSecret=" + m + "&") + "&uid=0&seqid=" + seqid;
     }
 
-    private static Map<String, String> getNMap(String[] c) {
+    private Map<String, String> getNMap(String[] c) {
         Map<String, String> result = new HashMap<>();
         for (String item: c) {
             if (item.equals("")) {
@@ -506,7 +473,7 @@ public class Huya {
     /**
      * @return返回微秒
      */
-    public static Long getmicTime() {
+    public Long getmicTime() {
         Long cutime = System.currentTimeMillis() * 1000; // 微秒
         Long nanoTime = System.nanoTime(); // 纳秒
         return cutime + (nanoTime - nanoTime / 1000000 * 1000000) / 1000;

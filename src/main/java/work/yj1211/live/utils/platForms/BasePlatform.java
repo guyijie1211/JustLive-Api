@@ -1,21 +1,67 @@
 package work.yj1211.live.utils.platForms;
 
+import org.springframework.stereotype.Component;
 import work.yj1211.live.vo.LiveRoomInfo;
 import work.yj1211.live.vo.Owner;
 
 import java.util.List;
 import java.util.Map;
 
-public abstract class BasePlatform {
-    abstract void getRealUrl(Map<String, String> urls, String rid);
+/**
+ * @author guyijie
+ * @date 2023/3/27 15:10
+ **/
+@Component
+public interface BasePlatform {
 
-    abstract LiveRoomInfo getRoomInfo(String roomId);
+    /**
+     * 平台名称
+     *
+     * @return
+     */
+    String getType();
 
-    abstract List<LiveRoomInfo> getRecommend(int page, int size);
+    /**
+     * 获取直播地址
+     * @param urls
+     * @param rid 房间号
+     */
+    void getRealUrl(Map<String, String> urls, String rid);
 
-    abstract void refreshArea();
+    /**
+     * 获取房间信息
+     * @param roomId 房间号
+     * @return
+     */
+    LiveRoomInfo getRoomInfo(String roomId);
 
-    abstract List<LiveRoomInfo> getAreaRoom(String area, int page, int size);
+    /**
+     * 获取推荐
+     * @param page 页数
+     * @param size 分页大小
+     * @return
+     */
+    List<LiveRoomInfo> getRecommend(int page, int size);
 
-    abstract List<Owner> search(String keyWords, String isLive);
+    /**
+     * 刷新分区信息
+     */
+    void refreshArea();
+
+    /**
+     * 获取分区房间列表
+     * @param area 分区名
+     * @param page 页数
+     * @param size 分页大小
+     * @return
+     */
+    List<LiveRoomInfo> getAreaRoom(String area, int page, int size);
+
+    /**
+     * 搜索
+     *
+     * @param keyWords 关键词
+     * @return
+     */
+    List<Owner> search(String keyWords);
 }

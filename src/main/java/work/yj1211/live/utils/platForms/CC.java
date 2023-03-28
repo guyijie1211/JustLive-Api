@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
@@ -15,14 +17,16 @@ import work.yj1211.live.vo.platformArea.AreaInfo;
 import java.util.*;
 
 @Slf4j
-public class CC {
+@Component
+public class CC implements BasePlatform {
     /**
      * 搜索
-     * @param keyWords  搜索关键字
-     * @param isLive 是否搜索直播中的信息
+     *
+     * @param keyWords 搜索关键字
      * @return
      */
-    public static List<Owner> search(String keyWords, String isLive){
+    @Override
+    public List<Owner> search(String keyWords){
         List<Owner> list = new ArrayList<>();
         String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
         String result = HttpUtil.doGet(url);
@@ -49,12 +53,18 @@ public class CC {
         return list;
     }
 
+    @Override
+    public String getType() {
+        return Platform.CC.getName();
+    }
+
     /**
      * 获取真实地址
      * @param urls
      * @param roomId
      */
-    public static void getRealUrl(Map<String, String> urls, String roomId) {
+    @Override
+    public void getRealUrl(Map<String, String> urls, String roomId) {
         String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSON.parseObject(result);
@@ -75,7 +85,8 @@ public class CC {
      * @param roomId
      * @return
      */
-    public static LiveRoomInfo getRoomInfo(String roomId) {
+    @Override
+    public LiveRoomInfo getRoomInfo(String roomId) {
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         try {
             String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
@@ -112,7 +123,8 @@ public class CC {
      * 刷新分类缓存
      * @return
      */
-    public static void refreshArea(){
+    @Override
+    public void refreshArea(){
         List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
         areaMapTemp.add(refreshSingleArea("1", "网游"));
         areaMapTemp.add(refreshSingleArea("2", "手游"));
@@ -126,7 +138,7 @@ public class CC {
      * @param areaCode
      * @return
      */
-    private static List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
+    private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
         String url = "https://api.cc.163.com/v1/wapcc/gamecategory?catetype=" + areaCode;
         List<AreaInfo> areaListTemp = new ArrayList<>();
         String result = HttpRequest.create(url)
@@ -171,7 +183,8 @@ public class CC {
      * @param size 每页大小
      * @return
      */
-    public static List<LiveRoomInfo> getRecommend(int page, int size){
+    @Override
+    public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
         String url = "https://cc.163.com/api/category/live/?format=json&start=" + start + "&size=" + size;
@@ -206,7 +219,8 @@ public class CC {
      * @param size
      * @return
      */
-    public static List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    @Override
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
         AreaInfo areaInfo = Global.getAreaInfo("cc", area);
