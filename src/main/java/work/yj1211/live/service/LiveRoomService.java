@@ -1,6 +1,7 @@
 package work.yj1211.live.service;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -19,10 +20,7 @@ import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -214,7 +212,22 @@ public class LiveRoomService{
      */
     public List<LiveRoomInfo> getRecommendByAreaAll(String areaType, String area, int page, int size){
         // TODO
-        List<LiveRoomInfo> list = new ArrayList<>();
+        List<LiveRoomInfo> list = Collections.synchronizedList(new ArrayList<>());
+//        // 有几个平台就开几个线程
+//        int threadCount = Platform.values().length;
+//        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+//        // 遍历平台 提交获取推荐列表的任务
+//        platformMap.values().forEach(platform -> {
+//            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform.getType(), area, page, size)));
+//        });
+//        executorService.shutdown();
+//        try {
+//            // 阻塞，直到线程池里所有任务结束
+//            executorService.awaitTermination(10, TimeUnit.SECONDS);
+//        } catch (Exception e) {
+//            log.error("获取总推荐报错:", e);
+//        }
+
         class MyThread implements Runnable {
             private String platform;
             private List<LiveRoomInfo> list;
