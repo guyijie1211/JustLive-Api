@@ -1,8 +1,8 @@
 package work.yj1211.live.utils.platForms;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
@@ -99,13 +99,13 @@ public class Douyu implements BasePlatform  {
      */
     public String get_simple_url(String rid) {
         JSONObject tt = getTT();
-        String tt1 = tt.getString("tt1");
+        String tt1 = tt.getStr("tt1");
         String realUrl = null;
         try {
             JSONObject result = getHomeJs(rid);
             assert result != null;
-            String real_rid = result.getString("real_rid");
-            String homejs = result.getString("homejs");
+            String real_rid = result.getStr("real_rid");
+            String homejs = result.getStr("homejs");
             realUrl = getSignUrl("0", real_rid, tt1, homejs);
         } catch (NoSuchAlgorithmException | ScriptException | NoSuchMethodException e) {
             e.printStackTrace();
@@ -171,14 +171,14 @@ public class Douyu implements BasePlatform  {
                 .post()
                 .getBodyJson();
 
-        if (response.getIntValue("code") != 0) {
+        if (response.getInt("code") != 0) {
             return null;
         }
         JSONObject data = response.getJSONObject("data");
         if (data == null){
             return null;
         }
-        String url = data.getString("rtmp_live");
+        String url = data.getStr("rtmp_live");
         url = handleUrl(url);
         roomUrlMap.put(rid, url);
         List<Integer> rateList = handleRate(data.getJSONArray("multirates"));
@@ -263,19 +263,19 @@ public class Douyu implements BasePlatform  {
             return null;
         }
 
-        if (response.getBodyJson().getInteger("error") == 0) {
+        if (response.getBodyJson().getInt("error") == 0) {
             JSONObject room_info = response.getBodyJson().getJSONObject("data");
             LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
             liveRoomInfo.setPlatForm("douyu");
-            liveRoomInfo.setRoomId(room_info.getString("room_id"));
-            liveRoomInfo.setCategoryId(room_info.getString("cate_id"));//分类id不对
-            liveRoomInfo.setCategoryName(room_info.getString("cate_name"));
-            liveRoomInfo.setRoomName(room_info.getString("room_name"));
-            liveRoomInfo.setOwnerName(room_info.getString("owner_name"));
-            liveRoomInfo.setRoomPic(room_info.getString("room_thumb"));
-            liveRoomInfo.setOwnerHeadPic(room_info.getString("avatar"));
-            liveRoomInfo.setOnline(room_info.getInteger("online"));
-            liveRoomInfo.setIsLive((room_info.getInteger("room_status") == 1) ? 1 : 0);
+            liveRoomInfo.setRoomId(room_info.getStr("room_id"));
+            liveRoomInfo.setCategoryId(room_info.getStr("cate_id"));//分类id不对
+            liveRoomInfo.setCategoryName(room_info.getStr("cate_name"));
+            liveRoomInfo.setRoomName(room_info.getStr("room_name"));
+            liveRoomInfo.setOwnerName(room_info.getStr("owner_name"));
+            liveRoomInfo.setRoomPic(room_info.getStr("room_thumb"));
+            liveRoomInfo.setOwnerHeadPic(room_info.getStr("avatar"));
+            liveRoomInfo.setOnline(room_info.getInt("online"));
+            liveRoomInfo.setIsLive((room_info.getInt("room_status") == 1) ? 1 : 0);
             return liveRoomInfo;
         }
         return null;
@@ -299,7 +299,7 @@ public class Douyu implements BasePlatform  {
     private List<Integer> handleRate(JSONArray jsonArray){
         List<Integer> list = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++){
-            list.add(jsonArray.getJSONObject(i).getIntValue("bit"));
+            list.add(jsonArray.getJSONObject(i).getInt("bit"));
         }
         Collections.sort(list, new Comparator<Integer>() {
             @Override
@@ -362,23 +362,23 @@ public class Douyu implements BasePlatform  {
     private List<LiveRoomInfo> requestUrl(String url, String categoryName){
         List<LiveRoomInfo> list = new ArrayList<>();
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("code") == 0) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
             JSONArray roomList = resultJsonObj.getJSONObject("data").getJSONArray("list");
             Iterator<Object> it = roomList.iterator();
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("douyu");
-                liveRoomInfo.setRoomId(roomInfo.getInteger("rid").toString());
-                liveRoomInfo.setCategoryId(roomInfo.getString("cate2Id"));
-                liveRoomInfo.setCategoryName(Global.DouyuCateMap.get(roomInfo.getString("cate2Id")));
-                liveRoomInfo.setRoomName(roomInfo.getString("roomName"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("roomSrc"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("avatar"));
-                liveRoomInfo.setOnline(DouyuNumStringToInt(roomInfo.getString("hn")));
-                liveRoomInfo.setIsLive(roomInfo.getInteger("isLive"));
+                liveRoomInfo.setRoomId(roomInfo.getInt("rid").toString());
+                liveRoomInfo.setCategoryId(roomInfo.getStr("cate2Id"));
+                liveRoomInfo.setCategoryName(Global.DouyuCateMap.get(roomInfo.getStr("cate2Id")));
+                liveRoomInfo.setRoomName(roomInfo.getStr("roomName"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nickname"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("roomSrc"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("avatar"));
+                liveRoomInfo.setOnline(DouyuNumStringToInt(roomInfo.getStr("hn")));
+                liveRoomInfo.setIsLive(roomInfo.getInt("isLive"));
                 list.add(liveRoomInfo);
             }
         }
@@ -422,16 +422,16 @@ public class Douyu implements BasePlatform  {
                 .setContentType(HttpContentType.FORM)
                 .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
                 .get().getBody();
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("code") == 0) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
             JSONArray cate1Info = resultJsonObj.getJSONObject("data").getJSONArray("cate1Info");
             Iterator<Object> it1 = cate1Info.iterator();
             Map<String, String> typeNameMap = new HashMap<>();
             List<String> typeSortList = new ArrayList<>();
             while(it1.hasNext()) {
                 JSONObject areaInfo = (JSONObject) it1.next();
-                String cate1Name = areaInfo.getString("cate1Name");
-                String cate1Id = areaInfo.getInteger("cate1Id").toString();
+                String cate1Name = areaInfo.getStr("cate1Name");
+                String cate1Id = areaInfo.getInt("cate1Id").toString();
                 if("21".equals(cate1Id)){
                     continue;
                 }
@@ -445,16 +445,16 @@ public class Douyu implements BasePlatform  {
             while(it2.hasNext()){
                 JSONObject areaInfo = (JSONObject) it2.next();
                 AreaInfo douyuArea = new AreaInfo();
-                String cate1Id = areaInfo.getInteger("cate1Id").toString();
+                String cate1Id = areaInfo.getInt("cate1Id").toString();
                 if("21".equals(cate1Id)){
                     continue;
                 }
                 douyuArea.setAreaType(cate1Id);
                 douyuArea.setTypeName(typeNameMap.get(cate1Id));
-                douyuArea.setAreaId(areaInfo.getInteger("cate2Id").toString());
-                douyuArea.setAreaName(areaInfo.getString("cate2Name"));
-                douyuArea.setAreaPic(areaInfo.getString("pic"));
-                douyuArea.setShortName(areaInfo.getString("shortName"));
+                douyuArea.setAreaId(areaInfo.getInt("cate2Id").toString());
+                douyuArea.setAreaName(areaInfo.getStr("cate2Name"));
+                douyuArea.setAreaPic(areaInfo.getStr("pic"));
+                douyuArea.setShortName(areaInfo.getStr("shortName"));
                 douyuArea.setPlatform("douyu");
                 Global.DouyuCateMap.put(douyuArea.getAreaId(), douyuArea.getAreaName());
                 String areaTypeKey = douyuArea.getTypeName().substring(0,2);
@@ -515,22 +515,22 @@ public class Douyu implements BasePlatform  {
         String url = "https://www.douyu.com/gapi/rkc/directory/mixList/2_"+areaInfo.getAreaId()+"/1";
         List<LiveRoomInfo> list = new ArrayList<>();
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("code") == 0) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
             JSONArray roomList = resultJsonObj.getJSONObject("data").getJSONArray("rl");
             Iterator<Object> it = roomList.iterator();
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("douyu");
-                liveRoomInfo.setRoomId(roomInfo.getInteger("rid").toString());
-                liveRoomInfo.setCategoryId(roomInfo.getString("cate2Id"));
-                liveRoomInfo.setCategoryName(roomInfo.getString("c2name"));
-                liveRoomInfo.setRoomName(roomInfo.getString("rn"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nn"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("rs16"));
-                liveRoomInfo.setOwnerHeadPic("http://apic.douyucdn.cn/upload/"+roomInfo.getString("av"));
-                liveRoomInfo.setOnline(roomInfo.getInteger("ol"));
+                liveRoomInfo.setRoomId(roomInfo.getInt("rid").toString());
+                liveRoomInfo.setCategoryId(roomInfo.getStr("cate2Id"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("c2name"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("rn"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nn"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("rs16"));
+                liveRoomInfo.setOwnerHeadPic("http://apic.douyucdn.cn/upload/"+roomInfo.getStr("av"));
+                liveRoomInfo.setOnline(roomInfo.getInt("ol"));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }
@@ -553,21 +553,21 @@ public class Douyu implements BasePlatform  {
         paramMap.put("limit", 20);
 
         String result= cn.hutool.http.HttpUtil.post("https://m.douyu.com/api/search/anchor", paramMap);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("error") == 0) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("error") == 0) {
             JSONArray ownerList = resultJsonObj.getJSONObject("data").getJSONArray("list");
             Iterator<Object> it = ownerList.iterator();
             int i = 0;
             while(i < 5 && it.hasNext()) {
                 JSONObject responseOwner = (JSONObject) it.next();
                 Owner owner = new Owner();
-                owner.setNickName(responseOwner.getString("nickname"));
-                owner.setCateName(responseOwner.getString("cateName"));
-                owner.setHeadPic(responseOwner.getString("avatar"));
+                owner.setNickName(responseOwner.getStr("nickname"));
+                owner.setCateName(responseOwner.getStr("cateName"));
+                owner.setHeadPic(responseOwner.getStr("avatar"));
                 owner.setPlatform("douyu");
-                owner.setRoomId(responseOwner.getString("roomId"));
-                owner.setIsLive((responseOwner.getInteger("isLive") == 1) ? "1" : "0");
-                owner.setFollowers(DouyuNumStringToInt(responseOwner.getString("hn")));
+                owner.setRoomId(responseOwner.getStr("roomId"));
+                owner.setIsLive((responseOwner.getInt("isLive") == 1) ? "1" : "0");
+                owner.setFollowers(DouyuNumStringToInt(responseOwner.getStr("hn")));
                 list.add(owner);
                 i++;
             }

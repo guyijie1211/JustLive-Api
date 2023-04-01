@@ -1,8 +1,8 @@
 package work.yj1211.live.utils.platForms;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
@@ -30,22 +30,21 @@ public class CC implements BasePlatform {
         List<Owner> list = new ArrayList<>();
         String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
-            Iterator<Object> it = ownerList.iterator();
-            while(it.hasNext()){
-                JSONObject responseOwner = (JSONObject) it.next();
+            ownerList.forEach(item ->{
+                JSONObject responseOwner = (JSONObject) item;
                 Owner owner = new Owner();
-                owner.setNickName(responseOwner.getString("nickname"));
-                owner.setCateName(responseOwner.getString("game_name"));
-                owner.setHeadPic(responseOwner.getString("portrait"));
+                owner.setNickName(responseOwner.getStr("nickname"));
+                owner.setCateName(responseOwner.getStr("game_name"));
+                owner.setHeadPic(responseOwner.getStr("portrait"));
                 owner.setPlatform("cc");
-                owner.setRoomId(responseOwner.getString("cuteid"));
-                owner.setIsLive((responseOwner.getInteger("status") !=null && responseOwner.getInteger("status") == 1) ? "1" : "0");
-                owner.setFollowers(responseOwner.getInteger("follower_num"));
+                owner.setRoomId(responseOwner.getStr("cuteid"));
+                owner.setIsLive((responseOwner.getStr("status") !=null && responseOwner.getInt("status") == 1) ? "1" : "0");
+                owner.setFollowers(responseOwner.getInt("follower_num"));
                 list.add(owner);
-            }
+            });
         }
         if (list.size()>5){
             return list.subList(0,5);
@@ -67,14 +66,14 @@ public class CC implements BasePlatform {
     public void getRealUrl(Map<String, String> urls, String roomId) {
         String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if ("OK".equals(resultJsonObj.getString("code"))){
-            String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInteger("channel_id").toString();
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if ("OK".equals(resultJsonObj.getStr("code"))){
+            String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInt("channel_id").toString();
             String urlToGetReal = "https://cc.163.com/live/channel/?channelids="+channelId;
             String resultReal = HttpUtil.doGet(urlToGetReal);
-            JSONObject resultRealJsonObj = JSON.parseObject(resultReal);
+            JSONObject resultRealJsonObj = JSONUtil.parseObj(resultReal);
             if (null != resultRealJsonObj){
-                String real_url = resultRealJsonObj.getJSONArray("data").getJSONObject(0).getString("sharefile");
+                String real_url = resultRealJsonObj.getJSONArray("data").getJSONObject(0).getStr("sharefile");
                 urls.put("OD", real_url);
             }
         }
@@ -91,25 +90,25 @@ public class CC implements BasePlatform {
         try {
             String url = "https://api.cc.163.com/v1/activitylives/anchor/lives?anchor_ccid="+roomId;
             String result = HttpUtil.doGet(url);
-            JSONObject resultJsonObj = JSON.parseObject(result);
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
 
-            if ("OK".equals(resultJsonObj.getString("code"))){
-                String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInteger("channel_id").toString();
+            if ("OK".equals(resultJsonObj.getStr("code"))){
+                String channelId = resultJsonObj.getJSONObject("data").getJSONObject(roomId).getInt("channel_id").toString();
                 String urlToGetReal = "https://cc.163.com/live/channel/?channelids="+channelId;
                 String resultReal = HttpUtil.doGet(urlToGetReal);
-                JSONObject resultRealJsonObj = JSON.parseObject(resultReal);
+                JSONObject resultRealJsonObj = JSONUtil.parseObj(resultReal);
                 if (null != resultRealJsonObj){
                     JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
                     liveRoomInfo.setPlatForm("cc");
-                    liveRoomInfo.setRoomId(roomInfo.getString("cuteid"));
-                    liveRoomInfo.setCategoryId(roomInfo.getString("cate_id"));//分类id不对
-                    liveRoomInfo.setCategoryName(roomInfo.getString("gamename"));
-                    liveRoomInfo.setRoomName(roomInfo.getString("title"));
-                    liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
-                    liveRoomInfo.setRoomPic(roomInfo.getString("poster"));
-                    liveRoomInfo.setOwnerHeadPic(roomInfo.getString("purl"));
-                    liveRoomInfo.setOnline(roomInfo.getInteger("visitor"));
-                    liveRoomInfo.setIsLive((roomInfo.getInteger("status") !=null && roomInfo.getInteger("status") == 1) ? 1 : 0);
+                    liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
+                    liveRoomInfo.setCategoryId(roomInfo.getStr("cate_id"));//分类id不对
+                    liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
+                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+                    liveRoomInfo.setOwnerName(roomInfo.getStr("nickname"));
+                    liveRoomInfo.setRoomPic(roomInfo.getStr("poster"));
+                    liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("purl"));
+                    liveRoomInfo.setOnline(roomInfo.getInt("visitor"));
+                    liveRoomInfo.setIsLive((roomInfo.getInt("status") !=null && roomInfo.getInt("status") == 1) ? 1 : 0);
                 }
             }
         } catch (Exception e) {
@@ -145,8 +144,8 @@ public class CC implements BasePlatform {
                 .setContentType(HttpContentType.FORM)
                 .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
                 .get().getBody();
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("code") == 0) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
             JSONArray data = resultJsonObj.getJSONObject("data").getJSONObject("category_info").getJSONArray("game_list");
             Iterator<Object> it = data.iterator();
             while (it.hasNext()) {
@@ -154,9 +153,9 @@ public class CC implements BasePlatform {
                 AreaInfo ccArea = new AreaInfo();
                 ccArea.setAreaType(areaCode);
                 ccArea.setTypeName(typeName);
-                ccArea.setAreaId(areaInfo.getString("gametype"));
-                ccArea.setAreaName(areaInfo.getString("name"));
-                ccArea.setAreaPic(areaInfo.getString("cover"));
+                ccArea.setAreaId(areaInfo.getStr("gametype"));
+                ccArea.setAreaName(areaInfo.getStr("name"));
+                ccArea.setAreaPic(areaInfo.getStr("cover"));
                 ccArea.setPlatform("cc");
                 areaListTemp.add(ccArea);
                 Global.CCCateMap.put(ccArea.getAreaId(), ccArea.getAreaName());
@@ -189,7 +188,7 @@ public class CC implements BasePlatform {
         int start = (page-1)*size;
         String url = "https://cc.163.com/api/category/live/?format=json&start=" + start + "&size=" + size;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (null != resultJsonObj) {
             JSONArray data = resultJsonObj.getJSONArray("lives");
             Iterator<Object> it = data.iterator();
@@ -197,14 +196,14 @@ public class CC implements BasePlatform {
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("cc");
-                liveRoomInfo.setRoomId(roomInfo.getString("cuteid"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("gametype"));
-                liveRoomInfo.setCategoryName(roomInfo.getString("gamename"));
-                liveRoomInfo.setRoomName(roomInfo.getString("title"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("poster"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("purl"));
-                liveRoomInfo.setOnline(roomInfo.getInteger("total_visitor"));
+                liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
+                liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nickname"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("poster"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("purl"));
+                liveRoomInfo.setOnline(roomInfo.getInt("total_visitor"));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }
@@ -226,7 +225,7 @@ public class CC implements BasePlatform {
         AreaInfo areaInfo = Global.getAreaInfo("cc", area);
         String url = "https://cc.163.com/api/category/" + areaInfo.getAreaId() + "/?format=json&tag_id=0&start=" + start + "&size=" +size;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (null != resultJsonObj) {
             JSONArray data = resultJsonObj.getJSONArray("lives");
             Iterator<Object> it = data.iterator();
@@ -234,14 +233,14 @@ public class CC implements BasePlatform {
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("cc");
-                liveRoomInfo.setRoomId(roomInfo.getString("cuteid"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("gametype"));
-                liveRoomInfo.setCategoryName(roomInfo.getString("gamename"));
-                liveRoomInfo.setRoomName(roomInfo.getString("title"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nickname"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("poster"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("purl"));
-                liveRoomInfo.setOnline(roomInfo.getInteger("total_visitor"));
+                liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
+                liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nickname"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("poster"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("purl"));
+                liveRoomInfo.setOnline(roomInfo.getInt("total_visitor"));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }

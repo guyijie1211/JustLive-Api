@@ -1,8 +1,8 @@
 package work.yj1211.live.controller;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +70,7 @@ public class UserInfoCrl {
         user.setNickName(nickname);
         user.setPassword(password);
         userService.register(user);
-        if (StringUtils.isNotEmpty(mail)) {
+        if (StrUtil.isNotEmpty(mail)) {
             try {
                 userService.bindMail(uuid, mail);
             } catch (Exception e) {

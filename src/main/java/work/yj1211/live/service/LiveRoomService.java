@@ -1,11 +1,9 @@
 package work.yj1211.live.service;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -151,7 +149,7 @@ public class LiveRoomService{
         try {
             jsonObject = JSONUtil.readJSONObject(FileUtil.file(Global.getUpdateFilePath()), StandardCharsets.UTF_8);
             Global.updateInfo = jsonObject.toBean(UpdateInfo.class);
-            return JSON.toJSONString(jsonObject);
+            return JSONUtil.toJsonStr(jsonObject);
         } catch (Exception e) {
             log.error("刷新app新版本信息失败", e);
         }

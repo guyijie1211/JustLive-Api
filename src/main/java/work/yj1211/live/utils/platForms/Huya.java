@@ -2,10 +2,10 @@ package work.yj1211.live.utils.platForms;
 
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONException;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -77,20 +77,20 @@ public class Huya implements BasePlatform {
         Map<String, String> headers = new HashMap<>(1);
         headers.put("X-Forwarded-For", ip);
         String result = HttpUtil.doGetWithHeaders(url, headers);
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (result != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("response").getJSONObject("1").getJSONArray("docs");
             Iterator<Object> it = ownerList.iterator();
             while(it.hasNext()){
                 JSONObject responseOwner = (JSONObject) it.next();
                 Owner owner = new Owner();
-                owner.setNickName(responseOwner.getString("game_nick"));
-                owner.setCateName(responseOwner.getString("game_name"));
-                owner.setHeadPic(responseOwner.getString("game_avatarUrl52"));
+                owner.setNickName(responseOwner.getStr("game_nick"));
+                owner.setCateName(responseOwner.getStr("game_name"));
+                owner.setHeadPic(responseOwner.getStr("game_avatarUrl52"));
                 owner.setPlatform("huya");
-                owner.setRoomId(responseOwner.getString("room_id"));
-                owner.setIsLive(responseOwner.getBoolean("gameLiveOn") ? "1" : "0");
-                owner.setFollowers(responseOwner.getInteger("game_activityCount"));
+                owner.setRoomId(responseOwner.getStr("room_id"));
+                owner.setIsLive(responseOwner.getBool("gameLiveOn") ? "1" : "0");
+                owner.setFollowers(responseOwner.getInt("game_activityCount"));
                 list.add(owner);
             }
         }
@@ -186,19 +186,19 @@ public class Huya implements BasePlatform {
         Pattern pJson = Pattern.compile("var hyPlayerConfig *= *(.*?});");
         Matcher matcher = pJson.matcher(html);
         matcher.find();
-        JSONObject obj = JSONObject.parseObject(matcher.group(1));
+        JSONObject obj = JSONUtil.parseObj(matcher.group(1));
         try {
             obj = obj.getJSONObject("stream");
         } catch(JSONException e) {
-            String stream = obj.getString("stream");
+            String stream = obj.getStr("stream");
             stream = new String(Base64.getDecoder().decode(stream), "UTF-8");
-            obj = JSONObject.parseObject(stream);
+            obj = JSONUtil.parseObj(stream);
         }
 
         List<Integer> qnList = new ArrayList<>();
         JSONArray qns = obj.getJSONArray("vMultiStreamInfo");
         for(int i=0; i< qns.size(); i++) {
-            int qn = qns.getJSONObject(i).getInteger("iBitRate");
+            int qn = qns.getJSONObject(i).getInt("iBitRate");
             qnList.add(qn);
         }
         Collections.sort(qnList);
@@ -232,7 +232,7 @@ public class Huya implements BasePlatform {
                 .setContentType(HttpContentType.FORM)
                 .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
                 .get().getBody();
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (null != resultJsonObj) {
             JSONArray data = resultJsonObj.getJSONArray("gameList");
             Iterator<Object> it = data.iterator();
@@ -241,8 +241,8 @@ public class Huya implements BasePlatform {
                 AreaInfo huyaArea = new AreaInfo();
                 huyaArea.setAreaType(areaCode);
                 huyaArea.setTypeName(typeName);
-                huyaArea.setAreaId(areaInfo.getString("gid"));
-                huyaArea.setAreaName(areaInfo.getString("gameFullName"));
+                huyaArea.setAreaId(areaInfo.getStr("gid"));
+                huyaArea.setAreaName(areaInfo.getStr("gameFullName"));
                 huyaArea.setAreaPic("https://huyaimg.msstatic.com/cdnimage/game/" + huyaArea.getAreaId() + "-MS.jpg");
                 huyaArea.setPlatform("huya");
                 areaListTemp.add(huyaArea);
@@ -272,22 +272,22 @@ public class Huya implements BasePlatform {
     public LiveRoomInfo getRoomInfoOld(String roomId) {
         String url = "https://search.cdn.huya.com/?m=Search&do=getSearchContent&q=" + roomId + "&uid=0&v=4&typ=-5&livestate=0&rows=5&start=0";
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         if (result != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("response").getJSONObject("1").getJSONArray("docs");
             Iterator<Object> it = ownerList.iterator();
             JSONObject responseOwner = (JSONObject) it.next();
             liveRoomInfo.setPlatForm("huya");
-            liveRoomInfo.setRoomId(responseOwner.getString("room_id"));
-            liveRoomInfo.setCategoryId(responseOwner.getString("cate_id"));//分类id不对
-            liveRoomInfo.setCategoryName(responseOwner.getString("game_name"));
-            liveRoomInfo.setRoomName(responseOwner.getString("live_intro"));
-            liveRoomInfo.setOwnerName(responseOwner.getString("game_nick"));
-            //liveRoomInfo.setRoomPic(responseOwner.getString("room_thumb"));
-            liveRoomInfo.setOwnerHeadPic(responseOwner.getString("game_avatarUrl52"));
-//            liveRoomInfo.setOnline(responseOwner.getInteger("game_activityCount"));//这个接口获取不到观看人数
-            liveRoomInfo.setIsLive(responseOwner.getBoolean("gameLiveOn") ? 1 : 0);
+            liveRoomInfo.setRoomId(responseOwner.getStr("room_id"));
+            liveRoomInfo.setCategoryId(responseOwner.getStr("cate_id"));//分类id不对
+            liveRoomInfo.setCategoryName(responseOwner.getStr("game_name"));
+            liveRoomInfo.setRoomName(responseOwner.getStr("live_intro"));
+            liveRoomInfo.setOwnerName(responseOwner.getStr("game_nick"));
+            //liveRoomInfo.setRoomPic(responseOwner.getStr("room_thumb"));
+            liveRoomInfo.setOwnerHeadPic(responseOwner.getStr("game_avatarUrl52"));
+//            liveRoomInfo.setOnline(responseOwner.getInt("game_activityCount"));//这个接口获取不到观看人数
+            liveRoomInfo.setIsLive(responseOwner.getBool("gameLiveOn") ? 1 : 0);
         }
         return liveRoomInfo;
     }
@@ -359,21 +359,21 @@ public class Huya implements BasePlatform {
         }
         String url = "https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&tagAll=0&page="+realPage;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("status") == 200) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("status") == 200) {
             JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("datas");
             for (int i = start; i < start+size; i++){
                 JSONObject roomInfo = data.getJSONObject(i);
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("huya");
-                liveRoomInfo.setRoomId(roomInfo.getString("profileRoom"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("gid"));
-                liveRoomInfo.setCategoryName(roomInfo.getString("gameFullName"));
-                liveRoomInfo.setRoomName(roomInfo.getString("introduction"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nick"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("screenshot"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("avatar180"));
-                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getString("totalCount")));
+                liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
+                liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("introduction"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nick"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("screenshot"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("avatar180"));
+                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getStr("totalCount")));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }
@@ -400,21 +400,21 @@ public class Huya implements BasePlatform {
         AreaInfo areaInfo = Global.getAreaInfo("huya", area);
         String url = "https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&gameId=" + areaInfo.getAreaId() + "&tagAll=0&page="+realPage;
         String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSON.parseObject(result);
-        if (resultJsonObj.getInteger("status") == 200) {
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("status") == 200) {
             JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("datas");
             for (int i = start; i < start+size; i++){
                 JSONObject roomInfo = data.getJSONObject(i);
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm("huya");
-                liveRoomInfo.setRoomId(roomInfo.getString("profileRoom"));
-                liveRoomInfo.setCategoryId(roomInfo.getString("gid"));
-                liveRoomInfo.setCategoryName(roomInfo.getString("gameFullName"));
-                liveRoomInfo.setRoomName(roomInfo.getString("introduction"));
-                liveRoomInfo.setOwnerName(roomInfo.getString("nick"));
-                liveRoomInfo.setRoomPic(roomInfo.getString("screenshot"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getString("avatar180"));
-                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getString("totalCount")));
+                liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
+                liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("introduction"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nick"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("screenshot"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("avatar180"));
+                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getStr("totalCount")));
                 liveRoomInfo.setIsLive(1);
                 list.add(liveRoomInfo);
             }

@@ -4,8 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.net.URLDecoder;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -75,11 +76,11 @@ public class FixHuya {
         String antiCode = antiCodeMatcher.group(1);
         String streamName = streamNameMatcher.group(1);
         String rateInfo = RateInfoMatcher.group(1) + "\"}";
-        JSONObject jsonObject = JSONObject.parseObject(rateInfo);
+        JSONObject jsonObject = JSONUtil.parseObj(rateInfo);
         JSONArray jsonArray = jsonObject.getJSONArray("value");
         List<Integer> qnList = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++) {
-            int qn = jsonArray.getJSONObject(i).getInteger("iBitRate");
+            int qn = jsonArray.getJSONObject(i).getInt("iBitRate");
             if (qn != 0) {
                 qnList.add(qn);
             }
