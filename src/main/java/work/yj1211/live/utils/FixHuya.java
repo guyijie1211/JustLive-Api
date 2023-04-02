@@ -1,4 +1,4 @@
-package work.yj1211.live.utils.platForms;
+package work.yj1211.live.utils;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.net.URLDecoder;

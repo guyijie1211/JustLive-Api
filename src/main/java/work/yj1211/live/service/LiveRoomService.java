@@ -10,8 +10,9 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
+import work.yj1211.live.service.mysql.AreaInfoService;
+import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
-import work.yj1211.live.utils.platForms.*;
 import work.yj1211.live.utils.thread.AsyncService;
 import work.yj1211.live.model.*;
 import work.yj1211.live.model.platformArea.AreaInfo;
@@ -31,8 +32,10 @@ public class LiveRoomService{
     private UserMapper userMapper;
     @Autowired
     private AsyncService asyncService;
+    @Autowired
+    private AreaInfoService areaInfoService;
 
-    private final Map<String,BasePlatform> platformMap;
+    private final Map<String, BasePlatform> platformMap;
     @Autowired
     public LiveRoomService(List<BasePlatform> platforms){
         platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getType, Function.identity(), (oldV, newV)-> newV));
@@ -162,7 +165,8 @@ public class LiveRoomService{
      * @return
      */
     public List<List<AreaInfo>> getAreaMap(String platform){
-        return Global.platformAreaMap.get(platform);
+        // TODO
+        return null;
     }
 
     /**
@@ -170,34 +174,9 @@ public class LiveRoomService{
      * @return
      */
     public List<List<AreaInfo>> getAllAreaMap(){
+        // TODO
         List<List<AreaInfo>> result = new ArrayList<>();
-        Map<String, Map<String, Map<String, AreaInfo>>> allMap = Global.AllAreaMap;
-        List<String> areaTypeSortList = Global.AreaTypeSortList;
-        Map<String, List<String>> areaInfoSortMap = Global.AreaInfoSortMap;
 
-        Iterator<String> it = areaTypeSortList.iterator();
-        while(it.hasNext()) {
-            String areaType = it.next();
-            List<String> areaInfoList = areaInfoSortMap.get(areaType);
-            Iterator<String> infoIt = areaInfoList.iterator();
-            List<AreaInfo> resultList = new ArrayList<>();
-            while(infoIt.hasNext()){
-                String areaInfo = infoIt.next();
-                Map<String, AreaInfo> areaInfoMap = allMap.get(areaType).get(areaInfo);
-                if (areaInfoMap.containsKey("douyu")){
-                    resultList.add(areaInfoMap.get("douyu"));
-                } else if (areaInfoMap.containsKey("bilibili")){
-                    resultList.add(areaInfoMap.get("bilibili"));
-                } else if (areaInfoMap.containsKey("huya")){
-                    resultList.add(areaInfoMap.get("huya"));
-                } else if (areaInfoMap.containsKey("cc")){
-                }
-            }
-            if (resultList.size()<1){
-                continue;
-            }
-            result.add(resultList);
-        }
         return  result;
     }
 
@@ -225,71 +204,6 @@ public class LiveRoomService{
 //        } catch (Exception e) {
 //            log.error("获取总推荐报错:", e);
 //        }
-
-        class MyThread implements Runnable {
-            private String platform;
-            private List<LiveRoomInfo> list;
-            private String area;
-            public MyThread(String platform, String area, List<LiveRoomInfo> list){
-                this.platform = platform;
-                this.list = list;
-                this.area = area;
-            }
-            @Override
-            public void run() {
-                list.addAll(getRecommendByPlatformArea(platform, area, page, size));
-            }
-        }
-        String areaTypeKey = areaType.substring(0,2);
-        Map<String, AreaInfo> map = Global.AllAreaMap.get(areaTypeKey).get(area);
-        if (Global.EgameCateMapVer.containsKey(area)){
-            Thread t = new Thread(new MyThread("egame", Global.EgameCateMapVer.get(area), list));
-            t.start();
-            try {
-                t.join();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        for (Map.Entry<String, AreaInfo> entry : map.entrySet()) {
-            if ("douyu".equals(entry.getKey())){
-                Thread t = new Thread(new MyThread("douyu", area, list));
-                t.start();
-                try {
-                    t.join();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            if ("bilibili".equals(entry.getKey())){
-                Thread t = new Thread(new MyThread("bilibili", area, list));
-                t.start();
-                try {
-                    t.join();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            if ("huya".equals(entry.getKey())){
-                Thread t = new Thread(new MyThread("huya", area, list));
-                t.start();
-                try {
-                    t.join();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            if ("cc".equals(entry.getKey())){
-                Thread t = new Thread(new MyThread("cc", area, list));
-                t.start();
-                try {
-                    t.join();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-
-        }
         return list;
     }
 

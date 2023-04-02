@@ -11,7 +11,7 @@ import lombok.Data;
 @TableName("area_info")
 @Data
 public class AreaInfo {
-    @TableId
+    @TableField("id")
     private int id;
     @TableField("platform")
     private String platform;

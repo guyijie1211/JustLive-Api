@@ -3,7 +3,10 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import work.yj1211.live.utils.platForms.*;
+import work.yj1211.live.service.platforms.impl.Bilibili;
+import work.yj1211.live.service.platforms.impl.CC;
+import work.yj1211.live.service.platforms.impl.Douyu;
+import work.yj1211.live.service.platforms.impl.Huya;
 import work.yj1211.live.utils.thread.AsyncService;
 import work.yj1211.live.model.LiveRoomInfo;
 

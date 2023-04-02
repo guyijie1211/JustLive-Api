@@ -1,4 +1,4 @@
-package work.yj1211.live.utils.platForms;
+package work.yj1211.live.utils;
 
 public enum DouYuOpenApi {
     //统一后面+roomId

@@ -1,4 +1,4 @@
-package work.yj1211.live.utils.platForms;
+package work.yj1211.live.service.platforms;
 
 import org.springframework.stereotype.Component;
 import work.yj1211.live.model.LiveRoomInfo;
@@ -13,7 +13,6 @@ import java.util.Map;
  **/
 @Component
 public interface BasePlatform {
-
     /**
      * 平台名称
      *

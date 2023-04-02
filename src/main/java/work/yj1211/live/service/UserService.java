@@ -13,7 +13,7 @@ import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.utils.platForms.Douyu;
+import work.yj1211.live.service.platforms.impl.Douyu;
 import work.yj1211.live.model.*;
 import work.yj1211.live.model.platformArea.AreaSimple;
 

@@ -1,4 +1,4 @@
-package work.yj1211.live.utils.platForms;
+package work.yj1211.live.service.platforms.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONArray;
@@ -6,10 +6,10 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.mapper.AllRoomsMapper;
+import work.yj1211.live.service.mysql.AreaInfoService;
+import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -18,13 +18,13 @@ import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
 public class Bilibili implements BasePlatform {
     @Autowired
-    private AllRoomsMapper allRoomsMapper;
+    private AreaInfoService areaInfoService;
 
     //Bilibili清晰度
     private String bilibiliFD = "80";
@@ -45,8 +45,8 @@ public class Bilibili implements BasePlatform {
         if(code == 0){
             JSONObject data = response.getJSONObject("data");
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("live_status", data.getBool("live_status"));
-            jsonObject.put("room_id", data.getLong("room_id"));
+            jsonObject.set("live_status", data.getBool("live_status"));
+            jsonObject.set("room_id", data.getLong("room_id"));
             return jsonObject;
         }else {
             log.error("BILIBILI---获取直播间真实id异常---roomId：" + rid);
@@ -218,50 +218,34 @@ public class Bilibili implements BasePlatform {
     public void refreshArea(){
         try {
             String url = "https://api.live.bilibili.com/xlive/web-interface/v1/index/getWebAreaList?source_id=2";//获取bilibili所有分类的请求地址
-            List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
             String result = HttpUtil.doGet(url);
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
             if (resultJsonObj.getInt("code") == 0) {
+                // 删除分区信息
+                areaInfoService.removeAreasByPlatform(getType());
+
+                // 获取新的分区信息
                 JSONArray dataArray = resultJsonObj.getJSONObject("data").getJSONArray("data");
-                dataArray.forEach(areaTypeObject->{
-//                    areaTypeObject.
+                AtomicInteger sum = new AtomicInteger();
+                dataArray.forEach(item ->{
+                    JSONObject areaTypeObject = (JSONObject) item;
+                    List<AreaInfo> areaInfoList = new ArrayList<>(areaTypeObject.size());
+                    sum.addAndGet(areaInfoList.size());
+                    areaTypeObject.getJSONArray("list").forEach(areaItem->{
+                        JSONObject areaItemObject = (JSONObject) areaItem;
+                        AreaInfo bilibiliArea = new AreaInfo();
+                        bilibiliArea.setAreaType(areaItemObject.getStr("parent_id"));
+                        bilibiliArea.setTypeName(areaItemObject.getStr("parent_name"));
+                        bilibiliArea.setAreaId(areaItemObject.getStr("id"));
+                        bilibiliArea.setAreaName(areaItemObject.getStr("name"));
+                        bilibiliArea.setAreaPic(areaItemObject.getStr("pic"));
+                        bilibiliArea.setPlatform("bilibili");
+                        areaInfoList.add(bilibiliArea);
+                    });
+                    areaInfoService.saveBatch(areaInfoList, 100);
                 });
-//                Iterator<Object> it = data.iterator();
-//                while (it.hasNext()) {
-//                    JSONObject areaType = (JSONObject) it.next();
-//                    String typeName = areaType.getStr("name");
-//                    List<AreaInfo> areaListTemp = new ArrayList<>();
-//                    JSONArray jsonArray = areaType.getJSONArray("list");
-//                    Iterator<Object> jsonArrayIt = jsonArray.iterator();
-//                    while (jsonArrayIt.hasNext()) {
-//                        JSONObject areaInfo = (JSONObject) jsonArrayIt.next();
-//                        AreaInfo bilibiliArea = new AreaInfo();
-//                        bilibiliArea.setAreaType(areaInfo.getStr("parent_id"));
-//                        bilibiliArea.setTypeName(areaInfo.getStr("parent_name"));
-//                        bilibiliArea.setAreaId(areaInfo.getStr("id"));
-//                        bilibiliArea.setAreaName(areaInfo.getStr("name"));
-//                        bilibiliArea.setAreaPic(areaInfo.getStr("pic"));
-//                        bilibiliArea.setPlatform("bilibili");
-//                        Global.BilibiliCateMap.put(bilibiliArea.getAreaId(), bilibiliArea.getAreaName());
-//                        String areaTypeKey = bilibiliArea.getTypeName().substring(0, 2);
-//                        if (!Global.AllAreaMap.containsKey(areaTypeKey)) {
-//                            List<String> list = new ArrayList<>();
-//                            list.add(bilibiliArea.getAreaName());
-//                            Global.AreaTypeSortList.add(areaTypeKey);
-//                            Global.AreaInfoSortMap.put(areaTypeKey, list);
-//                        } else {
-//                            if (!Global.AllAreaMap.get(areaTypeKey).containsKey(bilibiliArea.getAreaName())) {
-//                                Global.AreaInfoSortMap.get(areaTypeKey).add(bilibiliArea.getAreaName());
-//                            }
-//                        }
-//                        Global.AllAreaMap.computeIfAbsent(areaTypeKey, k -> new HashMap<>())
-//                                .computeIfAbsent(bilibiliArea.getAreaName(), k -> new HashMap<>()).put("bilibili", bilibiliArea);
-//                        areaListTemp.add(bilibiliArea);
-//                    }
-//                    areaMapTemp.add(areaListTemp);
-//                }
+                log.info("获取到【{}】分类信息【{}】条", getType(), sum);
             }
-            Global.platformAreaMap.put("bilibili", areaMapTemp);
         } catch (Exception e) {
             log.error("BILIBILI---刷新分类缓存异常");
         }
@@ -277,35 +261,35 @@ public class Bilibili implements BasePlatform {
     @Override
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-        try {
-            AreaInfo areaInfo = Global.getAreaInfo("bilibili", area);
-            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
-                    "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
-                    areaInfo.getAreaId()+"&sort_type=&page="+page;
-            String result = HttpUtil.doGet(url);
-            JSONObject resultJsonObj = JSONUtil.parseObj(result);
-            if (resultJsonObj.getInt("code") == 0) {
-                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
-                Iterator<Object> it = data.iterator();
-                while(it.hasNext()){
-                    JSONObject roomInfo = (JSONObject) it.next();
-                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                    liveRoomInfo.setPlatForm("bilibili");
-                    liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
-                    liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
-                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
-                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
-                    liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
-                    liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
-                    liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
-                    liveRoomInfo.setOnline(roomInfo.getInt("online"));
-                    liveRoomInfo.setIsLive(1);
-                    list.add(liveRoomInfo);
-                }
-            }
-        } catch (Exception e) {
-            log.error("BILIBILI---获取分区房间异常---area：" + area);
-        }
+//        try {
+//            AreaInfo areaInfo = Global.getAreaInfo("bilibili", area);
+//            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
+//                    "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
+//                    areaInfo.getAreaId()+"&sort_type=&page="+page;
+//            String result = HttpUtil.doGet(url);
+//            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+//            if (resultJsonObj.getInt("code") == 0) {
+//                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
+//                Iterator<Object> it = data.iterator();
+//                while(it.hasNext()){
+//                    JSONObject roomInfo = (JSONObject) it.next();
+//                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+//                    liveRoomInfo.setPlatForm("bilibili");
+//                    liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
+//                    liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
+//                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
+//                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+//                    liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
+//                    liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
+//                    liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
+//                    liveRoomInfo.setOnline(roomInfo.getInt("online"));
+//                    liveRoomInfo.setIsLive(1);
+//                    list.add(liveRoomInfo);
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.error("BILIBILI---获取分区房间异常---area：" + area);
+//        }
 
         return list;
     }
@@ -351,50 +335,5 @@ public class Bilibili implements BasePlatform {
         String str1 = responseName.replaceAll("<em class=\"keyword\">","");
         String result = str1.replaceAll("</em>","");
         return result;
-    }
-
-    /**
-     * 拉取所有直播间
-     */
-    public void updateAllRooms() {
-        for (int i = 0; i <= 7; i++) {
-//            updateAllRoomByPage(i*100 + 1);
-        }
-
-    }
-
-    @Async("asyncServiceExecutor")
-    public void updateAllRoomByPage(int page, CountDownLatch countDownLatch) {
-        int endPage = page + 99;
-        while (true) {
-            log.info("Bilibili全量拉取直播间===page:" + page);
-            List<LiveRoomInfo> list = new ArrayList<>();
-            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getUserRecommend?page=" + page + "&page_size=30&platform=web";
-            String result = HttpUtil.doGet(url);
-            JSONObject resultJsonObj = JSONUtil.parseObj(result);
-            if (resultJsonObj.getInt("code") == 0) {
-                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
-                Iterator<Object> it = data.iterator();
-                while(it.hasNext()){
-                    JSONObject roomInfo = (JSONObject) it.next();
-                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                    liveRoomInfo.setPlatForm("bilibili");
-                    liveRoomInfo.setRoomId(roomInfo.getStr("roomid"));
-                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
-                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
-                    liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
-                    liveRoomInfo.setOnline(roomInfo.getInt("online"));
-                    liveRoomInfo.setIsLive(1);
-                    list.add(liveRoomInfo);
-                }
-                allRoomsMapper.updateRooms(list);
-                if (page >= endPage || resultJsonObj.getJSONObject("data").getInt("has_more") != 1 || list.get(0).getOnline() < 10) {
-                    break;
-                } else {
-                    page++;
-                }
-            }
-        }
-        countDownLatch.countDown();
     }
 }

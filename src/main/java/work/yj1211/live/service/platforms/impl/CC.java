@@ -1,11 +1,14 @@
-package work.yj1211.live.utils.platForms;
+package work.yj1211.live.service.platforms.impl;
 
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.service.mysql.AreaInfoService;
+import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
@@ -19,6 +22,9 @@ import java.util.*;
 @Slf4j
 @Component
 public class CC implements BasePlatform {
+    @Autowired
+    private AreaInfoService areaInfoService;
+
     /**
      * 搜索
      *
@@ -124,12 +130,14 @@ public class CC implements BasePlatform {
      */
     @Override
     public void refreshArea(){
-        List<List<AreaInfo>> areaMapTemp = new ArrayList<>();
-        areaMapTemp.add(refreshSingleArea("1", "网游"));
-        areaMapTemp.add(refreshSingleArea("2", "手游"));
-        areaMapTemp.add(refreshSingleArea("4", "网游竞技"));
-        areaMapTemp.add(refreshSingleArea("5", "娱乐"));
-        Global.platformAreaMap.put("cc",areaMapTemp);
+        int sum = 0;
+        // 删除分区信息
+        areaInfoService.removeAreasByPlatform(getType());
+        sum += refreshSingleArea("1", "网游");
+        sum += refreshSingleArea("2", "手游");
+        sum += refreshSingleArea("4", "网游竞技");
+        sum += refreshSingleArea("5", "娱乐");
+        log.info("获取到【{}】分类信息【{}】条", getType(), sum);
     }
 
     /**
@@ -137,19 +145,18 @@ public class CC implements BasePlatform {
      * @param areaCode
      * @return
      */
-    private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
+    private int refreshSingleArea(String areaCode, String typeName){
         String url = "https://api.cc.163.com/v1/wapcc/gamecategory?catetype=" + areaCode;
-        List<AreaInfo> areaListTemp = new ArrayList<>();
         String result = HttpRequest.create(url)
                 .setContentType(HttpContentType.FORM)
                 .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
                 .get().getBody();
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj.getInt("code") == 0) {
-            JSONArray data = resultJsonObj.getJSONObject("data").getJSONObject("category_info").getJSONArray("game_list");
-            Iterator<Object> it = data.iterator();
-            while (it.hasNext()) {
-                JSONObject areaInfo = (JSONObject) it.next();
+            JSONArray gameList = resultJsonObj.getJSONObject("data").getJSONObject("category_info").getJSONArray("game_list");
+            List<AreaInfo> areaInfoList = new ArrayList<>(gameList.size());
+            gameList.forEach(item->{
+                JSONObject areaInfo = (JSONObject) item;
                 AreaInfo ccArea = new AreaInfo();
                 ccArea.setAreaType(areaCode);
                 ccArea.setTypeName(typeName);
@@ -157,23 +164,12 @@ public class CC implements BasePlatform {
                 ccArea.setAreaName(areaInfo.getStr("name"));
                 ccArea.setAreaPic(areaInfo.getStr("cover"));
                 ccArea.setPlatform("cc");
-                areaListTemp.add(ccArea);
-                Global.CCCateMap.put(ccArea.getAreaId(), ccArea.getAreaName());
-                if (!Global.AllAreaMap.containsKey(typeName)){
-                    List<String> list = new ArrayList<>();
-                    list.add(ccArea.getAreaName());
-                    Global.AreaTypeSortList.add(typeName);
-                    Global.AreaInfoSortMap.put(typeName, list);
-                }else {
-                    if(!Global.AllAreaMap.get(typeName).containsKey(ccArea.getAreaName())){
-                        Global.AreaInfoSortMap.get(typeName).add(ccArea.getAreaName());
-                    }
-                }
-                Global.AllAreaMap.computeIfAbsent(typeName, k -> new HashMap<>())
-                        .computeIfAbsent(ccArea.getAreaName(), k -> new HashMap<>()).put("cc", ccArea);
-            }
+                areaInfoList.add(ccArea);
+            });
+            areaInfoService.saveBatch(areaInfoList, 100);
+            return areaInfoList.size();
         }
-        return areaListTemp;
+        return 0;
     }
 
     /**
@@ -222,7 +218,7 @@ public class CC implements BasePlatform {
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
-        AreaInfo areaInfo = Global.getAreaInfo("cc", area);
+        AreaInfo areaInfo = new AreaInfo();
         String url = "https://cc.163.com/api/category/" + areaInfo.getAreaId() + "/?format=json&tag_id=0&start=" + start + "&size=" +size;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
