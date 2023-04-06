@@ -8,6 +8,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
@@ -72,7 +73,7 @@ public class UserService {
     }
 
     public void followRoom(String platform, String roomId, String uid){
-        if (platform.equalsIgnoreCase("douyu")) {
+        if (platform.equalsIgnoreCase(Platform.DOUYU.getName())) {
             roomId = douyu.getRealRoomId(roomId);
         }
         if (userMapper.checkFollowed(platform, roomId, uid) == null) {

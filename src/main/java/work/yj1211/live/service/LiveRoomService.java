@@ -38,7 +38,7 @@ public class LiveRoomService{
     private final Map<String, BasePlatform> platformMap;
     @Autowired
     public LiveRoomService(List<BasePlatform> platforms){
-        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getType, Function.identity(), (oldV, newV)-> newV));
+        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getPlatformName, Function.identity(), (oldV, newV)-> newV));
     }
 
     /**
@@ -195,7 +195,7 @@ public class LiveRoomService{
 //        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 //        // 遍历平台 提交获取推荐列表的任务
 //        platformMap.values().forEach(platform -> {
-//            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform.getType(), area, page, size)));
+//            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform.getPlatformName(), area, page, size)));
 //        });
 //        executorService.shutdown();
 //        try {

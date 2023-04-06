@@ -26,9 +26,4 @@ public class AreaInfoIndex {
     * 优先级(数值越大越优先)
     */
     private Integer priority;
-
-    /**
-    * 原分区平台
-    */
-    private String platform;
 }

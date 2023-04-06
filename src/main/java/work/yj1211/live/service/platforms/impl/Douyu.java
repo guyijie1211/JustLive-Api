@@ -10,8 +10,6 @@ import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.DouYuOpenApi;
-import work.yj1211.live.utils.Global;
-import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.utils.http.HttpResponse;
@@ -55,7 +53,7 @@ public class Douyu implements BasePlatform {
     }
 
     @Override
-    public String getType() {
+    public String getPlatformName() {
         return Platform.DOUYU.getName();
     }
 
@@ -273,7 +271,7 @@ public class Douyu implements BasePlatform {
         if (response.getBodyJson().getInt("error") == 0) {
             JSONObject room_info = response.getBodyJson().getJSONObject("data");
             LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-            liveRoomInfo.setPlatForm("douyu");
+            liveRoomInfo.setPlatForm(getPlatformName());
             liveRoomInfo.setRoomId(room_info.getStr("room_id"));
             liveRoomInfo.setCategoryId(room_info.getStr("cate_id"));//分类id不对
             liveRoomInfo.setCategoryName(room_info.getStr("cate_name"));
@@ -428,9 +426,6 @@ public class Douyu implements BasePlatform {
                 .get().getBody();
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj.getInt("code") == 0) {
-            // 删除分区信息
-            areaInfoService.removeAreasByPlatform(getType());
-
             // 获取新的分区信息
             // cate1Info
             JSONArray cate1Array = resultJsonObj.getJSONObject("data").getJSONArray("cate1Info");
@@ -443,7 +438,7 @@ public class Douyu implements BasePlatform {
             // cate2Info
             JSONArray cate2Array = resultJsonObj.getJSONObject("data").getJSONArray("cate2Info");
             List<AreaInfo> areaInfoList = new ArrayList<>(cate2Array.size());
-            log.info("获取到【{}】分类信息【{}】条", getType(), cate2Array.size());
+            log.info("获取到【{}】分类信息【{}】条", getPlatformName(), cate2Array.size());
             cate2Array.forEach(cate2Item->{
                 JSONObject cate2Obj = (JSONObject) cate2Item;
                 AreaInfo douyuArea = new AreaInfo();
@@ -454,10 +449,10 @@ public class Douyu implements BasePlatform {
                 douyuArea.setAreaName(cate2Obj.getStr("cate2Name"));
                 douyuArea.setAreaPic(cate2Obj.getStr("pic"));
                 douyuArea.setShortName(cate2Obj.getStr("shortName"));
-                douyuArea.setPlatform(getType());
+                douyuArea.setPlatform(getPlatformName());
                 areaInfoList.add(douyuArea);
             });
-            areaInfoService.saveBatch(areaInfoList, 200);
+            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
         }
     }
 
@@ -515,7 +510,7 @@ public class Douyu implements BasePlatform {
                 owner.setNickName(responseOwner.getStr("nickname"));
                 owner.setCateName(responseOwner.getStr("cateName"));
                 owner.setHeadPic(responseOwner.getStr("avatar"));
-                owner.setPlatform("douyu");
+                owner.setPlatform(getPlatformName());
                 owner.setRoomId(responseOwner.getStr("roomId"));
                 owner.setIsLive((responseOwner.getInt("isLive") == 1) ? "1" : "0");
                 owner.setFollowers(DouyuNumStringToInt(responseOwner.getStr("hn")));

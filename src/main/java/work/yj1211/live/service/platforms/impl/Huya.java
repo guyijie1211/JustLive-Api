@@ -3,18 +3,15 @@ package work.yj1211.live.service.platforms.impl;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
-import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -22,10 +19,6 @@ import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +38,7 @@ public class Huya implements BasePlatform {
     private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
 
     @Override
-    public String getType() {
+    public String getPlatformName() {
         return Platform.HUYA.getName();
     }
 
@@ -73,7 +66,7 @@ public class Huya implements BasePlatform {
                 owner.setNickName(responseOwner.getStr("game_nick"));
                 owner.setCateName(responseOwner.getStr("game_name"));
                 owner.setHeadPic(responseOwner.getStr("game_avatarUrl52"));
-                owner.setPlatform("huya");
+                owner.setPlatform(getPlatformName());
                 owner.setRoomId(responseOwner.getStr("room_id"));
                 owner.setIsLive(responseOwner.getBool("gameLiveOn") ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("game_activityCount"));
@@ -100,13 +93,11 @@ public class Huya implements BasePlatform {
     @Override
     public void refreshArea(){
         int sum = 0;
-        // 删除分区信息
-        areaInfoService.removeAreasByPlatform(getType());
         sum += refreshSingleArea("1", "网游");
         sum += refreshSingleArea("2", "单机");
         sum += refreshSingleArea("3", "手游");
         sum += refreshSingleArea("8", "娱乐");
-        log.info("获取到【{}】分类信息【{}】条", getType(), sum);
+        log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
     }
 
     /**
@@ -133,10 +124,10 @@ public class Huya implements BasePlatform {
                 huyaArea.setAreaId(areaInfo.getStr("gid"));
                 huyaArea.setAreaName(areaInfo.getStr("gameFullName"));
                 huyaArea.setAreaPic("https://huyaimg.msstatic.com/cdnimage/game/" + huyaArea.getAreaId() + "-MS.jpg");
-                huyaArea.setPlatform("huya");
+                huyaArea.setPlatform(getPlatformName());
                 areaInfoList.add(huyaArea);
             });
-            areaInfoService.saveBatch(areaInfoList, 100);
+            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
             return areaInfoList.size();
         }
         return 0;
@@ -176,7 +167,7 @@ public class Huya implements BasePlatform {
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
 
         liveRoomInfo.setRoomId(roomId);
-        liveRoomInfo.setPlatForm("huya");
+        liveRoomInfo.setPlatForm(getPlatformName());
         liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "\":\"", "\""));
         liveRoomInfo.setRoomName(getMatchResult(resultRoomName,"\":\"", "\""));
         liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "\":\"", "\""));
@@ -215,7 +206,7 @@ public class Huya implements BasePlatform {
             for (int i = start; i < start+size; i++){
                 JSONObject roomInfo = data.getJSONObject(i);
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm("huya");
+                liveRoomInfo.setPlatForm(getPlatformName());
                 liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
@@ -247,7 +238,7 @@ public class Huya implements BasePlatform {
 //            realPage = page/12 + 1;
 //            start = (page-1)*size%120;
 //        }
-//        AreaInfo areaInfo = Global.getAreaInfo("huya", area);
+//        AreaInfo areaInfo = Global.getAreaInfo(getPlatformName(), area);
 //        String url = "https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&gameId=" + areaInfo.getAreaId() + "&tagAll=0&page="+realPage;
 //        String result = HttpUtil.doGet(url);
 //        JSONObject resultJsonObj = JSONUtil.parseObj(result);
@@ -256,7 +247,7 @@ public class Huya implements BasePlatform {
 //            for (int i = start; i < start+size; i++){
 //                JSONObject roomInfo = data.getJSONObject(i);
 //                LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-//                liveRoomInfo.setPlatForm("huya");
+//                liveRoomInfo.setPlatForm(getPlatformName());
 //                liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
 //                liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
 //                liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));

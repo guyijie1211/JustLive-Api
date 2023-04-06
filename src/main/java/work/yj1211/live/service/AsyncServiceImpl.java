@@ -3,6 +3,7 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.platforms.impl.Bilibili;
 import work.yj1211.live.service.platforms.impl.CC;
 import work.yj1211.live.service.platforms.impl.Douyu;
@@ -29,16 +30,16 @@ public class AsyncServiceImpl implements AsyncService {
     public void addRoomInfo(String uid, String platForm, String roomId, CountDownLatch countDownLatch, List<LiveRoomInfo> roomList) {
         try {
             LiveRoomInfo roomInfo = null;
-            if ("bilibili".equals(platForm)){
+            if (Platform.BILIBILI.getName().equals(platForm)){
                 roomInfo = bilibili.getRoomInfo(roomId);
             }
-            if ("douyu".equals(platForm)){
+            if (Platform.DOUYU.getName().equals(platForm)){
                 roomInfo = douyu.getRoomInfo(roomId);
             }
-            if ("huya".equals(platForm)){
+            if (Platform.HUYA.getName().equals(platForm)){
                 roomInfo = huya.getRoomInfo(roomId);
             }
-            if ("cc".equals(platForm)){
+            if (Platform.CC.getName().equals(platForm)){
                 roomInfo = cc.getRoomInfo(roomId);
             }
             roomList.add(roomInfo);

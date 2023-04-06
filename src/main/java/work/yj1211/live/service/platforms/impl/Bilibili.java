@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
-import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.model.LiveRoomInfo;
@@ -55,7 +54,7 @@ public class Bilibili implements BasePlatform {
     }
 
     @Override
-    public String getType() {
+    public String getPlatformName() {
         return Platform.BILIBILI.getName();
     }
 
@@ -158,7 +157,7 @@ public class Bilibili implements BasePlatform {
             JSONObject data = response.getJSONObject("data");
             JSONObject room_info = data.getJSONObject("room_info");
             JSONObject owner_info = data.getJSONObject("anchor_info").getJSONObject("base_info");
-            liveRoomInfo.setPlatForm("bilibili");
+            liveRoomInfo.setPlatForm(getPlatformName());
             liveRoomInfo.setRoomId(room_info.getStr("room_id"));
             liveRoomInfo.setCategoryId(room_info.getInt("area_id").toString());
             liveRoomInfo.setCategoryName(room_info.getStr("area_name"));
@@ -192,7 +191,7 @@ public class Bilibili implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm("bilibili");
+                liveRoomInfo.setPlatForm(getPlatformName());
                 liveRoomInfo.setRoomId(roomInfo.getStr("roomid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("area_id"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
@@ -221,9 +220,6 @@ public class Bilibili implements BasePlatform {
             String result = HttpUtil.doGet(url);
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
             if (resultJsonObj.getInt("code") == 0) {
-                // 删除分区信息
-                areaInfoService.removeAreasByPlatform(getType());
-
                 // 获取新的分区信息
                 JSONArray dataArray = resultJsonObj.getJSONObject("data").getJSONArray("data");
                 AtomicInteger sum = new AtomicInteger();
@@ -239,12 +235,12 @@ public class Bilibili implements BasePlatform {
                         bilibiliArea.setAreaId(areaItemObject.getStr("id"));
                         bilibiliArea.setAreaName(areaItemObject.getStr("name"));
                         bilibiliArea.setAreaPic(areaItemObject.getStr("pic"));
-                        bilibiliArea.setPlatform("bilibili");
+                        bilibiliArea.setPlatform(getPlatformName());
                         areaInfoList.add(bilibiliArea);
                     });
-                    areaInfoService.saveBatch(areaInfoList, 100);
+                    areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
                 });
-                log.info("获取到【{}】分类信息【{}】条", getType(), sum);
+                log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
             }
         } catch (Exception e) {
             log.error("BILIBILI---刷新分类缓存异常");
@@ -262,7 +258,7 @@ public class Bilibili implements BasePlatform {
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
 //        try {
-//            AreaInfo areaInfo = Global.getAreaInfo("bilibili", area);
+//            AreaInfo areaInfo = Global.getAreaInfo(getPlatformName(), area);
 //            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
 //                    "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
 //                    areaInfo.getAreaId()+"&sort_type=&page="+page;
@@ -274,7 +270,7 @@ public class Bilibili implements BasePlatform {
 //                while(it.hasNext()){
 //                    JSONObject roomInfo = (JSONObject) it.next();
 //                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-//                    liveRoomInfo.setPlatForm("bilibili");
+//                    liveRoomInfo.setPlatForm(getPlatformName());
 //                    liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
 //                    liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
 //                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
@@ -320,7 +316,7 @@ public class Bilibili implements BasePlatform {
                 owner.setNickName(getUserName(responseOwner.getStr("uname")));
                 owner.setCateName(responseOwner.getStr("无"));
                 owner.setHeadPic(responseOwner.getStr("uface"));
-                owner.setPlatform("bilibili");
+                owner.setPlatform(getPlatformName());
                 owner.setRoomId(responseOwner.getStr("roomid"));
                 owner.setIsLive(responseOwner.getBool("is_live") ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("attentions"));

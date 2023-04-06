@@ -18,7 +18,7 @@ public interface BasePlatform {
      *
      * @return
      */
-    String getType();
+    String getPlatformName();
 
     /**
      * 获取直播地址

@@ -22,5 +22,4 @@ public class Global {
     public static String getUpdateFilePath() {
         return updateFilePath;
     }
-
 }

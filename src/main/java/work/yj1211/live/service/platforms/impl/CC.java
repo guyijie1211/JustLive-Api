@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
-import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -45,7 +44,7 @@ public class CC implements BasePlatform {
                 owner.setNickName(responseOwner.getStr("nickname"));
                 owner.setCateName(responseOwner.getStr("game_name"));
                 owner.setHeadPic(responseOwner.getStr("portrait"));
-                owner.setPlatform("cc");
+                owner.setPlatform(getPlatformName());
                 owner.setRoomId(responseOwner.getStr("cuteid"));
                 owner.setIsLive((responseOwner.getStr("status") !=null && responseOwner.getInt("status") == 1) ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("follower_num"));
@@ -59,7 +58,7 @@ public class CC implements BasePlatform {
     }
 
     @Override
-    public String getType() {
+    public String getPlatformName() {
         return Platform.CC.getName();
     }
 
@@ -105,7 +104,7 @@ public class CC implements BasePlatform {
                 JSONObject resultRealJsonObj = JSONUtil.parseObj(resultReal);
                 if (null != resultRealJsonObj){
                     JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
-                    liveRoomInfo.setPlatForm("cc");
+                    liveRoomInfo.setPlatForm(getPlatformName());
                     liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                     liveRoomInfo.setCategoryId(roomInfo.getStr("cate_id"));//分类id不对
                     liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -132,12 +131,11 @@ public class CC implements BasePlatform {
     public void refreshArea(){
         int sum = 0;
         // 删除分区信息
-        areaInfoService.removeAreasByPlatform(getType());
         sum += refreshSingleArea("1", "网游");
         sum += refreshSingleArea("2", "手游");
         sum += refreshSingleArea("4", "网游竞技");
         sum += refreshSingleArea("5", "娱乐");
-        log.info("获取到【{}】分类信息【{}】条", getType(), sum);
+        log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
     }
 
     /**
@@ -163,10 +161,10 @@ public class CC implements BasePlatform {
                 ccArea.setAreaId(areaInfo.getStr("gametype"));
                 ccArea.setAreaName(areaInfo.getStr("name"));
                 ccArea.setAreaPic(areaInfo.getStr("cover"));
-                ccArea.setPlatform("cc");
+                ccArea.setPlatform(getPlatformName());
                 areaInfoList.add(ccArea);
             });
-            areaInfoService.saveBatch(areaInfoList, 100);
+            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
             return areaInfoList.size();
         }
         return 0;
@@ -191,7 +189,7 @@ public class CC implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm("cc");
+                liveRoomInfo.setPlatForm(getPlatformName());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -228,7 +226,7 @@ public class CC implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm("cc");
+                liveRoomInfo.setPlatForm(getPlatformName());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
