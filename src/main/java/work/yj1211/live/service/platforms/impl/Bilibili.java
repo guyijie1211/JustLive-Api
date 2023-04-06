@@ -222,11 +222,10 @@ public class Bilibili implements BasePlatform {
             if (resultJsonObj.getInt("code") == 0) {
                 // 获取新的分区信息
                 JSONArray dataArray = resultJsonObj.getJSONObject("data").getJSONArray("data");
-                AtomicInteger sum = new AtomicInteger();
+                List<AreaInfo> areaInfoList = new ArrayList<>();
+                Map<String, String> areaTypeNameMap = areaInfoService.getAreaTypeNameMap(); // 这一步应该在areaInfoService里做
                 dataArray.forEach(item ->{
                     JSONObject areaTypeObject = (JSONObject) item;
-                    List<AreaInfo> areaInfoList = new ArrayList<>(areaTypeObject.size());
-                    sum.addAndGet(areaInfoList.size());
                     areaTypeObject.getJSONArray("list").forEach(areaItem->{
                         JSONObject areaItemObject = (JSONObject) areaItem;
                         AreaInfo bilibiliArea = new AreaInfo();
@@ -238,9 +237,8 @@ public class Bilibili implements BasePlatform {
                         bilibiliArea.setPlatform(getPlatformName());
                         areaInfoList.add(bilibiliArea);
                     });
-                    areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
                 });
-                log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
+                areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
             }
         } catch (Exception e) {
             log.error("BILIBILI---刷新分类缓存异常");

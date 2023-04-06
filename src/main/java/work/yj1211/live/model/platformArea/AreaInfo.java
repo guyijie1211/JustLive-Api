@@ -14,16 +14,20 @@ public class AreaInfo {
     private int id;
     @TableField("platform")
     private String platform;
-    @TableField("areaType")
+    @TableField("area_type")
     private String areaType;
-    @TableField("typeName")
+    @TableField("type_name")
     private String typeName;
-    @TableField("areaId")
+    @TableField("area_id")
     private String areaId;
-    @TableField("areaName")
+    @TableField("area_name")
     private String areaName;
-    @TableField("areaPic")
+    @TableField("area_pic")
     private String areaPic;
-    @TableField("shortName")
+    @TableField("short_name")
     private String shortName;
+    @TableField("index")
+    private int indexId;
+    @TableField("index_type")
+    private String indexType;
 }

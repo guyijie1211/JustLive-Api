@@ -45,6 +45,7 @@ public interface BasePlatform {
     /**
      * 刷新分区信息
      */
+    // TODO platform类中，应该只返回获取到的平台分类列表，具体的刷新工作应该交给areaInfoService来做
     void refreshArea();
 
     /**

@@ -32,7 +32,9 @@ public class AreaInfoService extends ServiceImpl<AreaInfoMapper, AreaInfo> {
      * @param platform 平台
      */
     public void saveBatchByPlatform(List<AreaInfo> areaList, String platform) {
+        log.info("获取到【{}】分类信息【{}】条", platform, areaList.size());
         removeAreasByPlatform(platform);
+
     }
 
     /**
@@ -48,7 +50,7 @@ public class AreaInfoService extends ServiceImpl<AreaInfoMapper, AreaInfo> {
 
     /**
      * 获取AreaTypeName映射关系
-     * @return Map<platform+areaTypePlatform, areaTypeIndex>
+     * @return Map<平台+areaTypePlatform, areaTypeIndex>
      */
     public Map<String, String> getAreaTypeNameMap() {
         List<AreaTypeIndex> areaTypeIndexList = areaTypeIndexService.list();
