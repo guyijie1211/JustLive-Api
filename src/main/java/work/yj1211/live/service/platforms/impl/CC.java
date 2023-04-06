@@ -124,26 +124,12 @@ public class CC implements BasePlatform {
     }
 
     /**
-     * 刷新分类缓存
-     * @return
-     */
-    @Override
-    public void refreshArea(){
-        int sum = 0;
-        // 删除分区信息
-        sum += refreshSingleArea("1", "网游");
-        sum += refreshSingleArea("2", "手游");
-        sum += refreshSingleArea("4", "网游竞技");
-        sum += refreshSingleArea("5", "娱乐");
-        log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
-    }
-
-    /**
      * 获取cc单个类型下的所有分区
      * @param areaCode
      * @return
      */
-    private int refreshSingleArea(String areaCode, String typeName){
+    private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
+        List<AreaInfo> areaInfoList = new ArrayList<>();
         String url = "https://api.cc.163.com/v1/wapcc/gamecategory?catetype=" + areaCode;
         String result = HttpRequest.create(url)
                 .setContentType(HttpContentType.FORM)
@@ -152,7 +138,6 @@ public class CC implements BasePlatform {
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj.getInt("code") == 0) {
             JSONArray gameList = resultJsonObj.getJSONObject("data").getJSONObject("category_info").getJSONArray("game_list");
-            List<AreaInfo> areaInfoList = new ArrayList<>(gameList.size());
             gameList.forEach(item->{
                 JSONObject areaInfo = (JSONObject) item;
                 AreaInfo ccArea = new AreaInfo();
@@ -164,10 +149,8 @@ public class CC implements BasePlatform {
                 ccArea.setPlatform(getPlatformName());
                 areaInfoList.add(ccArea);
             });
-            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
-            return areaInfoList.size();
         }
-        return 0;
+        return areaInfoList;
     }
 
     /**
@@ -203,6 +186,16 @@ public class CC implements BasePlatform {
             }
         }
         return list;
+    }
+
+    @Override
+    public List<AreaInfo> getAreaList() {
+        List<AreaInfo> areaInfoList = new ArrayList<>();
+        areaInfoList.addAll(refreshSingleArea("1", "网游"));
+        areaInfoList.addAll(refreshSingleArea("2", "手游"));
+        areaInfoList.addAll(refreshSingleArea("4", "网游竞技"));
+        areaInfoList.addAll(refreshSingleArea("5", "娱乐"));
+        return areaInfoList;
     }
 
     /**

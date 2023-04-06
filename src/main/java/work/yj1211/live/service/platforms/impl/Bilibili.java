@@ -209,40 +209,31 @@ public class Bilibili implements BasePlatform {
         return list;
     }
 
-    /**
-     * 刷新分类缓存
-     * @return
-     */
     @Override
-    public void refreshArea(){
-        try {
-            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/index/getWebAreaList?source_id=2";//获取bilibili所有分类的请求地址
-            String result = HttpUtil.doGet(url);
-            JSONObject resultJsonObj = JSONUtil.parseObj(result);
-            if (resultJsonObj.getInt("code") == 0) {
-                // 获取新的分区信息
-                JSONArray dataArray = resultJsonObj.getJSONObject("data").getJSONArray("data");
-                List<AreaInfo> areaInfoList = new ArrayList<>();
-                Map<String, String> areaTypeNameMap = areaInfoService.getAreaTypeNameMap(); // 这一步应该在areaInfoService里做
-                dataArray.forEach(item ->{
-                    JSONObject areaTypeObject = (JSONObject) item;
-                    areaTypeObject.getJSONArray("list").forEach(areaItem->{
-                        JSONObject areaItemObject = (JSONObject) areaItem;
-                        AreaInfo bilibiliArea = new AreaInfo();
-                        bilibiliArea.setAreaType(areaItemObject.getStr("parent_id"));
-                        bilibiliArea.setTypeName(areaItemObject.getStr("parent_name"));
-                        bilibiliArea.setAreaId(areaItemObject.getStr("id"));
-                        bilibiliArea.setAreaName(areaItemObject.getStr("name"));
-                        bilibiliArea.setAreaPic(areaItemObject.getStr("pic"));
-                        bilibiliArea.setPlatform(getPlatformName());
-                        areaInfoList.add(bilibiliArea);
-                    });
+    public List<AreaInfo> getAreaList() {
+        List<AreaInfo> areaInfoList = new ArrayList<>();
+        String url = "https://api.live.bilibili.com/xlive/web-interface/v1/index/getWebAreaList?source_id=2";//获取bilibili所有分类的请求地址
+        String result = HttpUtil.doGet(url);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
+            // 获取新的分区信息
+            JSONArray dataArray = resultJsonObj.getJSONObject("data").getJSONArray("data");
+            dataArray.forEach(item ->{
+                JSONObject areaTypeObject = (JSONObject) item;
+                areaTypeObject.getJSONArray("list").forEach(areaItem->{
+                    JSONObject areaItemObject = (JSONObject) areaItem;
+                    AreaInfo bilibiliArea = new AreaInfo();
+                    bilibiliArea.setAreaType(areaItemObject.getStr("parent_id"));
+                    bilibiliArea.setTypeName(areaItemObject.getStr("parent_name"));
+                    bilibiliArea.setAreaId(areaItemObject.getStr("id"));
+                    bilibiliArea.setAreaName(areaItemObject.getStr("name"));
+                    bilibiliArea.setAreaPic(areaItemObject.getStr("pic"));
+                    bilibiliArea.setPlatform(getPlatformName());
+                    areaInfoList.add(bilibiliArea);
                 });
-                areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
-            }
-        } catch (Exception e) {
-            log.error("BILIBILI---刷新分类缓存异常");
+            });
         }
+        return areaInfoList;
     }
 
     /**

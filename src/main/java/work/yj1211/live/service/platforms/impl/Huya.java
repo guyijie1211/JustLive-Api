@@ -87,25 +87,12 @@ public class Huya implements BasePlatform {
     }
 
     /**
-     * 刷新分类缓存
-     * @return
-     */
-    @Override
-    public void refreshArea(){
-        int sum = 0;
-        sum += refreshSingleArea("1", "网游");
-        sum += refreshSingleArea("2", "单机");
-        sum += refreshSingleArea("3", "手游");
-        sum += refreshSingleArea("8", "娱乐");
-        log.info("获取到【{}】分类信息【{}】条", getPlatformName(), sum);
-    }
-
-    /**
      * 获取虎牙单个类型下的所有分区
      * @param areaCode
      * @return
      */
-    private int refreshSingleArea(String areaCode, String typeName){
+    private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
+        List<AreaInfo> areaInfoList = new ArrayList<>();
         String url = "https://m.huya.com/cache.php?m=Game&do=ajaxGameList&bussType=" + areaCode;
         String result = HttpRequest.create(url)
                 .setContentType(HttpContentType.FORM)
@@ -115,7 +102,7 @@ public class Huya implements BasePlatform {
         if (result != null && responseObj.containsKey("gameList")) {
             // 获取新的分区信息
             JSONArray gameList = responseObj.getJSONArray("gameList");
-            List<AreaInfo> areaInfoList = new ArrayList<>(gameList.size());
+
             gameList.forEach(item->{
                 JSONObject areaInfo = (JSONObject) item;
                 AreaInfo huyaArea = new AreaInfo();
@@ -127,10 +114,8 @@ public class Huya implements BasePlatform {
                 huyaArea.setPlatform(getPlatformName());
                 areaInfoList.add(huyaArea);
             });
-            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
-            return areaInfoList.size();
         }
-        return 0;
+        return areaInfoList;
     }
 
     /**
@@ -220,6 +205,16 @@ public class Huya implements BasePlatform {
             }
         }
         return list;
+    }
+
+    @Override
+    public List<AreaInfo> getAreaList() {
+        List<AreaInfo> areaInfoList = new ArrayList<>();
+        areaInfoList.addAll(refreshSingleArea("1", "网游"));
+        areaInfoList.addAll(refreshSingleArea("2", "单机"));
+        areaInfoList.addAll(refreshSingleArea("3", "手游"));
+        areaInfoList.addAll(refreshSingleArea("8", "娱乐"));
+        return areaInfoList;
     }
 
     /**

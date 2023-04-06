@@ -140,7 +140,7 @@ public class LiveRoomService{
      * @return
      */
     public void refreshArea(){
-        platformMap.values().forEach(BasePlatform::refreshArea);
+        areaInfoService.refreshAreasAll();
     }
 
     /**

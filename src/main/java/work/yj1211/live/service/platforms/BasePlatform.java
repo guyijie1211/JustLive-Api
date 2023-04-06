@@ -3,6 +3,7 @@ package work.yj1211.live.service.platforms;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -43,10 +44,10 @@ public interface BasePlatform {
     List<LiveRoomInfo> getRecommend(int page, int size);
 
     /**
-     * 刷新分区信息
+     * 获取平台的分区列表
+     * @return
      */
-    // TODO platform类中，应该只返回获取到的平台分类列表，具体的刷新工作应该交给areaInfoService来做
-    void refreshArea();
+    List<AreaInfo> getAreaList();
 
     /**
      * 获取分区房间列表

@@ -9,10 +9,12 @@ import work.yj1211.live.mapper.AreaInfoMapper;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaTypeIndex;
 import work.yj1211.live.model.platformArea.AreaTypeIndexService;
+import work.yj1211.live.service.platforms.BasePlatform;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -26,15 +28,31 @@ public class AreaInfoService extends ServiceImpl<AreaInfoMapper, AreaInfo> {
     @Autowired
     private AreaTypeIndexService areaTypeIndexService;
 
+    private final List<BasePlatform> platformList;
+    @Autowired
+    public AreaInfoService(List<BasePlatform> platforms){
+        platformList = platforms;
+    }
+
+    /**
+     * 刷新所有平台分区
+     */
+    public void refreshAreasAll() {
+        Map<String, String> areaTypeNameMap = getAreaTypeNameMap();
+
+        platformList.forEach(platform -> {
+            List<AreaInfo> areaInfoList = platform.getAreaList();
+        });
+    }
+
     /**
      * 根据平台更新分类信息
      * @param areaList 平台分类列表
      * @param platform 平台
      */
-    public void saveBatchByPlatform(List<AreaInfo> areaList, String platform) {
+     void saveBatchByPlatform(List<AreaInfo> areaList, String platform) {
         log.info("获取到【{}】分类信息【{}】条", platform, areaList.size());
         removeAreasByPlatform(platform);
-
     }
 
     /**

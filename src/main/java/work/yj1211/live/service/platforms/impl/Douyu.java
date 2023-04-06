@@ -359,6 +359,44 @@ public class Douyu implements BasePlatform {
         return list;
     }
 
+    @Override
+    public List<AreaInfo> getAreaList() {
+        List<AreaInfo> areaInfoList = new ArrayList<>();
+        String url = "https://m.douyu.com/api/cate/list";
+        String result = HttpRequest.create(url)
+                .setContentType(HttpContentType.FORM)
+                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .get().getBody();
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
+            // 获取新的分区信息
+            // cate1Info
+            JSONArray cate1Array = resultJsonObj.getJSONObject("data").getJSONArray("cate1Info");
+            Map<String, String> cate1Map = new HashMap<>();
+            cate1Array.forEach(cate1Item->{
+                JSONObject cate1Obj = (JSONObject) cate1Item;
+                cate1Map.put(cate1Obj.getInt("cate1Id").toString(), cate1Obj.getStr("cate1Name"));
+            });
+
+            // cate2Info
+            JSONArray cate2Array = resultJsonObj.getJSONObject("data").getJSONArray("cate2Info");
+            cate2Array.forEach(cate2Item->{
+                JSONObject cate2Obj = (JSONObject) cate2Item;
+                AreaInfo douyuArea = new AreaInfo();
+                String cate1Id = cate2Obj.getInt("cate1Id").toString();
+                douyuArea.setAreaType(cate1Id);
+                douyuArea.setTypeName(cate1Map.get(cate1Id));
+                douyuArea.setAreaId(cate2Obj.getInt("cate2Id").toString());
+                douyuArea.setAreaName(cate2Obj.getStr("cate2Name"));
+                douyuArea.setAreaPic(cate2Obj.getStr("pic"));
+                douyuArea.setShortName(cate2Obj.getStr("shortName"));
+                douyuArea.setPlatform(getPlatformName());
+                areaInfoList.add(douyuArea);
+            });
+        }
+        return areaInfoList;
+    }
+
     /**
      * 获取url请求的所有房间信息
      * @param url
@@ -411,49 +449,6 @@ public class Douyu implements BasePlatform {
             return Integer.valueOf(number);
         }
         return num;
-    }
-
-    /**
-     * 刷新分类缓存
-     * @return
-     */
-    @Override
-    public void refreshArea(){
-        String url = "https://m.douyu.com/api/cate/list";
-        String result = HttpRequest.create(url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .get().getBody();
-        JSONObject resultJsonObj = JSONUtil.parseObj(result);
-        if (resultJsonObj.getInt("code") == 0) {
-            // 获取新的分区信息
-            // cate1Info
-            JSONArray cate1Array = resultJsonObj.getJSONObject("data").getJSONArray("cate1Info");
-            Map<String, String> cate1Map = new HashMap<>();
-            cate1Array.forEach(cate1Item->{
-                JSONObject cate1Obj = (JSONObject) cate1Item;
-                cate1Map.put(cate1Obj.getInt("cate1Id").toString(), cate1Obj.getStr("cate1Name"));
-            });
-
-            // cate2Info
-            JSONArray cate2Array = resultJsonObj.getJSONObject("data").getJSONArray("cate2Info");
-            List<AreaInfo> areaInfoList = new ArrayList<>(cate2Array.size());
-            log.info("获取到【{}】分类信息【{}】条", getPlatformName(), cate2Array.size());
-            cate2Array.forEach(cate2Item->{
-                JSONObject cate2Obj = (JSONObject) cate2Item;
-                AreaInfo douyuArea = new AreaInfo();
-                String cate1Id = cate2Obj.getInt("cate1Id").toString();
-                douyuArea.setAreaType(cate1Id);
-                douyuArea.setTypeName(cate1Map.get(cate1Id));
-                douyuArea.setAreaId(cate2Obj.getInt("cate2Id").toString());
-                douyuArea.setAreaName(cate2Obj.getStr("cate2Name"));
-                douyuArea.setAreaPic(cate2Obj.getStr("pic"));
-                douyuArea.setShortName(cate2Obj.getStr("shortName"));
-                douyuArea.setPlatform(getPlatformName());
-                areaInfoList.add(douyuArea);
-            });
-            areaInfoService.saveBatchByPlatform(areaInfoList, getPlatformName());
-        }
     }
 
     /**
