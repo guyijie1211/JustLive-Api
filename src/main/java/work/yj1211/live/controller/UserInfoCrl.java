@@ -21,8 +21,6 @@ import java.util.UUID;
 @RestController
 public class UserInfoCrl {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserInfo.class);
-
     @Autowired
     private UserService userService;
     @Autowired
@@ -77,8 +75,6 @@ public class UserInfoCrl {
                 return ResultFactory.buildFailResult("邮箱已被绑定");
             }
         }
-        log.info(username+"---注册成功");
-        logger.info(username+"---注册成功");
         return ResultFactory.buildSuccessResult(user);
     }
 

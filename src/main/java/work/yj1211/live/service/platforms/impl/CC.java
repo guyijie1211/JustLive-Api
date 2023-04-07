@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
@@ -21,8 +20,6 @@ import java.util.*;
 @Slf4j
 @Component
 public class CC implements BasePlatform {
-    @Autowired
-    private AreaInfoService areaInfoService;
 
     /**
      * 搜索

@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.service.mysql.AreaInfoService;
+
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.DouYuOpenApi;
 import work.yj1211.live.utils.http.HttpContentType;
@@ -31,8 +31,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class Douyu implements BasePlatform {
-    @Autowired
-    private AreaInfoService areaInfoService;
+    
 
     //Douyu清晰度 1流畅；2高清；3超清；4蓝光4M；0蓝光8M或10M
     private List<String> qnList = new ArrayList<>();

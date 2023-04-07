@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
-import work.yj1211.live.service.mysql.AreaInfoService;
+
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.thread.AsyncService;
@@ -33,7 +33,8 @@ public class LiveRoomService{
     @Autowired
     private AsyncService asyncService;
     @Autowired
-    private AreaInfoService areaInfoService;
+    private AreaService areaService;
+    
 
     private final Map<String, BasePlatform> platformMap;
     @Autowired
@@ -140,7 +141,7 @@ public class LiveRoomService{
      * @return
      */
     public void refreshArea(){
-        areaInfoService.refreshAreasAll();
+        areaService.refreshAreasAll();
     }
 
     /**

@@ -23,23 +23,4 @@ class PlatformTest {
     @Autowired
     private CC cc;
 
-    @Test
-    void refreshAreaBilibili() {
-        bilibili.refreshArea();
-    }
-
-    @Test
-    void refreshAreaDouyu() {
-        douyu.refreshArea();
-    }
-
-    @Test
-    void refreshAreaHuya() {
-        huya.refreshArea();
-    }
-
-    @Test
-    void refreshAreaCC() {
-        cc.refreshArea();
-    }
 }

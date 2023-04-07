@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.service.mysql.AreaInfoService;
+
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
 import work.yj1211.live.utils.HttpUtil;
@@ -26,8 +26,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class Huya implements BasePlatform {
-    @Autowired
-    private AreaInfoService areaInfoService;
+    
 
     private static final Pattern OwnerName = Pattern.compile("\"sNick\":\"([\\s\\S]*?)\",");
     private static final Pattern RoomName = Pattern.compile("\"sIntroduction\":\"([\\s\\S]*?)\",");
