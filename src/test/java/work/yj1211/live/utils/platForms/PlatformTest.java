@@ -6,10 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.impl.Bilibili;
 import work.yj1211.live.service.platforms.impl.CC;
 import work.yj1211.live.service.platforms.impl.Douyu;
 import work.yj1211.live.service.platforms.impl.Huya;
+
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -23,4 +26,9 @@ class PlatformTest {
     @Autowired
     private CC cc;
 
+    @Test
+    void testArea() {
+        List<AreaInfo> areaInfoList = huya.getAreaList();
+        System.out.println(111);
+    }
 }

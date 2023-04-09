@@ -26,8 +26,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class Huya implements BasePlatform {
-    
-
     private static final Pattern OwnerName = Pattern.compile("\"sNick\":\"([\\s\\S]*?)\",");
     private static final Pattern RoomName = Pattern.compile("\"sIntroduction\":\"([\\s\\S]*?)\",");
     private static final Pattern RoomPic = Pattern.compile("\"sScreenshot\":\"([\\s\\S]*?)\",");

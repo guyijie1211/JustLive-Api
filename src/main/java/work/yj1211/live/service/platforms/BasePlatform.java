@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author guyijie
+ * @author guyijie1211
  * @date 2023/3/27 15:10
  **/
 @Component
@@ -44,7 +44,7 @@ public interface BasePlatform {
     List<LiveRoomInfo> getRecommend(int page, int size);
 
     /**
-     * 获取平台的分区列表
+     * 获取平台的分区列表, 最好按热度降序排序
      * @return
      */
     List<AreaInfo> getAreaList();

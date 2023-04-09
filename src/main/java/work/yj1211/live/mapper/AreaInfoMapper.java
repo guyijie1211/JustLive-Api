@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
 /**
- * @author guyijie
+ * @author guyijie1211
  * @date 2023/3/29 18:55
  **/
 @Mapper

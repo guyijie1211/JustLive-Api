@@ -11,6 +11,7 @@ import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
 
+import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.thread.AsyncService;
@@ -137,11 +138,10 @@ public class LiveRoomService{
     }
 
     /**
-     * 刷新平台分类的缓存
-     * @return
+     * 刷新所有平台分类
      */
     public void refreshArea(){
-        areaService.refreshAreasAll();
+       areaService.refreshAreasAll();
     }
 
     /**
@@ -174,11 +174,8 @@ public class LiveRoomService{
      * 获取总的分区列表
      * @return
      */
-    public List<List<AreaInfo>> getAllAreaMap(){
-        // TODO
-        List<List<AreaInfo>> result = new ArrayList<>();
-
-        return  result;
+    public List<List<AreaInfoIndex>> getAllAreaMap(){
+        return areaService.getAllAreas();
     }
 
     /**

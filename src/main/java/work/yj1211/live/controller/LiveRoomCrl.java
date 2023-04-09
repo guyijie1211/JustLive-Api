@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
+import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.service.LiveRoomService;
 import work.yj1211.live.utils.annotation.AccessLimit;
 import work.yj1211.live.model.LiveRoomInfo;
@@ -118,7 +119,7 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/getAllAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getAllAreas(){
-        List<List<AreaInfo>> allAreaMap = liveRoomService.getAllAreaMap();
+        List<List<AreaInfoIndex>> allAreaMap = liveRoomService.getAllAreaMap();
         return ResultFactory.buildSuccessResult(allAreaMap);
     }
 

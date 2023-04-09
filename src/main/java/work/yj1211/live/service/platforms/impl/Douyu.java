@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -390,10 +391,14 @@ public class Douyu implements BasePlatform {
                 douyuArea.setAreaPic(cate2Obj.getStr("pic"));
                 douyuArea.setShortName(cate2Obj.getStr("shortName"));
                 douyuArea.setPlatform(getPlatformName());
+                douyuArea.setId(cate2Obj.getInt("count")); // 该分区下的直播间数量
                 areaInfoList.add(douyuArea);
             });
         }
-        return areaInfoList;
+        return areaInfoList
+                .stream()
+                .sorted(Comparator.comparing(AreaInfo::getId).reversed())
+                .collect(Collectors.toList());
     }
 
     /**

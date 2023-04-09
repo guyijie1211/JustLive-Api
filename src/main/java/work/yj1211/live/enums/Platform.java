@@ -1,7 +1,7 @@
 package work.yj1211.live.enums;
 
 /**
- * @author guyijie
+ * @author guyijie1211
  * @date 2023/3/28 16:41
  **/
 public enum Platform {

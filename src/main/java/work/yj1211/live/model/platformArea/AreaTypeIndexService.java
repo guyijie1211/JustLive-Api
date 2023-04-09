@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.mapper.AreaTypeIndexMapper;
 
 /**
- * @Author: YJ1211
+ * @Author: guyijie1211
  * @Data:2023/4/5 15:18
  */
 @Slf4j

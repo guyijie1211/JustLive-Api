@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.service.UserService;
 
 /**
- * @author guyijie
+ * @author guyijie1211
  * @date 2023/3/22 17:27
  **/
 @Component

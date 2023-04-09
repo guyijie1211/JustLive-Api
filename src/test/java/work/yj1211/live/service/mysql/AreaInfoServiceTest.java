@@ -10,7 +10,7 @@ import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.AreaService;
 
 /**
- * @author guyijie
+ * @author guyijie1211
  * @date 2023/4/7 12:15
  **/
 @RunWith(SpringJUnit4ClassRunner.class)

@@ -21,6 +21,8 @@ public class AfterServiceStarted implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args){
-        liveRoomService.refreshUpdate();
+        if (SpringUtil.getActiveProfile().equalsIgnoreCase("prod")) {
+            liveRoomService.refreshUpdate();
+        }
     }
 }
