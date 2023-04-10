@@ -35,7 +35,6 @@ public class LiveRoomService{
     private AsyncService asyncService;
     @Autowired
     private AreaService areaService;
-    
 
     private final Map<String, BasePlatform> platformMap;
     @Autowired
@@ -166,8 +165,7 @@ public class LiveRoomService{
      * @return
      */
     public List<List<AreaInfo>> getAreaMap(String platform){
-        // TODO
-        return null;
+        return areaService.getAllAreasByPlatform(platform);
     }
 
     /**
@@ -186,22 +184,23 @@ public class LiveRoomService{
      * @return
      */
     public List<LiveRoomInfo> getRecommendByAreaAll(String areaType, String area, int page, int size){
-        // TODO
         List<LiveRoomInfo> list = Collections.synchronizedList(new ArrayList<>());
-//        // 有几个平台就开几个线程
-//        int threadCount = Platform.values().length;
-//        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-//        // 遍历平台 提交获取推荐列表的任务
-//        platformMap.values().forEach(platform -> {
-//            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform.getPlatformName(), area, page, size)));
-//        });
-//        executorService.shutdown();
-//        try {
-//            // 阻塞，直到线程池里所有任务结束
-//            executorService.awaitTermination(10, TimeUnit.SECONDS);
-//        } catch (Exception e) {
-//            log.error("获取总推荐报错:", e);
-//        }
+        // 获取映射分区对应的所有平台的分区
+        Map<String, AreaInfo> platformAreaMap = areaService.getPlatformAreaMap(areaType, area);
+        // 有几个平台就开几个线程
+        ExecutorService executorService = Executors.newFixedThreadPool(platformAreaMap.size());
+        // 遍历平台 提交获取推荐列表的任务
+        platformAreaMap.forEach((platform, areaInfo) -> {
+            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform, areaInfo.getAreaName(), page, size)));
+        });
+
+        executorService.shutdown();
+        try {
+            // 阻塞，直到线程池里所有任务结束
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("getRecommendByAreaAll报错:", e);
+        }
         return list;
     }
 

@@ -1,5 +1,6 @@
 package work.yj1211.live.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -115,6 +117,7 @@ public class AreaService {
      */
     public List<List<AreaInfoIndex>> getAllAreas() {
         List<List<AreaInfoIndex>> resultList = new ArrayList<>();
+        // 获取index表所有分区, 并转成Map<areaType,List<areaInfoIndex>> 形式
         List<AreaInfoIndex> areaInfoIndexList = areaInfoIndexService.list();
         Map<String, List<AreaInfoIndex>> resultMap = new HashMap<>();
         areaInfoIndexList.forEach(areaInfoIndex -> {
@@ -127,6 +130,7 @@ public class AreaService {
                 resultMap.put(areaInfoIndex.getTypeName(), list);
             }
         });
+        // 获取areaTypeIndex的顺序,并按照顺序返回结果
         QueryWrapper<AreaTypeIndex> wrapper = new QueryWrapper<>();
         wrapper.select("distinct area_type");
         List<AreaTypeIndex> typeList =  areaTypeIndexService.list(wrapper);
@@ -138,6 +142,63 @@ public class AreaService {
             }
         });
         return resultList;
+    }
+
+    /**
+     * 根据平台,获取所有分区列表
+     * @param platform 平台名
+     * @return
+     */
+    public List<List<AreaInfo>> getAllAreasByPlatform(String platform) {
+        List<List<AreaInfo>> resultList = new ArrayList<>();
+        // 获取平台的所有分区, 并转成Map<areaType,List<areaInfoIndex>> 形式
+        LambdaQueryWrapper<AreaInfo> areaInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        areaInfoLambdaQueryWrapper.eq(AreaInfo::getPlatform, platform);
+        List<AreaInfo> areaInfoList = areaInfoService.list(areaInfoLambdaQueryWrapper);
+        // 转成Map
+        Map<String, List<AreaInfo>> resultMap = new HashMap<>();
+        areaInfoList.forEach(areaInfo -> {
+            String typeName = areaInfo.getTypeName();
+            if (resultMap.containsKey(typeName)) {
+                resultMap.get(typeName).add(areaInfo);
+            } else {
+                List<AreaInfo> list = new ArrayList<>();
+                list.add(areaInfo);
+                resultMap.put(areaInfo.getTypeName(), list);
+            }
+        });
+        // 获取areaType的顺序,并按照顺序返回结果
+        QueryWrapper<AreaTypeIndex> wrapper = new QueryWrapper<>();
+        wrapper.select("distinct area_type").eq("platform", platform);
+        List<AreaTypeIndex> typeList =  areaTypeIndexService.list(wrapper);
+        typeList.forEach(type->{
+            if (resultMap.containsKey(type.getAreaType())) {
+                resultList.add(resultMap.get(type.getAreaType()));
+            } else {
+                resultList.add(new ArrayList<>());
+            }
+        });
+        return resultList;
+    }
+
+    /**
+     * 获取映射分区对应的所有平台的分区
+     * @param areaType 映射后的分区类型
+     * @param areaName 映射后的分区
+     * @return Map< platform, AreaInfo>
+     */
+    public Map<String, AreaInfo> getPlatformAreaMap(String areaType, String areaName) {
+        // 获取areaType, areaName 对应的映射id
+        LambdaQueryWrapper<AreaInfoIndex> queryIndexWrapper = new LambdaQueryWrapper<>();
+        queryIndexWrapper.eq(AreaInfoIndex::getTypeName, areaType).eq(AreaInfoIndex::getAreaName, areaName);
+        AreaInfoIndex areaInfoIndex = areaInfoIndexService.getOne(queryIndexWrapper);
+
+        // 根据映射id获取所有平台的分区信息
+        LambdaQueryWrapper<AreaInfo> queryInfoWrapper = new LambdaQueryWrapper<>();
+        queryInfoWrapper.eq(AreaInfo::getIndexArea, areaInfoIndex.getId());
+        List<AreaInfo> resultList = areaInfoService.list(queryInfoWrapper);
+
+        return resultList.stream().collect(Collectors.toMap(AreaInfo::getPlatform, Function.identity()));
     }
 
     /**
