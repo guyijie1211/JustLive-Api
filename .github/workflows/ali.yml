@@ -50,7 +50,7 @@ jobs:
           # 私有服务器公网IP地址
           host: ${{ secrets.HOST_ali }}
           # 私有服务器用户名
-          username: ${{ secrets.USERNAME_ali }}
+          username: ${{ secrets.USERNAME }}
           # 私有服务器用户密码
           password: ${{ secrets.PASSWORD_ali }}
       # 部署运行
@@ -59,7 +59,7 @@ jobs:
         with:
           # 同上述
           host: ${{ secrets.HOST_ali }}
-          username: ${{ secrets.USERNAME_ali }}
+          username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD_ali }}
           port: ${{ secrets.PORT }}
           # ssh进入系统后执行什么样的操作。一般是关闭原有的服务在重启
