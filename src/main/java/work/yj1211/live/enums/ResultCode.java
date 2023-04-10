@@ -1,4 +1,4 @@
-package work.yj1211.live.utils;
+package work.yj1211.live.enums;
 
 public enum ResultCode {
     SUCCESS(200),

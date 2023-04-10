@@ -1,7 +1,7 @@
 package work.yj1211.live.factory;
 
 
-import work.yj1211.live.utils.ResultCode;
+import work.yj1211.live.enums.ResultCode;
 import work.yj1211.live.model.Result;
 
 public class ResultFactory {

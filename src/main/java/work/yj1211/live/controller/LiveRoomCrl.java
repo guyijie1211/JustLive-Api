@@ -15,6 +15,9 @@ import work.yj1211.live.model.platformArea.AreaInfo;
 import javax.websocket.server.PathParam;
 import java.util.*;
 
+/**
+ * @author YJ1211
+ */
 @Slf4j
 @RestController
 public class LiveRoomCrl {
