@@ -58,15 +58,15 @@ jobs:
           # 私有服务器用户密码
           password: ${{ secrets.PASSWORD_ali }}
       # 部署运行
-#       - name: Deploy
-#         uses: appleboy/ssh-action@master
-#         with:
-#           # 同上述
-#           host: ${{ secrets.HOST_ali }}
-#           username: ${{ secrets.USERNAME }}
-#           password: ${{ secrets.PASSWORD_ali }}
-#           port: ${{ secrets.PORT }}
-#           # ssh进入系统后执行什么样的操作。一般是关闭原有的服务在重启
-#           script: |
-#             sh /home/admin/app/JustLive/deploy.sh
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          # 同上述
+          host: ${{ secrets.HOST_ali }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD_ali }}
+          port: ${{ secrets.PORT }}
+          # ssh进入系统后执行什么样的操作。一般是关闭原有的服务在重启
+          script: |
+            sh /home/admin/app/JustLive/deploy.sh
             
