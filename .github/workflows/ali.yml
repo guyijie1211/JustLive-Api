@@ -39,6 +39,10 @@ jobs:
       # Maven 打包
       - name: Build with Maven
         run: mvn -B clean package -Dmaven.test.skip=true -Dautoconfig.skip
+      - name: Generate application.yml file
+        run: |
+          envsubst < src/main/resources/application.properties > target/classes/application.properties
+          cat target/classes/application.properties
       # 将打包后的Jar包从Github Action服务器传输至私人服务器中
       - name: Transfer jar packets
         uses: garygrossgarten/github-action-scp@release
