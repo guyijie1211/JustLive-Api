@@ -14,8 +14,11 @@
  Date: 10/04/2023 21:50:03
 */
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+# 创建名为mixlive的数据库
+CREATE DATABASE IF NOT EXISTS mixlive;
+
+# 使用mixlive数据库
+USE mixlive;
 
 -- ----------------------------
 -- Table structure for active_users
