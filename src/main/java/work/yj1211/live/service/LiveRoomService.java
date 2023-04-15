@@ -80,14 +80,13 @@ public class LiveRoomService{
 
     /**
      * 根据平台和分区获取推荐房间列表
-     * @param platform
-     * @param area
+     * @param areaInfo
      * @param page
      * @param size
      * @return
      */
-    public List<LiveRoomInfo> getRecommendByPlatformArea(String platform, String area, int page, int size){
-        return platformMap.get(platform).getAreaRoom(area, page, size);
+    public List<LiveRoomInfo> getRecommendByPlatformArea(AreaInfo areaInfo, int page, int size){
+        return platformMap.get(areaInfo.getPlatform()).getAreaRoom(areaInfo, page, size);
     }
 
     /**
@@ -191,7 +190,7 @@ public class LiveRoomService{
         ExecutorService executorService = Executors.newFixedThreadPool(platformAreaMap.size());
         // 遍历平台 提交获取推荐列表的任务
         platformAreaMap.forEach((platform, areaInfo) -> {
-            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(platform, areaInfo.getAreaName(), page, size)));
+            executorService.execute(() -> list.addAll(getRecommendByPlatformArea(areaInfo, page, size)));
         });
 
         executorService.shutdown();

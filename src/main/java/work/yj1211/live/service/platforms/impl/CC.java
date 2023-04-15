@@ -4,7 +4,6 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.service.platforms.BasePlatform;
@@ -197,16 +196,16 @@ public class CC implements BasePlatform {
 
     /**
      * 获取CC分区房间
-     * @param area
+     *
+     * @param areaInfo
      * @param page
      * @param size
      * @return
      */
     @Override
-    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    public List<LiveRoomInfo> getAreaRoom(AreaInfo areaInfo, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
-        AreaInfo areaInfo = new AreaInfo();
         String url = "https://cc.163.com/api/category/" + areaInfo.getAreaId() + "/?format=json&tag_id=0&start=" + start + "&size=" +size;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSONUtil.parseObj(result);

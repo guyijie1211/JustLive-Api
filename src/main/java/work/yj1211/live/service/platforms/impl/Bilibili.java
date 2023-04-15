@@ -15,7 +15,6 @@ import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -233,50 +232,44 @@ public class Bilibili implements BasePlatform {
 
     /**
      * 获取b站分区房间
-     * @param area 分类id
-     * @param page 请求页数
+     *
+     * @param areaInfo
+     * @param page     请求页数
      * @param size
      * @return
      */
     @Override
-    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
+    public List<LiveRoomInfo> getAreaRoom(AreaInfo areaInfo, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-//        try {
-//            AreaInfo areaInfo = Global.getAreaInfo(getPlatformName(), area);
-//            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
-//                    "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
-//                    areaInfo.getAreaId()+"&sort_type=&page="+page;
-//            String result = HttpUtil.doGet(url);
-//            JSONObject resultJsonObj = JSONUtil.parseObj(result);
-//            if (resultJsonObj.getInt("code") == 0) {
-//                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
-//                Iterator<Object> it = data.iterator();
-//                while(it.hasNext()){
-//                    JSONObject roomInfo = (JSONObject) it.next();
-//                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-//                    liveRoomInfo.setPlatForm(getPlatformName());
-//                    liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
-//                    liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
-//                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
-//                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
-//                    liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
-//                    liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
-//                    liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
-//                    liveRoomInfo.setOnline(roomInfo.getInt("online"));
-//                    liveRoomInfo.setIsLive(1);
-//                    list.add(liveRoomInfo);
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error("BILIBILI---获取分区房间异常---area：" + area);
-//        }
-
+        String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
+                "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
+                areaInfo.getAreaId()+"&sort_type=&page="+page;
+        String result = HttpUtil.doGet(url);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("code") == 0) {
+            JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
+            Iterator<Object> it = data.iterator();
+            while(it.hasNext()){
+                JSONObject roomInfo = (JSONObject) it.next();
+                LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
+                liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
+                liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
+                liveRoomInfo.setOnline(roomInfo.getInt("online"));
+                liveRoomInfo.setIsLive(1);
+                list.add(liveRoomInfo);
+            }
+        }
         return list;
     }
 
     /**
      * 搜索
-     *
      * @param keyWords 搜索关键字
      * @return
      */

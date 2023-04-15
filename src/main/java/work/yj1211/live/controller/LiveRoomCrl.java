@@ -47,7 +47,10 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/getRecommendByPlatformArea", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getRecommendByPlatformArea(@PathParam("platform")String platform, @PathParam("area")String area, @PathParam("page")int page, @PathParam("size")int size){
-        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(platform, area, page, size);
+        AreaInfo areaInfo = new AreaInfo();
+        areaInfo.setPlatform(platform);
+        areaInfo.setAreaName(area);
+        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(areaInfo, page, size);
         Collections.sort(list);
         return ResultFactory.buildSuccessResult(list);
     }

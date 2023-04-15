@@ -1,5 +1,6 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,8 @@ public class AreaService {
             saveOrUpdateBatchByPlatform(platform.getAreaList(), platform.getPlatformName());
         });
     }
+
+    private Map<String, String> douyuAreaNameMap;
 
     /**
      * 根据平台更新分类信息
@@ -199,6 +202,20 @@ public class AreaService {
         List<AreaInfo> resultList = areaInfoService.list(queryInfoWrapper);
 
         return resultList.stream().collect(Collectors.toMap(AreaInfo::getPlatform, Function.identity()));
+    }
+
+    /**
+     * 获取斗鱼的分区名映射
+     * @return
+     */
+    public Map<String, String> getDouyuAreaNameMap() {
+        if (CollectionUtil.isEmpty(douyuAreaNameMap)) {
+            QueryWrapper<AreaInfo> queryWrapper = new QueryWrapper<>();
+            queryWrapper.select("distinct area_name, area_id").eq("platform", "douyu");
+            List<AreaInfo> areaInfoList = areaInfoService.list(queryWrapper);
+            douyuAreaNameMap = areaInfoList.stream().collect(Collectors.toMap(AreaInfo::getAreaId, AreaInfo::getAreaName));
+        }
+        return  douyuAreaNameMap;
     }
 
     /**
