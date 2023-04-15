@@ -78,6 +78,37 @@ CREATE TABLE `area_type_index`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (1, '网游', 'bilibili', '网游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (2, '手游', 'bilibili', '手游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (3, '单机', 'bilibili', '单机游戏');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (4, '娱乐', 'bilibili', '娱乐');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (5, '娱乐', 'bilibili', '电台');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (6, '娱乐', 'bilibili', '虚拟主播');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (7, '其他', 'bilibili', '生活');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (8, '其他', 'bilibili', '知识');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (9, '网游', 'bilibili', '赛事');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (10, '其他', 'bilibili', '购物');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (11, '其他', 'douyu', '星势力');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (12, '网游', 'douyu', '网游竞技');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (13, '手游', 'douyu', '手游休闲');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (14, '单机', 'douyu', '单机热游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (15, '娱乐', 'douyu', '娱乐天地');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (16, '娱乐', 'douyu', '颜值');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (17, '其他', 'douyu', '科技文化');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (18, '其他', 'douyu', '正能量');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (19, '其他', 'douyu', '语音直播');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (20, '其他', 'douyu', '京斗云');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (21, '其他', 'douyu', '语音互动');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (22, '其他', 'douyu', '赛车竞技');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (23, '网游', 'huya', '网游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (24, '单机', 'huya', '单机');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (25, '手游', 'huya', '手游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (26, '娱乐', 'huya', '娱乐');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (27, '网游', 'cc', '网游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (28, '手游', 'cc', '手游');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (29, '网游', 'cc', '网游竞技');
+INSERT INTO `area_type_index`(`id`, `area_type`, `platform`, `area_type_platform`) VALUES (30, '娱乐', 'cc', '娱乐');
+
 -- ----------------------------
 -- Table structure for follows
 -- ----------------------------
