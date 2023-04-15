@@ -172,11 +172,11 @@ public class AreaService {
         });
         // 获取areaType的顺序,并按照顺序返回结果
         QueryWrapper<AreaTypeIndex> wrapper = new QueryWrapper<>();
-        wrapper.select("distinct area_type").eq("platform", platform);
+        wrapper.select("distinct area_type_platform").eq("platform", platform);
         List<AreaTypeIndex> typeList =  areaTypeIndexService.list(wrapper);
         typeList.forEach(type->{
-            if (resultMap.containsKey(type.getAreaType())) {
-                resultList.add(resultMap.get(type.getAreaType()));
+            if (resultMap.containsKey(type.getAreaTypePlatform())) {
+                resultList.add(resultMap.get(type.getAreaTypePlatform()));
             } else {
                 resultList.add(new ArrayList<>());
             }
