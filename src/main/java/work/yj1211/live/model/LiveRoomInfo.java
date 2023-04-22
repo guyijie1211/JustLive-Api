@@ -17,6 +17,7 @@ public class LiveRoomInfo implements Comparable<LiveRoomInfo>{
     private int isLive;
     private int isFollowed; //是否关注此房间
     private String eGameToken;
+    private Boolean isRecord = false;
 
     @Override
     public int compareTo(LiveRoomInfo roomInfo) {

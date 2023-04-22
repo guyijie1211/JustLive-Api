@@ -179,9 +179,6 @@ public class Douyu implements BasePlatform {
                 .post()
                 .getBodyJson();
 
-        if (response.getInt("code") != 0) {
-            return null;
-        }
         JSONObject data = response.getJSONObject("data");
         if (data == null){
             return null;
@@ -284,6 +281,7 @@ public class Douyu implements BasePlatform {
             liveRoomInfo.setOwnerHeadPic(room_info.getStr("avatar"));
             liveRoomInfo.setOnline(room_info.getInt("online"));
             liveRoomInfo.setIsLive((room_info.getInt("room_status") == 1) ? 1 : 0);
+            liveRoomInfo.setIsRecord(isRecord(roomId));
             return liveRoomInfo;
         }
         return null;
@@ -534,5 +532,15 @@ public class Douyu implements BasePlatform {
             }
         }
         return sb.toString();
+    }
+
+    private Boolean isRecord(String roomId) {
+        String url = "https://www.douyu.com/betard/" + roomId;
+        HttpResponse response = HttpRequest.create(url)
+                .setContentType(HttpContentType.FORM).get();
+
+        JSONObject room_info = response.getBodyJson().getJSONObject("room");
+
+        return room_info.getInt("videoLoop") == 1;
     }
 }
