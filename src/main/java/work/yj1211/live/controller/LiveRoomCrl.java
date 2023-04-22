@@ -1,17 +1,24 @@
 package work.yj1211.live.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
+import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.service.LiveRoomService;
-import work.yj1211.live.vo.LiveRoomInfo;
-import work.yj1211.live.vo.Owner;
-import work.yj1211.live.vo.Result;
-import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.utils.annotation.AccessLimit;
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.Result;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import javax.websocket.server.PathParam;
 import java.util.*;
 
+/**
+ * @author YJ1211
+ */
+@Slf4j
 @RestController
 public class LiveRoomCrl {
 
@@ -40,7 +47,10 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/getRecommendByPlatformArea", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getRecommendByPlatformArea(@PathParam("platform")String platform, @PathParam("area")String area, @PathParam("page")int page, @PathParam("size")int size){
-        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(platform, area, page, size);
+        AreaInfo areaInfo = new AreaInfo();
+        areaInfo.setPlatform(platform);
+        areaInfo.setAreaName(area);
+        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(areaInfo, page, size);
         Collections.sort(list);
         return ResultFactory.buildSuccessResult(list);
     }
@@ -115,17 +125,18 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/getAllAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getAllAreas(){
-        List<List<AreaInfo>> allAreaMap = liveRoomService.getAllAreaMap();
+        List<List<AreaInfoIndex>> allAreaMap = liveRoomService.getAllAreaMap();
         return ResultFactory.buildSuccessResult(allAreaMap);
     }
 
     @CrossOrigin
     @RequestMapping(value = "/api/live/search", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
-    public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("isLive")String isLive){
-        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, isLive);
+    @AccessLimit
+    public Result search(@PathParam("platform")String platform, @PathParam("keyWords")String keyWords, @PathParam("uid")String uid){
+        List<Owner> roomInfoList = liveRoomService.search(platform, keyWords, uid);
         if (null == roomInfoList){
-            return ResultFactory.buildFailResult("获取房间信息失败");
+            return ResultFactory.buildFailResult("请求过多");
         }
         Collections.sort(roomInfoList);
         return ResultFactory.buildSuccessResult(roomInfoList);
@@ -140,6 +151,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result versionRefresh(){
         String result = liveRoomService.refreshUpdate();
+        if (result == null) {
+            return ResultFactory.buildFailResult("刷新失败, 看下日志报错信息");
+        }
         return ResultFactory.buildSuccessResult(result);
     }
 }

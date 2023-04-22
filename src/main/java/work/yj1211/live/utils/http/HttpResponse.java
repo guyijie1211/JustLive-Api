@@ -1,17 +1,16 @@
 package work.yj1211.live.utils.http;
 
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.bouncycastle.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +36,7 @@ public class HttpResponse {
     private HttpRequest request;
     private String body;
     private byte[] bodyBytes;
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, List<String>> headers = new HashMap<>();
     private String encoding;
     private String contentType;
 
@@ -79,7 +78,13 @@ public class HttpResponse {
 
     HttpResponse header(org.apache.http.HttpResponse response) {
         for (Header item : response.getAllHeaders()) {
-            headers.put(item.getName(), item.getValue());
+            if (headers.containsKey(item.getName())) {
+                headers.get(item.getName()).add(item.getValue());
+            } else {
+                List<String> headList = new ArrayList<>();
+                headList.add(item.getValue());
+                headers.put(item.getName(), headList);
+            }
             // 从 header 的 content-type 声明中获取编码
             if (item.getName().equalsIgnoreCase(HeaderKey.CONTENT_TYPE)) {
                 Matcher matcher = PATTERN_MATCH_CHARSET.matcher(item.getValue());
@@ -107,13 +112,13 @@ public class HttpResponse {
             return body;
         }
 
-        String contentType = headers.get(HeaderKey.CONTENT_TYPE);
+        String contentType = headers.get(HeaderKey.CONTENT_TYPE).get(0);
         this.contentType = Optional.ofNullable(contentType).orElse("");
-        if (StringUtils.isNotEmpty(contentType) && contentType.toLowerCase().contains("image")) {
+        if (StrUtil.isNotEmpty(contentType) && contentType.toLowerCase().contains("image")) {
             return Base64.encodeBase64String(bodyBytes);
         }
 
-        if (StringUtils.isEmpty(this.encoding)) {
+        if (StrUtil.isEmpty(this.encoding)) {
             body = Strings.fromUTF8ByteArray(this.bodyBytes);
         } else {
             try {
@@ -128,9 +133,9 @@ public class HttpResponse {
 
     public JSONObject getBodyJson() {
         if (success()) {
-            return JSONObject.parseObject(body);
+            return JSONUtil.parseObj(body);
         }
-        return JSONObject.parseObject(null);
+        return JSONUtil.parseObj(null);
     }
 
     public String getContentType() {
@@ -156,7 +161,7 @@ public class HttpResponse {
      */
     public void log() {
         if (success()) {
-            LOG.info("http success({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody().replace(System.lineSeparator(), ""));
+//            LOG.info("http success({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody().replace(System.lineSeparator(), ""));
         } else {
             LOG.error("http fail({} ms) for {} ({} : {}), Body : {}", spend, request.getUrl(), code, message, getBody(), error);
         }
@@ -182,8 +187,20 @@ public class HttpResponse {
         return request;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return headers;
+    }
+
+    public String getCookieString() {
+        StringBuilder cookieString = new StringBuilder();
+        List<String> cookieList = headers.get("Set-Cookie");
+        if (cookieList != null) {
+            cookieList.forEach(cookie->{
+                String[] cookieArray = cookie.split(";");
+                cookieString.append(cookieArray[0]).append(";");
+            });
+        }
+        return cookieString.toString();
     }
 
     public String getEncoding() {
