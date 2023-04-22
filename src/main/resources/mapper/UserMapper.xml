@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
 <mapper namespace="work.yj1211.live.mapper.UserMapper">
-    <resultMap id="userInfoMap" type="work.yj1211.live.vo.UserInfo">
+    <resultMap id="userInfoMap" type="work.yj1211.live.model.UserInfo">
         <result column="uid" property="uid"/>
         <result column="userName" property="userName"/>
         <result column="nickName" property="nickName"/>
@@ -15,47 +15,28 @@
         <result column="huyaLevel" property="huyaLevel"/>
         <result column="ccLevel" property="ccLevel"/>
         <result column="egameLevel" property="egameLevel"/>
+        <result column="created" property="created"/>
+        <result column="modified" property="modified"/>
+        <result column="last_login" property="lastLogin"/>
     </resultMap>
 
-    <resultMap id="areaInfoMap" type="work.yj1211.live.vo.platformArea.AreaSimple">
+    <resultMap id="areaInfoMap" type="work.yj1211.live.model.platformArea.AreaSimple">
         <result column="uid" property="uid"/>
         <result column="areaType" property="areaType"/>
         <result column="area" property="area"/>
     </resultMap>
 
     <select id="login" resultMap="userInfoMap">
-        select  uid,
-                userName,
-                nickName,
-                head,
-                isActived,
-                allContent,
-                selectedContent,
-                douyuLevel,
-                bilibiliLevel,
-                huyaLevel,
-                ccLevel,
-                egameLevel
+        select  *
         from userinfo
         where userName = #{userName} and password = #{password}
     </select>
 
-    <select id="findUserByName" resultType="work.yj1211.live.vo.UserInfo">
-        select uid,
-                userName,
-                nickName,
-                head,
-                isActived,
-                allContent,
-                selectedContent,
-                douyuLevel,
-                bilibiliLevel,
-                huyaLevel,
-                ccLevel,
-                egameLevel from userinfo where userName = #{userName}
+    <select id="findUserByName" resultType="work.yj1211.live.model.UserInfo">
+        select * from userinfo where userName = #{userName}
     </select>
 
-    <insert id="register" parameterType="work.yj1211.live.vo.UserInfo">
+    <insert id="register" parameterType="work.yj1211.live.model.UserInfo">
         insert into userinfo(uid,userName,
                     nickName,
                     password,
@@ -70,7 +51,7 @@
         values (#{uid},#{userName},#{nickName},#{password},'0','1','1','1','1','1','','');
     </insert>
 
-    <select id="checkFollowed" resultType="work.yj1211.live.vo.SimpleRoomInfo">
+    <select id="checkFollowed" resultType="work.yj1211.live.model.SimpleRoomInfo">
         select platform, roomId from follows where uid = #{uid}
                                                and platform = #{platform}
                                             and roomId = #{roomId}
@@ -82,6 +63,9 @@
 
     <insert id="followArea">
         insert into areaFollow(uid,areaType,area) values (#{uid}, #{areaType}, #{area})
+    </insert>
+    <insert id="insertActiveUserNum" parameterType="work.yj1211.live.model.ActiveUsers">
+        insert into active_users(login_user_num) values (#{loginUserNum, jdbcType =INTEGER})
     </insert>
 
     <select id="getAreasByUid" parameterType="String" resultMap="areaInfoMap">
@@ -96,7 +80,7 @@
         delete from follows where uid = #{uid} and platform = #{platform} and roomId = #{roomId}
     </delete>
 
-    <update id="changeUserInfo" parameterType="work.yj1211.live.vo.UserInfo">
+    <update id="changeUserInfo" parameterType="work.yj1211.live.model.UserInfo">
         update userinfo
         set nickName = #{nickName}
         where userName = #{userName}
@@ -106,7 +90,7 @@
         update userinfo set password = #{password} where userName = #{userName}
     </update>
 
-    <update id="changeUserBan" parameterType="work.yj1211.live.vo.UserInfo">
+    <update id="changeUserBan" parameterType="work.yj1211.live.model.UserInfo">
         update userinfo
         <trim prefix="SET" suffixOverrides=",">
             <if test="isActived != null and isActived != ''">isActived = #{isActived},</if>
@@ -120,17 +104,29 @@
         </trim>
         where userName = #{userName}
     </update>
-    <select id="findByUid" resultType="work.yj1211.live.vo.UserInfo">
+
+    <update id="updateLastLogin">
+        update userinfo
+        set last_login = CURRENT_TIMESTAMP
+        where uid = #{uid}
+    </update>
+    <select id="findByUid" resultType="work.yj1211.live.model.UserInfo">
         select
         *
         from userinfo
         where
         uid = #{uid,jdbcType=VARCHAR}
     </select>
-    <select id="selectAllByUidAndPassword" resultType="work.yj1211.live.vo.UserInfo">
+    <select id="selectAllByUidAndPassword" resultType="work.yj1211.live.model.UserInfo">
         select
         *
         from userinfo
         where uid = #{uid} and password = #{password}
+    </select>
+    <select id="countUserActived" resultMap="userInfoMap">
+        select
+        *
+        from userinfo
+        where last_login > #{start, jdbcType =TIMESTAMP}
     </select>
 </mapper>
