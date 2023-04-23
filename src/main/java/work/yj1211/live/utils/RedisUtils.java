@@ -1,6 +1,7 @@
 package work.yj1211.live.utils;
 
-import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ public class RedisUtils {
      * 根据key读取数据
      */
     public Object get(final String key) {
-        if (StringUtils.isBlank(key)) {
+        if (StrUtil.isBlank(key)) {
             return null;
         }
         try {
@@ -30,7 +31,7 @@ public class RedisUtils {
      * 写入数据
      */
     public boolean set(final String key, Object value) {
-        if (StringUtils.isBlank(key)) {
+        if (StrUtil.isBlank(key)) {
             return false;
         }
         try {

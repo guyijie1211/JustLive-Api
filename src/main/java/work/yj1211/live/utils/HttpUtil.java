@@ -6,8 +6,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import work.yj1211.live.utils.http.HttpRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class HttpUtil {
     /**
@@ -15,24 +17,12 @@ public class HttpUtil {
      * @return
      */
     public static String doGet(String url) {
-        try {
-            HttpClient client = new DefaultHttpClient();
-            //发送get请求
-            HttpGet request = new HttpGet(url);
-            HttpResponse response = client.execute(request);
+        return HttpRequest.create(url)
+                .get().getBody();
+    }
 
-            /**请求发送成功，并得到响应**/
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                /**读取服务器返回过来的json字符串数据**/
-                String strResult = EntityUtils.toString(response.getEntity());
-
-                return strResult;
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    public static String doGetWithHeaders(String url, Map<String, String> headers) {
+        return HttpRequest.create(url).putHeaders(headers)
+                .get().getBody();
     }
 }

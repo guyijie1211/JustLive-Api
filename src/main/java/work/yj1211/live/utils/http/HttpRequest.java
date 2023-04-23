@@ -1,15 +1,13 @@
 package work.yj1211.live.utils.http;
 
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -25,7 +23,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import work.yj1211.live.utils.Constant;
 import work.yj1211.live.utils.UrlUtil;
 
 import javax.net.ssl.SSLContext;
@@ -63,7 +60,7 @@ public class HttpRequest {
 
     private String url;
     private HttpContentType contentType;
-    private String encoding = Constant.ENCODING_UTF8;
+    private String encoding = "UTF-8";
     private Map<String, String> headers;
     private String body;
     private boolean isForBytes;
@@ -241,6 +238,7 @@ public class HttpRequest {
     }
 
     private HttpResponse sendRequest(HttpMethod method) {
+        long start = System.currentTimeMillis();
         HttpResponse result = null;
         // 重试
         for (int remainingCount = this.retryCount; remainingCount >= 0; remainingCount--) {
@@ -263,7 +261,11 @@ public class HttpRequest {
                 }
             }
         }
-
+        float requestTime = System.currentTimeMillis() - start;
+        float requestSecond = requestTime/1000;
+        if (requestSecond > 1) {
+            LOG.warn(StrUtil.format("请求时间:{}\n请求内容:{}",requestTime+"="+requestSecond+"s", JSONUtil.toJsonStr(this)));
+        }
         return result;
     }
 
@@ -296,13 +298,13 @@ public class HttpRequest {
 
                     } else {
                         // 如果body为空，就从Map转换成JSON串赋值给body
-                        if (StringUtils.isEmpty(body) && HttpContentType.JSON.equals(contentType)) {
-                            body = JSONObject.toJSONString(paramMap);
+                        if (StrUtil.isEmpty(body) && HttpContentType.JSON.equals(contentType)) {
+                            body = JSONUtil.toJsonStr(paramMap);
                         }
 
                         // 普通字符串参数
                         StringEntity entity = new StringEntity(body, encoding);
-                        if (StringUtils.isNotEmpty(body)) {
+                        if (StrUtil.isNotEmpty(body)) {
 
                             if (contentType == null) {
                                 throw new RuntimeException("请为 " + method.name() + " 请求设置 content-type。");
@@ -322,12 +324,12 @@ public class HttpRequest {
             }
 
             headers.forEach(httpUriRequest::setHeader);
-
+            RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+            ((HttpRequestBase) httpUriRequest).setConfig(defaultConfig);
             StringBuilder sb = new StringBuilder("[");
             paramMap.forEach((key, value) -> sb.append(key).append(" = ").append(value).append(", "));
             sb.append("]");
-
-            LOG.info("Request : URL = {}, headers = {}, encoding = {}, Content-Type = {}, paramMap = {}, body = {}", url, headers, encoding, contentType, sb.toString(), body);
+//            LOG.info("Request : URL = {}, headers = {}, encoding = {}, Content-Type = {}, paramMap = {}, body = {}", url, headers, encoding, contentType, sb.toString(), body);
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpUriRequest)) {
 
                 response = HttpResponse.create(this, System.currentTimeMillis() - startTime)

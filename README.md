@@ -6,9 +6,9 @@ Android项目 [JustLive-Android](https://github.com/guyijie1211/JustLive-Android
 
 前端Web项目    [JustLive-Web](https://github.com/guyijie1211/JustLive-Web)
 
-网站页面    [live.yj1211.work](live.yj1211.work)
+网站页面    [live.yj1211.work](http://live.yj1211.work)
 
-数据库结构	[mixlive.sql](https://github.com/guyijie1211/MixLive/blob/master/mixlive.sql)
+数据库结构	[init.sql](https://github.com/guyijie1211/MixLive/blob/master/mixlive.sql)
 
 ## 部署方式
 - 修改 配置文件(src/main/resources/application-github.properties) 中的数据库信息

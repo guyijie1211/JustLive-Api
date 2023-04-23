@@ -3,7 +3,7 @@ package work.yj1211.live.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.utils.RedisUtils;
-import work.yj1211.live.vo.LiveRoomInfo;
+import work.yj1211.live.model.LiveRoomInfo;
 
 @Service
 public class RedisService {

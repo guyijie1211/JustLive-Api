@@ -39,7 +39,7 @@ public class UrlUtil {
      * 使用 UTF8 编码对 url 参数编码
      */
     public static String encode(String str) {
-        return encode(str, work.yj1211.live.utils.Constant.ENCODING_UTF8);
+        return encode(str, "UTF-8");
     }
 
 

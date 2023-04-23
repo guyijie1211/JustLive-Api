@@ -1,5 +1,6 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.date.DateUtil;
 import com.aliyun.dm20151123.models.SingleSendMailRequest;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
@@ -7,16 +8,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.utils.platForms.Douyu;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaSimple;
+import work.yj1211.live.service.platforms.impl.Douyu;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaSimple;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +38,9 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
+    private Douyu douyu;
+
+    @Autowired
     private UserMailMapper mailMapper;
 
     public UserInfo login(String userName, String password){
@@ -47,6 +52,18 @@ public class UserService {
         return userInfo;
     }
 
+    public void updateLastLogin(String uid) {
+        userMapper.updateLastLogin(uid);
+    }
+
+    public void insertActiveUserNum() {
+        Date date = DateUtil.yesterday();
+        List<UserInfo> userInfoList = userMapper.countUserActived(date);
+        ActiveUsers activeUsers = new ActiveUsers();
+        activeUsers.setLoginUserNum(userInfoList.size());
+        userMapper.insertActiveUserNum(activeUsers);
+    }
+
     public UserInfo findUserByName(String userName){
         return userMapper.findUserByName(userName);
     }
@@ -56,8 +73,8 @@ public class UserService {
     }
 
     public void followRoom(String platform, String roomId, String uid){
-        if (platform.equalsIgnoreCase("douyu")) {
-            roomId = Douyu.getRealRoomId(roomId);
+        if (platform.equalsIgnoreCase(Platform.DOUYU.getName())) {
+            roomId = douyu.getRealRoomId(roomId);
         }
         if (userMapper.checkFollowed(platform, roomId, uid) == null) {
             userMapper.followRoom(platform, roomId, uid);
