@@ -36,14 +36,14 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Prepare environment
+        run: echo "ALI_MAIL_ACCESS_KEY_ID:${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}" > src/main/resources/application.properties
       # Maven 打包
       - name: Build with Maven
         run: mvn -B clean package -Dmaven.test.skip=true -Dautoconfig.skip
         env:
           MYSQL_ACCOUNT: ${{ secrets.MYSQL_ACCOUNT }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          ALI_MAIL_ACCESS_KEY_ID: ${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}
-          ALI_MAIL_ACCESS_SECRET: ${{ secrets.ALI_MAIL_ACCESS_SECRET }}
           REDIS_ADDRESS: ${{ secrets.REDIS_ADDRESS }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       # - name: Generate application.yml file
