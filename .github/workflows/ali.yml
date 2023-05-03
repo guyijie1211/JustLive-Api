@@ -37,7 +37,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Prepare environment
-        run: echo "ALI_MAIL_ACCESS_KEY_ID:${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}" > src/main/resources/application.properties
+        run: echo "ALI_MAIL_ACCESS_KEY_ID = ${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}" > src/main/resources/application.properties
       # Maven 打包
       - name: Build with Maven
         run: mvn -B clean package -Dmaven.test.skip=true -Dautoconfig.skip
