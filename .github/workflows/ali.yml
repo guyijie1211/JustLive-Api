@@ -41,11 +41,6 @@ jobs:
       # Maven 打包
       - name: Build with Maven
         run: mvn -B clean package -Dmaven.test.skip=true -Dautoconfig.skip
-        env:
-          MYSQL_ACCOUNT: ${{ secrets.MYSQL_ACCOUNT }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          REDIS_ADDRESS: ${{ secrets.REDIS_ADDRESS }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       # - name: Generate application.yml file
       #   run: |
       #    envsubst < src/main/resources/application.properties > target/classes/application.properties
