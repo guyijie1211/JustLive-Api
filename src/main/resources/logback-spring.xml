@@ -46,7 +46,8 @@
     <springProfile name="prod">
         <!-- root日志以INFO级别输出，指定日志信息输出到哪个地方-->
         <root level="INFO">
-            <appender-ref ref="fileAppender" />
+            <appender-ref ref="consoleAppender" />
+<!--            <appender-ref ref="fileAppender" />-->
         </root>
     </springProfile>
 
