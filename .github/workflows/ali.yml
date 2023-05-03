@@ -19,12 +19,6 @@ jobs:
 
     # Github Action CI/CD的机器选择。
     runs-on: ubuntu-latest
-    env:
-      ALI_MAIL_ACCESS_KEY_ID: ${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}
-      MYSQL_ACCOUNT: ${{ secrets.MYSQL_ACCOUNT }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      REDIS_ADDRESS: ${{ secrets.REDIS_ADDRESS }}
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v3
@@ -55,6 +49,12 @@ jobs:
       # 将打包后的Jar包从Github Action服务器传输至私人服务器中
       - name: Transfer jar packets
         uses: garygrossgarten/github-action-scp@release
+        env:
+          ALI_MAIL_ACCESS_KEY_ID: ${{ secrets.ALI_MAIL_ACCESS_KEY_ID }}
+          MYSQL_ACCOUNT: ${{ secrets.MYSQL_ACCOUNT }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          REDIS_ADDRESS: ${{ secrets.REDIS_ADDRESS }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         with:
           # Github Action 的服务器文件路径
           local: target/mixed-live-back.jar
