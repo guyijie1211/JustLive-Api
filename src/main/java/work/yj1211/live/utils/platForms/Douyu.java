@@ -84,7 +84,7 @@ public class Douyu {
     private static String get_single_url(String roomId, String qn){
         //获取房间唯一标识，第一次获取时去请求
         String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
-        String result = "http://hw-tct.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
+        String result = "http://hdltc1.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
         return result;
     }
 
