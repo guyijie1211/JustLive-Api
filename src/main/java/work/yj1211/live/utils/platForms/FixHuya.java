@@ -32,7 +32,6 @@ public class FixHuya {
     private static final Pattern STREAM_NAME_PATTERN = Pattern.compile("\"sStreamName\":\"([\\s\\S]*?)\",");
     private static final Pattern LUID_PATTERN = Pattern.compile("},\"lUid\":([\\s\\S]*?),");
     private static final Pattern RATE_INFO_PATTERN = Pattern.compile("\"vBitRateInfo\":([\\s\\S]*?)\"},\"");
-    private static final Digester MD5 = new Digester(DigestAlgorithm.MD5);
     private static final Long UID = 1464636405087L;
 
     public static void getRealUrl(Map<String, String> urls, String roomId) {
@@ -105,6 +104,7 @@ public class FixHuya {
         String ctype = paramMap.get("ctype");
         String fs = paramMap.get("fs");
         String t = paramMap.get("t");
+        Digester MD5 = new Digester(DigestAlgorithm.MD5);
         String hash0 = MD5.digestHex(seqid + "|" + ctype + "|" + t);
         String wsSecret = MD5.digestHex(hashPrefix + "_" + UID + "_" + streamName + "_" + hash0 + "_" + wsTime);
         return String.format(URL_FORMAT_TEMPLATE, cdnUrl, streamName, wsSecret, wsTime, seqid, ctype, "", fs, UID.toString(), t);
