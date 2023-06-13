@@ -335,10 +335,14 @@ public class Huya {
      */
     public static LiveRoomInfo getRoomInfo(String roomId) {
         String room_url = "https://m.huya.com/" + roomId;
-        String response = HttpRequest.create(room_url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .get().getBody();
+        Map<String, String> headers = new HashMap<>(1);
+        headers.put("X-Forwarded-For", StringUtil.getRandomIp());
+        headers.put("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36");
+        String response = HttpUtil.doGetWithHeaders(room_url, headers);
+//        String response = HttpRequest.create(room_url)
+//                .setContentType(HttpContentType.FORM)
+//                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+//                .get().getBody();
         Matcher matcherOwnerName = OwnerName.matcher(response);
         Matcher matcherRoomName = RoomName.matcher(response);
         Matcher matcherRoomPic = RoomPic.matcher(response);
