@@ -1,9 +1,12 @@
 package work.yj1211.live.utils.platForms;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
@@ -49,30 +52,117 @@ public class Douyu {
         qnList.add("FD");
     }
 
-    public static void get_real_url(Map<String, String> urls, String rid){
-        List<Integer> rateList = roomRateMap.get(rid);
-        if (null == rateList){
-            get_simple_url(rid);
-            rateList = roomRateMap.get(rid);
-        }
-        try{
-            for (int i = 0; i < rateList.size(); i++){
-                String qnString = qnList.get(i);
-                String qn;
-                if ("OD".equals(qnString)){
-                    qn = "";
-                }else {
-                    qn = "_"+rateList.get(i).toString();
-                }
-                urls.put(qnString, get_single_url(rid, qn));
-            }
-        }catch (Exception e){
-            return;
-        }finally {
-            roomUrlMap.clear();
-            roomRateMap.clear();
-        }
+//    public static void get_real_url(Map<String, String> urls, String rid){
+//        List<Integer> rateList = roomRateMap.get(rid);
+//        if (null == rateList){
+//            get_simple_url(rid);
+//            rateList = roomRateMap.get(rid);
+//        }
+//        try{
+//            for (int i = 0; i < rateList.size(); i++){
+//                String qnString = qnList.get(i);
+//                String qn;
+//                if ("OD".equals(qnString)){
+//                    qn = "";
+//                }else {
+//                    qn = "_"+rateList.get(i).toString();
+//                }
+//                urls.put(qnString, get_single_url(rid, qn));
+//            }
+//        }catch (Exception e){
+//            return;
+//        }finally {
+//            roomUrlMap.clear();
+//            roomRateMap.clear();
+//        }
+//
+//    }
 
+    public static void get_real_url(Map<String, String> urls, String roomId) {
+        String url = "https://playweb.douyucdn.cn/lapi/live/hlsH5Preview/" + roomId;
+        String t13 =  String.valueOf(System.currentTimeMillis());
+        String auth = DigestUtils.md5Hex(roomId + t13);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("rid", Integer.valueOf(roomId));
+        map.put("did", "10000000000000000000000000001501");
+        String body = JSONUtil.toJsonStr(map);
+        String response = HttpRequest.create(url)
+                .setContentType(HttpContentType.JSON)
+                .putHeader("rid", roomId)
+                .putHeader("time", t13)
+                .putHeader("auth", auth)
+                .setBody(body)
+                .post()
+                .getBody();
+        JSONObject res = JSONObject.parseObject(response);
+        if (res.getString("error").equalsIgnoreCase("0")) {
+            JSONObject data = res.getJSONObject("data");
+            String rtmp_live = data.getString("rtmp_live");
+            url = data.getString("rtmp_url") + "/" + rtmp_live;
+//            System.out.println(url);
+            urls.put("HD", url);
+            String result1 = HttpRequest.create("https://m.douyu.com/" + roomId)
+                    .get()
+                    .getBody();
+            String pattern = "(function ub98484234.*)\\s(var.*)";
+            Pattern p = Pattern.compile(pattern);
+            Matcher m = p.matcher(result1);
+            String result = null;
+            if (m.find()) {
+                result = m.group();
+            }
+
+            String func_ub9 = result.replaceAll("eval.*;}", "strc;}");
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByName("javascript");
+            String jsRes = "";
+            try {
+                engine.eval(func_ub9);
+                jsRes = (String) engine.eval("ub98484234()");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Pattern pattern2 = Pattern.compile("v=(\\d+)");
+            Matcher matcher = pattern2.matcher(jsRes);
+            String v = "";
+            if (matcher.find()) {
+                v = matcher.group(1);
+            }
+            String t10 = Long.toString(System.currentTimeMillis() / 1000);
+            String rb = DigestUtil.md5Hex(roomId + "10000000000000000000000000001501" + t10 + v);
+
+            String func_sign = jsRes.replaceAll("return rt;}\\);?", "return rt;}")
+                    .replace("(function (", "function sign(")
+                    .replace("CryptoJS.MD5(cb).toString()", "\"" + rb + "\"");
+
+            String params = "";
+            try {
+                engine.eval(func_sign);
+                params = (String) engine.eval("sign('" + roomId + "', '10000000000000000000000000001501', '" + t10 + "')");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            params += "&ver=219032101&rid=" + roomId + "&rate=-1";
+//            String response2 = HttpRequest.create("https://m.douyu.com/api/room/ratestream?" + params)
+//                    .setContentType(HttpContentType.JSON)
+//                    .post()
+//                    .getBody();
+            String response2 = cn.hutool.http.HttpRequest.post("https://m.douyu.com/api/room/ratestream")
+                    .body(params)
+                    .execute().body();
+            res = JSONObject.parseObject(response2).getJSONObject("data");
+
+            Pattern pattern3 = Pattern.compile("(\\d{1,8}[0-9a-zA-Z]+)_?\\d{0,4}p?(.m3u8|/playlist)");
+            Matcher matcher3 = pattern3.matcher(res.getString("url"));
+            String key = null;
+            if (matcher3.find()) {
+                key = matcher.group(1);
+            }
+            urls.put("OD", res.getString("url"));
+
+        }
     }
 
     /**
