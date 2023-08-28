@@ -6,12 +6,14 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.service.LiveRoomService;
 import work.yj1211.live.service.TvLiveService;
+import work.yj1211.live.service.UserService;
 
 @Component
 public class AfterServiceStarted implements ApplicationRunner {
 
     @Autowired
     private LiveRoomService liveRoomService;
+    private UserService userService;
     @Autowired
     private TvLiveService tvLiveService;
 
@@ -22,6 +24,7 @@ public class AfterServiceStarted implements ApplicationRunner {
     public void run(ApplicationArguments args){
         liveRoomService.refreshArea();
         liveRoomService.refreshUpdate();
+        userService.refreshBannerInfoList();
         //tvLiveService.refreshM3U();
     }
 }
