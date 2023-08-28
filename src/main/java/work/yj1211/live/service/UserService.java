@@ -1,6 +1,9 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.aliyun.dm20151123.models.SingleSendMailRequest;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
@@ -247,5 +250,34 @@ public class UserService {
             return userInfo.getUid();
         }
         return null;
+    }
+
+    /**
+     * 获取缓存中的BannerInfoList，如果为空就重新获取文件
+     * @return
+     */
+    public List<BannerInfo> getBannerInfoList() {
+        if (CollUtil.isEmpty(Global.updateInfoList)) {
+            return refreshBannerInfoList();
+        } else {
+            return Global.updateInfoList;
+        }
+    }
+
+    /**
+     * 刷新缓存中的BannerInfoList
+     * @return
+     */
+    public List<BannerInfo> refreshBannerInfoList() {
+        String readResult = Global.readTxtFile(Global.getBannerInfoFilePath());
+        List<BannerInfo> updateInfoList;
+        try {
+            updateInfoList = JSON.parseArray(readResult, BannerInfo.class);
+        } catch (Exception e) {
+            Global.updateInfoList = ListUtil.empty();
+            return ListUtil.empty();
+        }
+        Global.updateInfoList = updateInfoList;
+        return updateInfoList;
     }
 }

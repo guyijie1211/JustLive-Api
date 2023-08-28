@@ -236,7 +236,7 @@ public class LiveRoomService{
      * @return
      */
     public String refreshUpdate(){
-        String readResult = readTxtFile(Global.getUpdateFilePath());
+        String readResult = Global.readTxtFile(Global.getUpdateFilePath());
         UpdateInfo updateInfo;
         try {
             updateInfo = JSON.parseObject(readResult, UpdateInfo.class);
@@ -245,30 +245,6 @@ public class LiveRoomService{
         }
         Global.updateInfo = updateInfo;
         return JSON.toJSONString(updateInfo);
-    }
-
-    private String readTxtFile(String filePath){
-        String readResult = "";
-        try {
-            String encoding="UTF-8";
-            File file=new File(filePath);
-            if(file.isFile() && file.exists()){ //判断文件是否存在
-                InputStreamReader read = new InputStreamReader(
-                        new FileInputStream(file),encoding);//考虑到编码格式
-                BufferedReader bufferedReader = new BufferedReader(read);
-                String lineTxt = null;
-                while((lineTxt = bufferedReader.readLine()) != null){
-                    readResult = readResult + lineTxt;
-                }
-                read.close();
-            }else{
-                readResult = "找不到指定的文件";
-            }
-        } catch (Exception e) {
-            readResult = "读取文件内容出错";
-        }
-
-        return readResult;
     }
 
     /**

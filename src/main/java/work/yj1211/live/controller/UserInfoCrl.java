@@ -277,4 +277,26 @@ public class UserInfoCrl {
         UpdateInfo updateInfo = userService.checkUpdate();
         return ResultFactory.buildSuccessResult(updateInfo);
     }
+
+    /**
+     * 获取BannerInfoList
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getBannerInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getBannerInfo(){
+        return ResultFactory.buildSuccessResult(userService.getBannerInfoList());
+    }
+
+    /**
+     * 获取BannerInfoList
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/refreshBannerInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result refreshBannerInfo(){
+        return ResultFactory.buildSuccessResult(userService.refreshBannerInfoList());
+    }
 }
