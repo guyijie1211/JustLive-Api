@@ -13,6 +13,7 @@ public class AfterServiceStarted implements ApplicationRunner {
 
     @Autowired
     private LiveRoomService liveRoomService;
+    @Autowired
     private UserService userService;
     @Autowired
     private TvLiveService tvLiveService;
