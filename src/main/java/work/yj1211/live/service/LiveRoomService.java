@@ -252,6 +252,7 @@ public class LiveRoomService{
             GetAllSupportPlatformsResponse.PlatformInfo platformInfo = new GetAllSupportPlatformsResponse.PlatformInfo();
             platformInfo.setCode(platform.getCode());
             platformInfo.setName(platform.getName());
+            platformInfo.setLogoImage(platform.getLogoImage());
             platformList.add(platformInfo);
         });
         return response;

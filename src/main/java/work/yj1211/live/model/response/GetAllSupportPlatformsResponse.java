@@ -12,5 +12,6 @@ public class GetAllSupportPlatformsResponse {
     public static class PlatformInfo {
         private String name;
         private String code;
+        private String logoImage;
     }
 }
