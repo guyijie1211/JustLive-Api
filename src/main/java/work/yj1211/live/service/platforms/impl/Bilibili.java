@@ -7,15 +7,17 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.service.platforms.BasePlatform;
-import work.yj1211.live.utils.HttpUtil;
-import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
+import work.yj1211.live.service.platforms.BasePlatform;
+import work.yj1211.live.utils.HttpUtil;
+import work.yj1211.live.utils.http.HttpRequest;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -50,7 +52,7 @@ public class Bilibili implements BasePlatform {
 
     @Override
     public String getPlatformName() {
-        return Platform.BILIBILI.getName();
+        return Platform.BILIBILI.getCode();
     }
 
     /**

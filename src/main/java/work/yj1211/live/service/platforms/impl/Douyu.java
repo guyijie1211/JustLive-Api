@@ -4,18 +4,16 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.DouYuOpenApi;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
 import work.yj1211.live.utils.http.HttpResponse;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -54,7 +52,7 @@ public class Douyu implements BasePlatform {
 
     @Override
     public String getPlatformName() {
-        return Platform.DOUYU.getName();
+        return Platform.DOUYU.getCode();
     }
 
     @Override

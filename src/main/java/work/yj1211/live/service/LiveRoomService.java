@@ -10,17 +10,23 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
-
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.SimpleRoomInfo;
+import work.yj1211.live.model.UpdateInfo;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
+import work.yj1211.live.model.response.GetAllSupportPlatformsResponse;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.thread.AsyncService;
-import work.yj1211.live.model.*;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -231,5 +237,23 @@ public class LiveRoomService{
             log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
         }
         return list;
+    }
+
+    /**
+     * 获取所有支持的平台
+     *
+     * @return
+     */
+    public GetAllSupportPlatformsResponse getAllSupportPlatforms() {
+        GetAllSupportPlatformsResponse response = new GetAllSupportPlatformsResponse();
+        List<GetAllSupportPlatformsResponse.PlatformInfo> platformList = new ArrayList<>();
+        response.setPlatformList(platformList);
+        Arrays.stream(Platform.values()).forEach(platform -> {
+            GetAllSupportPlatformsResponse.PlatformInfo platformInfo = new GetAllSupportPlatformsResponse.PlatformInfo();
+            platformInfo.setCode(platform.getCode());
+            platformInfo.setName(platform.getName());
+            platformList.add(platformInfo);
+        });
+        return response;
     }
 }

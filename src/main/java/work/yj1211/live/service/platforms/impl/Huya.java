@@ -6,18 +6,16 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
-
+import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -36,7 +34,7 @@ public class Huya implements BasePlatform {
 
     @Override
     public String getPlatformName() {
-        return Platform.HUYA.getName();
+        return Platform.HUYA.getCode();
     }
 
     /**

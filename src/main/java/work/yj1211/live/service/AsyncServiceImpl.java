@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.service.platforms.impl.Bilibili;
 import work.yj1211.live.service.platforms.impl.CC;
 import work.yj1211.live.service.platforms.impl.Douyu;
 import work.yj1211.live.service.platforms.impl.Huya;
 import work.yj1211.live.utils.thread.AsyncService;
-import work.yj1211.live.model.LiveRoomInfo;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -30,16 +30,16 @@ public class AsyncServiceImpl implements AsyncService {
     public void addRoomInfo(String uid, String platForm, String roomId, CountDownLatch countDownLatch, List<LiveRoomInfo> roomList) {
         try {
             LiveRoomInfo roomInfo = null;
-            if (Platform.BILIBILI.getName().equals(platForm)){
+            if (Platform.BILIBILI.getCode().equals(platForm)) {
                 roomInfo = bilibili.getRoomInfo(roomId);
             }
-            if (Platform.DOUYU.getName().equals(platForm)){
+            if (Platform.DOUYU.getCode().equals(platForm)) {
                 roomInfo = douyu.getRoomInfo(roomId);
             }
-            if (Platform.HUYA.getName().equals(platForm)){
+            if (Platform.HUYA.getCode().equals(platForm)) {
                 roomInfo = huya.getRoomInfo(roomId);
             }
-            if (Platform.CC.getName().equals(platForm)){
+            if (Platform.CC.getCode().equals(platForm)) {
                 roomInfo = cc.getRoomInfo(roomId);
             }
             roomList.add(roomInfo);

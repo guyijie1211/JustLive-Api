@@ -4,16 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
-import work.yj1211.live.model.platformArea.AreaInfoIndex;
-import work.yj1211.live.service.LiveRoomService;
-import work.yj1211.live.utils.annotation.AccessLimit;
 import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.Result;
 import work.yj1211.live.model.platformArea.AreaInfo;
+import work.yj1211.live.model.platformArea.AreaInfoIndex;
+import work.yj1211.live.service.LiveRoomService;
+import work.yj1211.live.utils.annotation.AccessLimit;
 
 import javax.websocket.server.PathParam;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author YJ1211
@@ -152,5 +154,12 @@ public class LiveRoomCrl {
             return ResultFactory.buildFailResult("刷新失败, 看下日志报错信息");
         }
         return ResultFactory.buildSuccessResult(result);
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getAllSupportPlatforms", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getAllSupportPlatforms() {
+        return ResultFactory.buildSuccessResult(liveRoomService.getAllSupportPlatforms());
     }
 }

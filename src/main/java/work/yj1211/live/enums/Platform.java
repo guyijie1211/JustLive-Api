@@ -8,24 +8,30 @@ public enum Platform {
     /**
      * 斗鱼
      */
-    DOUYU("douyu"),
+    DOUYU("douyu", "斗鱼直播"),
     /**
      * 虎牙
      */
-    HUYA("huya"),
+    HUYA("huya", "虎牙直播"),
     /**
      * 哔哩哔哩直播
      */
-    BILIBILI("bilibili"),
+    BILIBILI("bilibili", "哔哩哔哩"),
     /**
      * 网易cc
      */
-    CC("cc");
+    CC("cc", "网易CC");
 
-    private  String name;
+    private String code;
+    private String name;
 
-    Platform(String name) {
+    Platform(String code, String name) {
+        this.code = code;
         this.name = name;
+    }
+
+    public String getCode() {
+        return code;
     }
 
     public String getName() {
