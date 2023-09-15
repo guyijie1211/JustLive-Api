@@ -1,14 +1,18 @@
 package work.yj1211.live.config;
 
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.service.LiveRoomService;
 import work.yj1211.live.service.TvLiveService;
 import work.yj1211.live.service.UserService;
 
 @Component
+@Slf4j
 public class AfterServiceStarted implements ApplicationRunner {
 
     @Autowired
@@ -23,9 +27,9 @@ public class AfterServiceStarted implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args){
-        liveRoomService.refreshArea();
-        liveRoomService.refreshUpdate();
-        userService.refreshBannerInfoList();
-        //tvLiveService.refreshM3U();
+        if (SpringUtil.getActiveProfile().equalsIgnoreCase("prod")) {
+            liveRoomService.refreshUpdate();
+            userService.refreshBannerInfoList();
+        }
     }
 }

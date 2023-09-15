@@ -15,7 +15,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author YJ1211
+ * @author guyijie1211
  * @created 2023/1/25 17:08
  */
 @Aspect
@@ -25,7 +25,7 @@ public class CostTimeAspect {
     @Pointcut("execution(* work.yj1211.live.controller.*.*(..))")
     public void costTime() {}
 
-    @Pointcut("execution(* work.yj1211.live.utils.platForms.*.*(..))")
+    @Pointcut("execution(* work.yj1211.live.service.platforms.*.*(..))")
     public void costTimePlatform() {}
 
     @Around("costTime()")

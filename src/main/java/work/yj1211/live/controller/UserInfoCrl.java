@@ -1,8 +1,8 @@
 package work.yj1211.live.controller;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,19 +10,16 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.service.UserService;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaSimple;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaSimple;
 
 import javax.websocket.server.PathParam;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @RestController
 public class UserInfoCrl {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserInfo.class);
 
     @Autowired
     private UserService userService;
@@ -71,15 +68,13 @@ public class UserInfoCrl {
         user.setNickName(nickname);
         user.setPassword(password);
         userService.register(user);
-        if (StringUtils.isNotEmpty(mail)) {
+        if (StrUtil.isNotEmpty(mail)) {
             try {
                 userService.bindMail(uuid, mail);
             } catch (Exception e) {
                 return ResultFactory.buildFailResult("邮箱已被绑定");
             }
         }
-        log.info(username+"---注册成功");
-        logger.info(username+"---注册成功");
         return ResultFactory.buildSuccessResult(user);
     }
 

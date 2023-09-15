@@ -6,6 +6,9 @@ import work.yj1211.live.vo.BannerInfo;
 import work.yj1211.live.vo.TV;
 import work.yj1211.live.vo.UpdateInfo;
 import work.yj1211.live.vo.platformArea.AreaInfo;
+import work.yj1211.live.model.TV;
+import work.yj1211.live.model.UpdateInfo;
+import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,28 +19,11 @@ import java.util.*;
 //全局变量
 @Component
 public class Global {
-    public static Map<String, List<List<AreaInfo>>> platformAreaMap= new HashMap<>();
-    public static Map<String, Map<String, Map<String, AreaInfo>>> AllAreaMap= new HashMap<>(); //<分区类型，<分区名,<平台，分区信息>>>
-    public static Map<String, String> DouyuCateMap = new HashMap<>();
-    public static Map<String, String> BilibiliCateMap = new HashMap<>();
-    public static Map<String, String> HuyaCateMap = new HashMap<>();
-    public static Map<String, String> CCCateMap = new HashMap<>();
-    public static Map<String, String> EgameCateMap = new HashMap<>();
-    public static Map<String, String> EgameCateMapVer = new HashMap<>();
-    public static List<String> AreaTypeSortList = new ArrayList<>();
-    public static Map<String, List<String>> AreaInfoSortMap = new HashMap<>();
-    private static String m3uPath;
     private static String updateFilePath;
     private static String bannerInfoFilePath;
     public static List<TV> m3uResult;
     public static UpdateInfo updateInfo;
     public static List<BannerInfo> updateInfoList;
-
-
-    @Value("${path.m3uPath}")
-    public void setM3uPath(String m3uPath) {
-        Global.m3uPath = m3uPath;
-    }
 
     @Value("${path.updateFilePath}")
     public void setUpdateFilePath(String updateFilePath) {

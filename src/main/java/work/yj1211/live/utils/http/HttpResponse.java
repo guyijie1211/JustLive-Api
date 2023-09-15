@@ -1,8 +1,9 @@
 package work.yj1211.live.utils.http;
 
-import com.alibaba.fastjson.JSONObject;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.bouncycastle.util.Strings;
 import org.slf4j.Logger;
@@ -113,11 +114,11 @@ public class HttpResponse {
 
         String contentType = headers.get(HeaderKey.CONTENT_TYPE).get(0);
         this.contentType = Optional.ofNullable(contentType).orElse("");
-        if (StringUtils.isNotEmpty(contentType) && contentType.toLowerCase().contains("image")) {
+        if (StrUtil.isNotEmpty(contentType) && contentType.toLowerCase().contains("image")) {
             return Base64.encodeBase64String(bodyBytes);
         }
 
-        if (StringUtils.isEmpty(this.encoding)) {
+        if (StrUtil.isEmpty(this.encoding)) {
             body = Strings.fromUTF8ByteArray(this.bodyBytes);
         } else {
             try {
@@ -132,9 +133,9 @@ public class HttpResponse {
 
     public JSONObject getBodyJson() {
         if (success()) {
-            return JSONObject.parseObject(body);
+            return JSONUtil.parseObj(body);
         }
-        return JSONObject.parseObject(null);
+        return JSONUtil.parseObj(null);
     }
 
     public String getContentType() {

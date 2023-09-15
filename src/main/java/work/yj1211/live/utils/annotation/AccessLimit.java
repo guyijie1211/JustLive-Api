@@ -3,7 +3,7 @@ package work.yj1211.live.utils.annotation;
 import java.lang.annotation.*;
 
 /**
- * @author YJ1211
+ * @author guyijie1211
  * @created 2023/1/26 11:46
  */
 @Inherited

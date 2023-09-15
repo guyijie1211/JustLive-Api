@@ -11,16 +11,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.mapper.UserMapper;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.utils.platForms.Douyu;
-import work.yj1211.live.vo.*;
-import work.yj1211.live.vo.platformArea.AreaSimple;
+import work.yj1211.live.service.platforms.impl.Douyu;
+import work.yj1211.live.model.*;
+import work.yj1211.live.model.platformArea.AreaSimple;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -39,6 +39,9 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private Douyu douyu;
 
     @Autowired
     private UserMailMapper mailMapper;
@@ -73,8 +76,8 @@ public class UserService {
     }
 
     public void followRoom(String platform, String roomId, String uid){
-        if (platform.equalsIgnoreCase("douyu")) {
-            roomId = Douyu.getRealRoomId(roomId);
+        if (platform.equalsIgnoreCase(Platform.DOUYU.getName())) {
+            roomId = douyu.getRealRoomId(roomId);
         }
         if (userMapper.checkFollowed(platform, roomId, uid) == null) {
             userMapper.followRoom(platform, roomId, uid);

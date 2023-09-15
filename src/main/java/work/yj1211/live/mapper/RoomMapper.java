@@ -3,7 +3,7 @@ package work.yj1211.live.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
-import work.yj1211.live.vo.SimpleRoomInfo;
+import work.yj1211.live.model.SimpleRoomInfo;
 
 import java.util.List;
 

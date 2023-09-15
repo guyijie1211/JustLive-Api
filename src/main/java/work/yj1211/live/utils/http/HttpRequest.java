@@ -1,11 +1,8 @@
 package work.yj1211.live.utils.http;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -26,7 +23,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import work.yj1211.live.utils.Constant;
 import work.yj1211.live.utils.UrlUtil;
 
 import javax.net.ssl.SSLContext;
@@ -64,7 +60,7 @@ public class HttpRequest {
 
     private String url;
     private HttpContentType contentType;
-    private String encoding = Constant.ENCODING_UTF8;
+    private String encoding = "UTF-8";
     private Map<String, String> headers;
     private String body;
     private boolean isForBytes;
@@ -302,13 +298,13 @@ public class HttpRequest {
 
                     } else {
                         // 如果body为空，就从Map转换成JSON串赋值给body
-                        if (StringUtils.isEmpty(body) && HttpContentType.JSON.equals(contentType)) {
-                            body = JSONObject.toJSONString(paramMap);
+                        if (StrUtil.isEmpty(body) && HttpContentType.JSON.equals(contentType)) {
+                            body = JSONUtil.toJsonStr(paramMap);
                         }
 
                         // 普通字符串参数
                         StringEntity entity = new StringEntity(body, encoding);
-                        if (StringUtils.isNotEmpty(body)) {
+                        if (StrUtil.isNotEmpty(body)) {
 
                             if (contentType == null) {
                                 throw new RuntimeException("请为 " + method.name() + " 请求设置 content-type。");
