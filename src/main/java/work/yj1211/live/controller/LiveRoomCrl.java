@@ -115,7 +115,7 @@ public class LiveRoomCrl {
     @CrossOrigin
     @RequestMapping(value = "/api/live/getAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
-    public Result getAreas(@PathParam("platform")String platform){
+    public Result getAreasByPlatform(@PathParam("platform")String platform){
         List<List<AreaInfo>> areaMap = liveRoomService.getAreaMap(platform);
         return ResultFactory.buildSuccessResult(areaMap);
     }

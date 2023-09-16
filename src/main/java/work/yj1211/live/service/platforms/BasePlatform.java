@@ -15,11 +15,11 @@ import java.util.Map;
 @Component
 public interface BasePlatform {
     /**
-     * 平台名称
+     * 平台code
      *
-     * @return
+     * @return Platform.getCode()
      */
-    String getPlatformName();
+    String getPlatformCode();
 
     /**
      * 获取直播地址

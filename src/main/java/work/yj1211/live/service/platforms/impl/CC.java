@@ -10,6 +10,7 @@ import work.yj1211.live.model.LiveRoomInfo;
 import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
+import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -43,7 +44,7 @@ public class CC implements BasePlatform {
                 owner.setNickName(responseOwner.getStr("nickname"));
                 owner.setCateName(responseOwner.getStr("game_name"));
                 owner.setHeadPic(responseOwner.getStr("portrait"));
-                owner.setPlatform(getPlatformName());
+                owner.setPlatform(getPlatformCode());
                 owner.setRoomId(responseOwner.getStr("cuteid"));
                 owner.setIsLive((responseOwner.getStr("status") !=null && responseOwner.getInt("status") == 1) ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("follower_num"));
@@ -57,7 +58,7 @@ public class CC implements BasePlatform {
     }
 
     @Override
-    public String getPlatformName() {
+    public String getPlatformCode() {
         return Platform.CC.getCode();
     }
 
@@ -103,7 +104,7 @@ public class CC implements BasePlatform {
                 JSONObject resultRealJsonObj = JSONUtil.parseObj(resultReal);
                 if (null != resultRealJsonObj){
                     JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
-                    liveRoomInfo.setPlatForm(getPlatformName());
+                    liveRoomInfo.setPlatForm(getPlatformCode());
                     liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                     liveRoomInfo.setCategoryId(roomInfo.getStr("cate_id"));//分类id不对
                     liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -145,7 +146,7 @@ public class CC implements BasePlatform {
                 ccArea.setAreaId(areaInfo.getStr("gametype"));
                 ccArea.setAreaName(areaInfo.getStr("name"));
                 ccArea.setAreaPic(areaInfo.getStr("cover"));
-                ccArea.setPlatform(getPlatformName());
+                ccArea.setPlatform(getPlatformCode());
                 areaInfoList.add(ccArea);
             });
         }
@@ -171,7 +172,7 @@ public class CC implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -208,7 +209,7 @@ public class CC implements BasePlatform {
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
-        AreaInfo areaInfo = new AreaInfo();
+        AreaInfo areaInfo = Global.getAreaInfo("cc", area);
         String url = "https://cc.163.com/api/category/" + areaInfo.getAreaId() + "/?format=json&tag_id=0&start=" + start + "&size=" +size;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
@@ -218,7 +219,7 @@ public class CC implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));

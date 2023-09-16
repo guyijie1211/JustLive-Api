@@ -45,7 +45,7 @@ public class LiveRoomService{
     private final Map<String, BasePlatform> platformMap;
     @Autowired
     public LiveRoomService(List<BasePlatform> platforms){
-        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getPlatformName, Function.identity(), (oldV, newV)-> newV));
+        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getPlatformCode, Function.identity(), (oldV, newV)-> newV));
     }
 
     /**
@@ -179,7 +179,7 @@ public class LiveRoomService{
      * @return
      */
     public List<List<AreaInfoIndex>> getAllAreaMap(){
-        return areaService.getAllAreas();
+        return Global.AreaIndexList;
     }
 
     /**

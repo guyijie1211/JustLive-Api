@@ -13,6 +13,7 @@ import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
+import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
@@ -33,7 +34,7 @@ public class Huya implements BasePlatform {
     private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
 
     @Override
-    public String getPlatformName() {
+    public String getPlatformCode() {
         return Platform.HUYA.getCode();
     }
 
@@ -61,7 +62,7 @@ public class Huya implements BasePlatform {
                 owner.setNickName(responseOwner.getStr("game_nick"));
                 owner.setCateName(responseOwner.getStr("game_name"));
                 owner.setHeadPic(responseOwner.getStr("game_avatarUrl52"));
-                owner.setPlatform(getPlatformName());
+                owner.setPlatform(getPlatformCode());
                 owner.setRoomId(responseOwner.getStr("room_id"));
                 owner.setIsLive(responseOwner.getBool("gameLiveOn") ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("game_activityCount"));
@@ -106,7 +107,7 @@ public class Huya implements BasePlatform {
                 huyaArea.setAreaId(areaInfo.getStr("gid"));
                 huyaArea.setAreaName(areaInfo.getStr("gameFullName"));
                 huyaArea.setAreaPic("https://huyaimg.msstatic.com/cdnimage/game/" + huyaArea.getAreaId() + "-MS.jpg");
-                huyaArea.setPlatform(getPlatformName());
+                huyaArea.setPlatform(getPlatformCode());
                 areaInfoList.add(huyaArea);
             });
         }
@@ -147,7 +148,7 @@ public class Huya implements BasePlatform {
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
 
         liveRoomInfo.setRoomId(roomId);
-        liveRoomInfo.setPlatForm(getPlatformName());
+        liveRoomInfo.setPlatForm(getPlatformCode());
         liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "\":\"", "\""));
         liveRoomInfo.setRoomName(getMatchResult(resultRoomName,"\":\"", "\""));
         liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "\":\"", "\""));
@@ -186,7 +187,7 @@ public class Huya implements BasePlatform {
             for (int i = start; i < start+size; i++){
                 JSONObject roomInfo = data.getJSONObject(i);
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
@@ -222,34 +223,34 @@ public class Huya implements BasePlatform {
     @Override
     public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-//        int realPage = page/6 + 1;
-//        int start = (page-1)*size%120;
-//        if (size == 10){
-//            realPage = page/12 + 1;
-//            start = (page-1)*size%120;
-//        }
-//        AreaInfo areaInfo = Global.getAreaInfo(getPlatformName(), area);
-//        String url = "https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&gameId=" + areaInfo.getAreaId() + "&tagAll=0&page="+realPage;
-//        String result = HttpUtil.doGet(url);
-//        JSONObject resultJsonObj = JSONUtil.parseObj(result);
-//        if (resultJsonObj.getInt("status") == 200) {
-//            JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("datas");
-//            for (int i = start; i < start+size; i++){
-//                JSONObject roomInfo = data.getJSONObject(i);
-//                LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-//                liveRoomInfo.setPlatForm(getPlatformName());
-//                liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
-//                liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
-//                liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
-//                liveRoomInfo.setRoomName(roomInfo.getStr("introduction"));
-//                liveRoomInfo.setOwnerName(roomInfo.getStr("nick"));
-//                liveRoomInfo.setRoomPic(roomInfo.getStr("screenshot"));
-//                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("avatar180"));
-//                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getStr("totalCount")));
-//                liveRoomInfo.setIsLive(1);
-//                list.add(liveRoomInfo);
-//            }
-//        }
+        int realPage = page/6 + 1;
+        int start = (page-1)*size%120;
+        if (size == 10){
+            realPage = page/12 + 1;
+            start = (page-1)*size%120;
+        }
+        AreaInfo areaInfo = Global.getAreaInfo(getPlatformCode(), area);
+        String url = "https://www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&gameId=" + areaInfo.getAreaId() + "&tagAll=0&page="+realPage;
+        String result = HttpUtil.doGet(url);
+        JSONObject resultJsonObj = JSONUtil.parseObj(result);
+        if (resultJsonObj.getInt("status") == 200) {
+            JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("datas");
+            for (int i = start; i < start+size; i++){
+                JSONObject roomInfo = data.getJSONObject(i);
+                LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+                liveRoomInfo.setPlatForm(getPlatformCode());
+                liveRoomInfo.setRoomId(roomInfo.getStr("profileRoom"));
+                liveRoomInfo.setCategoryId(roomInfo.getStr("gid"));
+                liveRoomInfo.setCategoryName(roomInfo.getStr("gameFullName"));
+                liveRoomInfo.setRoomName(roomInfo.getStr("introduction"));
+                liveRoomInfo.setOwnerName(roomInfo.getStr("nick"));
+                liveRoomInfo.setRoomPic(roomInfo.getStr("screenshot"));
+                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("avatar180"));
+                liveRoomInfo.setOnline(Integer.valueOf(roomInfo.getStr("totalCount")));
+                liveRoomInfo.setIsLive(1);
+                list.add(liveRoomInfo);
+            }
+        }
         return list;
     }
 
