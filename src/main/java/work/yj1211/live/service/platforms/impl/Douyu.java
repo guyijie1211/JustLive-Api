@@ -1,9 +1,11 @@
 package work.yj1211.live.service.platforms.impl;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.model.LiveRoomInfo;
@@ -32,17 +34,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class Douyu implements BasePlatform {
-
-
     //Douyu清晰度 1流畅；2高清；3超清；4蓝光4M；0蓝光8M或10M
     private List<String> qnList = new ArrayList<>();
-
-    //存储获取的房间唯一标识(每次都去获取唯一标识太慢了，并且同一房间一段时间内标识是不变的，所以用缓存来保存)
-    private Map<String, String> roomUrlMap = new HashMap<>();
-    private Map<String, List<Integer>> roomRateMap = new HashMap<>();
-
-    //    private final Pattern PATTERN = Pattern.compile("(function ub9.*)[\\s\\S](var.*)");
-    private final Pattern PATTERN = Pattern.compile("(vdwdae325w_64we[\\s\\S]*function ub98484234[\\s\\S]*?)function");
 
     {
         qnList.add("OD");
@@ -58,138 +51,91 @@ public class Douyu implements BasePlatform {
     }
 
     @Override
-    public void getRealUrl(Map<String, String> urls, String rid){
-        List<Integer> rateList = roomRateMap.get(rid);
-        if (null == rateList){
-            get_simple_url(rid);
-            rateList = roomRateMap.get(rid);
-        }
-        try{
-            for (int i = 0; i < rateList.size(); i++){
-                String qnString = qnList.get(i);
-                String qn;
-                if ("OD".equals(qnString)){
-                    qn = "";
-                }else {
-                    qn = "_"+rateList.get(i).toString();
-                }
-                urls.put(qnString, get_single_url(rid, qn));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            roomUrlMap.clear();
-            roomRateMap.clear();
-        }
+    public void getRealUrl(Map<String, String> urls, String roomId){
+        String url = "https://playweb.douyucdn.cn/lapi/live/hlsH5Preview/" + roomId;
+        String t13 =  String.valueOf(System.currentTimeMillis());
+        String auth = DigestUtils.md5Hex(roomId + t13);
 
-    }
-
-    /**
-     * 根据房间号和清晰度获取直播地址
-     * @param roomId
-     * @param qn 清晰度
-     * @return
-     */
-    private String get_single_url(String roomId, String qn){
-        //获取房间唯一标识，第一次获取时去请求
-        String roomUrl = roomUrlMap.computeIfAbsent(roomId, k -> get_simple_url(roomId));
-        String result = "http://hw-tct.douyucdn.cn/live/" + roomUrl + qn + ".flv?uuid=";
-        return result;
-    }
-
-    /**
-     * 获取直播间标识地址
-     * @param rid
-     * @return
-     */
-    public String get_simple_url(String rid) {
-        JSONObject tt = getTT();
-        String tt1 = tt.getStr("tt1");
-        String realUrl = null;
-        try {
-            JSONObject result = getHomeJs(rid);
-            assert result != null;
-            String real_rid = result.getStr("real_rid");
-            String homejs = result.getStr("homejs");
-            realUrl = getSignUrl("0", real_rid, tt1, homejs);
-        } catch (NoSuchAlgorithmException | ScriptException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-        return realUrl;
-    }
-
-    /**
-     * 获取唯一标识
-     * @param rid
-     * @param tt
-     * @param ub9
-     * @return
-     * @throws ScriptException
-     * @throws NoSuchAlgorithmException
-     */
-    private String getSign(String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
-        ScriptEngine docjs = new ScriptEngineManager().getEngineByName("javascript");
-        docjs.eval(ub9);
-        Invocable invocable = (Invocable) docjs;
-        String functionResult = (String)invocable.invokeFunction("ub98484234");
-        Matcher matcher = Pattern.compile("v=(\\d+)").matcher(functionResult);
-        if (!matcher.find()) {
-            return null;
-        }
-        String v = matcher.group(1);
-        String md5rb = md5String(rid + "10000000000000000000000000001501" + tt + v);
-        String ub9_new = functionResult.replaceAll("return rt;}\\);?", "return rt;}");
-        ub9_new = ub9_new.replace("(function (", "function sign(");
-        ub9_new = ub9_new.replace("CryptoJS.MD5(cb).toString()", "\"" + md5rb + "\"");
-
-        ScriptEngine docjs_new = new ScriptEngineManager().getEngineByName("javascript");
-        String params = null;
-        try {
-            docjs_new.eval(ub9_new); //编译
-            if (docjs_new instanceof Invocable) {
-                params = (String) ((Invocable) docjs_new).invokeFunction("sign", rid, "10000000000000000000000000001501", tt); // 执行方法
-            }
-        } catch (Exception e) {
-            log.error("表达式runtime错误:", e);
-        }
-        return params;
-    }
-
-    /**
-     *
-     * @param qn
-     * @param rid
-     * @param tt
-     * @param ub9
-     * @return
-     * @throws ScriptException
-     * @throws NoSuchAlgorithmException
-     */
-    private String getSignUrl(String qn, String rid, String tt, String ub9) throws ScriptException, NoSuchAlgorithmException, NoSuchMethodException {
-        String params = getSign(rid, tt, ub9);
-        params = params + "&cdn=ws-h5&rate=" + qn;
-        Map<String, Object> paramsMap = handleParams(params);
-
-        String requestUrl = "https://www.douyu.com/lapi/live/getH5Play/"+rid;
-        JSONObject response = HttpRequest.create(requestUrl)
-                .appendParameters(paramsMap)
+        Map<String, Object> map = new HashMap<>();
+        map.put("rid", Integer.valueOf(roomId));
+        map.put("did", "10000000000000000000000000001501");
+        String body = JSONUtil.toJsonStr(map);
+        String response = HttpRequest.create(url)
+                .setContentType(HttpContentType.JSON)
+                .putHeader("rid", roomId)
+                .putHeader("time", t13)
+                .putHeader("auth", auth)
+                .setBody(body)
                 .post()
-                .getBodyJson();
+                .getBody();
+        JSONObject res = JSONUtil.parseObj(response);
+        if (res.getStr("error").equalsIgnoreCase("0")) {
+            JSONObject data = res.getJSONObject("data");
+            String rtmp_live = data.getStr("rtmp_live");
+            url = data.getStr("rtmp_url") + "/" + rtmp_live;
+//            System.out.println(url);
+            urls.put("HD", url);
+            String result1 = HttpRequest.create("https://m.douyu.com/" + roomId)
+                    .get()
+                    .getBody();
+            String pattern = "(function ub98484234.*)\\s(var.*)";
+            Pattern p = Pattern.compile(pattern);
+            Matcher m = p.matcher(result1);
+            String result = null;
+            if (m.find()) {
+                result = m.group();
+            }
 
-        if (response.getInt("code") != 0) {
-            return null;
-        }
-        JSONObject data = response.getJSONObject("data");
-        if (data == null){
-            return null;
-        }
-        String url = data.getStr("rtmp_live");
-        url = handleUrl(url);
-        roomUrlMap.put(rid, url);
-        List<Integer> rateList = handleRate(data.getJSONArray("multirates"));
-        roomRateMap.put(rid, rateList);
+            String func_ub9 = result.replaceAll("eval.*;}", "strc;}");
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByName("javascript");
+            String jsRes = "";
+            try {
+                engine.eval(func_ub9);
+                jsRes = (String) engine.eval("ub98484234()");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-        return url;
+            Pattern pattern2 = Pattern.compile("v=(\\d+)");
+            Matcher matcher = pattern2.matcher(jsRes);
+            String v = "";
+            if (matcher.find()) {
+                v = matcher.group(1);
+            }
+            String t10 = Long.toString(System.currentTimeMillis() / 1000);
+            String rb = DigestUtil.md5Hex(roomId + "10000000000000000000000000001501" + t10 + v);
+
+            String func_sign = jsRes.replaceAll("return rt;}\\);?", "return rt;}")
+                    .replace("(function (", "function sign(")
+                    .replace("CryptoJS.MD5(cb).toString()", "\"" + rb + "\"");
+
+            String params = "";
+            try {
+                engine.eval(func_sign);
+                params = (String) engine.eval("sign('" + roomId + "', '10000000000000000000000000001501', '" + t10 + "')");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            params += "&ver=219032101&rid=" + roomId + "&rate=-1";
+//            String response2 = HttpRequest.create("https://m.douyu.com/api/room/ratestream?" + params)
+//                    .setContentType(HttpContentType.JSON)
+//                    .post()
+//                    .getBody();
+            String response2 = cn.hutool.http.HttpRequest.post("https://m.douyu.com/api/room/ratestream")
+                    .body(params)
+                    .execute().body();
+            res = JSONUtil.parseObj(response2).getJSONObject("data");
+
+            Pattern pattern3 = Pattern.compile("(\\d{1,8}[0-9a-zA-Z]+)_?\\d{0,4}p?(.m3u8|/playlist)");
+            Matcher matcher3 = pattern3.matcher(res.getStr("url"));
+            String key = null;
+            if (matcher3.find()) {
+                key = matcher.group(1);
+            }
+            urls.put("OD", res.getStr("url"));
+
+        }
     }
 
     public String getRealRoomId(String rid) {
@@ -197,61 +143,6 @@ public class Douyu implements BasePlatform {
         String response = HttpRequest.create(roomUrl).get().getBody();
         String realRid = response.substring(response.indexOf("$ROOM.room_id =") + "$ROOM.room_id =".length());
         return realRid.substring(0, realRid.indexOf(";")).trim();
-    }
-
-    /**
-     *
-     * @param rid
-     * @return
-     */
-    private JSONObject getHomeJs(String rid) {
-        String roomUrl = "https://www.douyu.com/" + rid;
-        String response = HttpRequest.create(roomUrl).get().getBody();
-        String realRid = response.substring(response.indexOf("$ROOM.room_id =") + "$ROOM.room_id =".length());
-        realRid = realRid.substring(0, realRid.indexOf(";")).trim();
-        if (!rid.equals(realRid)) {
-            roomUrl = "https://www.douyu.com/" + realRid;
-            response = HttpRequest.create(roomUrl).get().getBody();
-        }
-
-        Matcher matcher = PATTERN.matcher(response);
-        if (!matcher.find()) {
-            return null;
-        }
-        String result = matcher.group(1);
-        String homejs = result.replaceAll("eval.*?;", "strc;");
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.set("homejs", homejs);
-        jsonObject.set("real_rid", realRid);
-        return jsonObject;
-    }
-
-    /**
-     * @return
-     */
-    private JSONObject getTT() {
-        long nowTime = System.currentTimeMillis();
-        String tt1 = String.valueOf(nowTime / 1000);
-        String tt2 = String.valueOf(nowTime);
-        String today = getTimeStr(nowTime, "yyyyMMdd");
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.set("tt1", tt1);
-        jsonObject.set("tt2", tt2);
-        jsonObject.set("today", today);
-        return jsonObject;
-    }
-
-    /**
-     * 获取格式化日期
-     * @param time
-     * @param format
-     * @return
-     */
-    public String getTimeStr(long time, String format) {
-        Date date = new Date(time);
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-        return sdf.format(date);
     }
 
     /**
@@ -284,55 +175,6 @@ public class Douyu implements BasePlatform {
             return liveRoomInfo;
         }
         return null;
-    }
-
-    /**
-     * 处理url获取唯一标识
-     * @param url
-     * @return
-     */
-    private String handleUrl(String url){
-        url = url.substring(0, url.indexOf("."));
-        return url.split("_")[0];
-    }
-
-    /**
-     * 处理直播间清晰度
-     * @param jsonArray
-     * @return
-     */
-    private List<Integer> handleRate(JSONArray jsonArray){
-        List<Integer> list = new ArrayList<>();
-        for (int i = 0; i < jsonArray.size(); i++){
-            list.add(jsonArray.getJSONObject(i).getInt("bit"));
-        }
-        Collections.sort(list, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o2-o1;
-            }
-        });
-        return list;
-    }
-
-    /**
-     * 处理params 把String转换成Map
-     * @param params
-     * @return
-     */
-    private Map<String, Object> handleParams(String params){
-        Map<String, Object> paramsMap = new HashMap<>();
-        String[] arr = params.split("&");
-        String key;
-        String value;
-        String[] arr1;
-        for (String param : arr){
-            arr1 = param.split("=");
-            key = arr1[0].trim();
-            value = arr1[1].trim();
-            paramsMap.put(key, value);
-        }
-        return paramsMap;
     }
 
     /**
@@ -519,18 +361,5 @@ public class Douyu implements BasePlatform {
             }
         }
         return list;
-    }
-
-    private String md5String(String s) throws NoSuchAlgorithmException {
-        byte[] bs = MessageDigest.getInstance("MD5").digest(s.getBytes());
-        StringBuilder sb = new StringBuilder(40);
-        for (byte x : bs) {
-            if ((x & 0xff) >> 4 == 0) {
-                sb.append("0").append(Integer.toHexString(x & 0xff));
-            } else {
-                sb.append(Integer.toHexString(x & 0xff));
-            }
-        }
-        return sb.toString();
     }
 }
