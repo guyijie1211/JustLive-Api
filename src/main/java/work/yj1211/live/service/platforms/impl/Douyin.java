@@ -1,5 +1,6 @@
 package work.yj1211.live.service.platforms.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.Header;
@@ -36,7 +37,37 @@ public class Douyin implements BasePlatform {
 
     @Override
     public LiveRoomInfo getRoomInfo(String roomId) {
-        return null;
+        LiveRoomInfo roomInfo = new LiveRoomInfo();
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/room/web/enter/")
+                    .addHeaders(getHeader())
+                    .form(getRoomInfoParam(roomId))
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+            if (resultJsonObj.getInt("status_code") == 0) {
+                JSONObject roomObj = (JSONObject) resultJsonObj.getJSONObject("data").getJSONArray("data").get(0);
+                JSONObject ownerObj = resultJsonObj.getJSONObject("data").getJSONObject("user");
+
+                roomInfo.setPlatForm(getPlatformCode());
+                roomInfo.setRoomId(roomId);
+                roomInfo.setRoomName(roomObj.getStr("title"));
+                roomInfo.setIsLive(roomObj.getInt("status") == 2 ? 1 : 0);
+                if (roomInfo.getIsLive() == 1) {
+                    roomInfo.setRoomPic((String) roomObj.getJSONObject("cover").getJSONArray("url_list").get(0));
+                } else {
+                    roomInfo.setRoomPic("");
+                }
+                roomInfo.setCategoryName(resultJsonObj.getJSONObject("data").getJSONObject("partition_road_map").getJSONObject("sub_partition").getJSONObject("partition").getStr("title"));
+                roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
+                roomInfo.setOwnerName(ownerObj.getStr("nickname"));
+                roomInfo.setOwnerHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
+            }
+        } catch (Exception e) {
+            log.error("抖音---获取房间信息异常", e);
+        }
+        return roomInfo;
     }
 
     @Override
@@ -220,5 +251,71 @@ public class Douyin implements BasePlatform {
         paramMap.put("partition", 720);
         paramMap.put("partition_type", 1);
         return paramMap;
+    }
+
+    /**
+     * 获取房间信息的请求param
+     *
+     * @return
+     */
+    private Map<String, Object> getRoomInfoParam(String webRoomId) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("aid", 6383);
+        paramMap.put("app_name", "douyin_web");
+        paramMap.put("live_id", 1);
+        paramMap.put("device_platform", "web");
+        paramMap.put("enter_from", "web_live");
+        paramMap.put("web_rid", webRoomId);
+        paramMap.put("room_id_str", webRoomId);
+//        paramMap.put("room_id_str", getRealRoomId(webRoomId));
+        paramMap.put("enter_source", "");
+        paramMap.put("Room-Enter-User-Login-Ab", 0);
+        paramMap.put("is_need_double_stream", false);
+        paramMap.put("cookie_enabled", true);
+        paramMap.put("screen_width", 1980);
+        paramMap.put("screen_height", 1080);
+        paramMap.put("browser_language", "zh-CN");
+        paramMap.put("browser_platform", "Win32");
+        paramMap.put("browser_name", "Edge");
+        paramMap.put("browser_version", "114.0.1823.51");
+        return paramMap;
+    }
+
+    /**
+     * 获取realRoomId的请求头
+     *
+     * @return
+     */
+    private Map<String, String> getRealRmooIdHead() {
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        headerMap.put("Authority", "live.douyin.com");
+        headerMap.put("Referer", "https://live.douyin.com");
+        headerMap.put("Cookie", "__ac_nonce=" + RandomUtil.randomNumbers(21));
+        headerMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.51");
+        return headerMap;
+    }
+
+    /**
+     * 获取真实roomId
+     *
+     * @param webRoomId 网页roomId
+     * @return realRoomId
+     */
+    private String getRealRoomId(String webRoomId) {
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/" + webRoomId)
+                    .addHeaders(getRealRmooIdHead())
+                    .execute();
+            String result = response.body();
+            String regex = "a:\\[\\\\\"\\$\\\\\",\\\\\"\\$L11\\\\\",null,(.*?)\\]\\\\n";
+            String renderData = ReUtil.get(regex, result, 1);
+            String renderJsonString = renderData.replaceAll("\\\\", "");
+            JSONObject resultJsonObj = JSONUtil.parseObj(renderJsonString);
+            return resultJsonObj.getJSONObject("state").getJSONObject("roomStore").getJSONObject("roomInfo").getStr("roomId");
+        } catch (Exception e) {
+            log.error("抖音---获取realRoomId异常", e);
+        }
+        return webRoomId;
     }
 }
