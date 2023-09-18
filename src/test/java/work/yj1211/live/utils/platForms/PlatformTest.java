@@ -25,7 +25,7 @@ class PlatformTest {
     @Test
     void testArea() {
 //        Map<String, String> headerMap = douyin.getHeader();
-        douyin.getAreaList();
-        System.out.println(111);
+        douyin.search("123");
+        System.out.println();
     }
 }
