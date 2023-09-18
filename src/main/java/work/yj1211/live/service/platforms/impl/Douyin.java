@@ -41,7 +41,38 @@ public class Douyin implements BasePlatform {
 
     @Override
     public List<LiveRoomInfo> getRecommend(int page, int size) {
-        return null;
+        List<LiveRoomInfo> list = new ArrayList<>();
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/web/partition/detail/room/")
+                    .addHeaders(getHeader())
+                    .form(getRecommendRoomsParam(page))
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+            if (resultJsonObj.getInt("status_code") == 0) {
+                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("data");
+                data.forEach(room -> {
+                    JSONObject roomObj = ((JSONObject) room).getJSONObject("room");
+                    JSONObject ownerObj = roomObj.getJSONObject("owner");
+
+                    LiveRoomInfo roomInfo = new LiveRoomInfo();
+                    roomInfo.setPlatForm(getPlatformCode());
+                    roomInfo.setRoomId(((JSONObject) room).getStr("web_rid"));
+                    roomInfo.setRoomName(roomObj.getStr("title"));
+                    roomInfo.setRoomPic((String) roomObj.getJSONObject("cover").getJSONArray("url_list").get(0));
+                    roomInfo.setIsLive(1);
+                    roomInfo.setCategoryName(((JSONObject) room).getStr("tag_name"));
+                    roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
+                    roomInfo.setOwnerName(ownerObj.getStr("nickname"));
+                    roomInfo.setOwnerHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
+                    list.add(roomInfo);
+                });
+            }
+        } catch (Exception e) {
+            log.error("抖音---获取推荐房间列表信息异常", e);
+        }
+        return list;
     }
 
     @Override
@@ -89,7 +120,7 @@ public class Douyin implements BasePlatform {
             AreaInfo areaInfo = Global.getAreaInfo(getPlatformCode(), area);
             HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/web/partition/detail/room/")
                     .addHeaders(getHeader())
-                    .form(getAreaRoomParam(areaInfo.getAreaId(), size, page))
+                    .form(getAreaRoomParam(areaInfo.getAreaId(), page))
                     .execute();
             updateCOOKIE(response.header(Header.SET_COOKIE));
             String result = response.body();
@@ -156,21 +187,38 @@ public class Douyin implements BasePlatform {
      * 获取分类房间的请求param
      *
      * @param areaId   分类id
-     * @param pageSize 分页大小
-     * @param pageNum  页数
+     * @param page  页数
      * @return
      */
-    private Map<String, Object> getAreaRoomParam(String areaId, int pageSize, int pageNum) {
+    private Map<String, Object> getAreaRoomParam(String areaId, int page) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("aid", 6383);
         paramMap.put("app_name", "douyin_web");
         paramMap.put("live_id", 1);
         paramMap.put("device_platform", "web");
-        paramMap.put("count", pageSize);
-        paramMap.put("offset", pageNum);
+        paramMap.put("count", 15);
+        paramMap.put("offset", (page - 1) * 15);
         paramMap.put("partition", areaId);
         paramMap.put("partition_type", 1);
         paramMap.put("req_from", 2);
+        return paramMap;
+    }
+
+    /**
+     * 获取推荐房间的请求param
+     *
+     * @return
+     */
+    private Map<String, Object> getRecommendRoomsParam(int page) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("aid", 6383);
+        paramMap.put("app_name", "douyin_web");
+        paramMap.put("live_id", 1);
+        paramMap.put("device_platform", "web");
+        paramMap.put("count", 15);
+        paramMap.put("offset", (page - 1) * 15);
+        paramMap.put("partition", 720);
+        paramMap.put("partition_type", 1);
         return paramMap;
     }
 }
