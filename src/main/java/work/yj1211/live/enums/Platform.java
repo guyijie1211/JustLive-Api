@@ -17,10 +17,10 @@ public enum Platform {
      * 哔哩哔哩直播
      */
     BILIBILI("bilibili", "哔哩哔哩", ""),
-//    /**
-//     * 抖音直播
-//     */
-//    DOUYIN("douyin", "抖音直播", "https://imgsrc.baidu.com/forum/pic/item/0ff41bd5ad6eddc48041796937dbb6fd536633fa.jpg"),
+    /**
+     * 抖音直播
+     */
+    DOUYIN("douyin", "抖音直播", "https://imgsrc.baidu.com/forum/pic/item/0ff41bd5ad6eddc48041796937dbb6fd536633fa.jpg"),
     /**
      * 网易cc
      */

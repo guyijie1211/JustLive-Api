@@ -7,10 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
 import work.yj1211.live.model.platformArea.AreaInfo;
-import work.yj1211.live.service.platforms.impl.Bilibili;
-import work.yj1211.live.service.platforms.impl.CC;
-import work.yj1211.live.service.platforms.impl.Douyu;
-import work.yj1211.live.service.platforms.impl.Huya;
+import work.yj1211.live.service.platforms.impl.*;
 
 import java.util.List;
 
@@ -25,10 +22,11 @@ class PlatformTest {
     private Huya huya;
     @Autowired
     private CC cc;
+    @Autowired
+    private Douyin douyin;
 
     @Test
     void testArea() {
-        List<AreaInfo> areaInfoList = huya.getAreaList();
-        System.out.println(111);
+        douyin.getAreaRoom("123", 1, 15);
     }
 }
