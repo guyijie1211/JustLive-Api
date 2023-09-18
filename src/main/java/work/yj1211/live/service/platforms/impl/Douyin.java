@@ -1,5 +1,10 @@
 package work.yj1211.live.service.platforms.impl;
 
+import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.Header;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -11,16 +16,14 @@ import work.yj1211.live.model.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
-import work.yj1211.live.utils.HttpUtil;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
 public class Douyin implements BasePlatform {
+    private String COOKIE = "";
+
     @Override
     public String getPlatformCode() {
         return Platform.DOUYIN.getCode();
@@ -43,7 +46,40 @@ public class Douyin implements BasePlatform {
 
     @Override
     public List<AreaInfo> getAreaList() {
-        return null;
+        List<AreaInfo> list = new ArrayList<>();
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/hot_live")
+                    .addHeaders(getHeader())
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
+            String regex = "8:\\[\\\\\"\\$\\\\\",\\\\\"\\$L11\\\\\",null,(.*?)\\]\\\\n";
+            String renderData = ReUtil.get(regex, result, 1);
+            String renderJsonString = renderData.replaceAll("\\\\", "");
+            JSONObject resultJsonObj = JSONUtil.parseObj(renderJsonString);
+            JSONArray data = resultJsonObj.getJSONArray("categoryData");
+            data.forEach(categoryData -> {
+                JSONObject partition = ((JSONObject) categoryData).getJSONObject("partition");
+                String areaTypeId = partition.getStr("id_str");
+                String areaTypeName = partition.getStr("title");
+
+                JSONArray subPartitionArray = ((JSONObject) categoryData).getJSONArray("sub_partition");
+                subPartitionArray.forEach(subObj -> {
+                    JSONObject subPartition = ((JSONObject) subObj).getJSONObject("partition");
+                    AreaInfo areaInfo = new AreaInfo();
+                    areaInfo.setAreaType(areaTypeId);
+                    areaInfo.setTypeName(areaTypeName);
+                    areaInfo.setPlatform(getPlatformCode());
+                    areaInfo.setAreaPic("");
+                    areaInfo.setAreaId(subPartition.getStr("id_str"));
+                    areaInfo.setAreaName(subPartition.getStr("title"));
+                    list.add(areaInfo);
+                });
+            });
+        } catch (Exception e) {
+            log.error("抖音---获取分区信息异常", e);
+        }
+        return list;
     }
 
     @Override
@@ -51,31 +87,25 @@ public class Douyin implements BasePlatform {
         List<LiveRoomInfo> list = new ArrayList<>();
         try {
             AreaInfo areaInfo = Global.getAreaInfo(getPlatformCode(), area);
-            areaInfo = new AreaInfo();
-            areaInfo.setAreaId("633");
-            String url = "https://live.douyin.com/webcast/web/partition/detail/room/?" +
-                    "aid=6383&" +
-                    "app_name=douyin_web&" +
-                    "live_id=1&" +
-                    "device_platform=web&" +
-                    "count=" + page +"&" +
-                    "offset="+ size +"&" +
-                    "partition="+ areaInfo.getAreaId() + "&" +
-                    "partition_type=1&" +
-                    "req_from=2";
-            String result = HttpUtil.doGet(url);
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/web/partition/detail/room/")
+                    .addHeaders(getHeader())
+                    .form(getAreaRoomParam(areaInfo.getAreaId(), size, page))
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
             if (resultJsonObj.getInt("status_code") == 0) {
                 JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("data");
                 Iterator<Object> it = data.iterator();
                 while(it.hasNext()){
-                    JSONObject roomInfo = (JSONObject) it.next();
+                    JSONObject totalInfo = (JSONObject) it.next();
+                    JSONObject roomInfo = totalInfo.getJSONObject("room");
                     JSONObject ownerInfo = roomInfo.getJSONObject("owner");
                     LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                     liveRoomInfo.setPlatForm(getPlatformCode());
-                    liveRoomInfo.setRoomId(roomInfo.getStr("web_rid"));
+                    liveRoomInfo.setRoomId(totalInfo.getStr("web_rid"));
                     liveRoomInfo.setCategoryId(areaInfo.getAreaId());
-                    liveRoomInfo.setCategoryName(roomInfo.getStr("tag_name"));
+                    liveRoomInfo.setCategoryName(totalInfo.getStr("tag_name"));
                     liveRoomInfo.setRoomName(roomInfo.getStr("title"));
                     liveRoomInfo.setOwnerName(ownerInfo.getStr("nickname"));
                     liveRoomInfo.setRoomPic((String) roomInfo.getJSONObject("cover").getJSONArray("url_list").get(0));
@@ -95,5 +125,52 @@ public class Douyin implements BasePlatform {
     @Override
     public List<Owner> search(String keyWords) {
         return null;
+    }
+
+    /**
+     * 获取抖音接口header，主要是cookie
+     *
+     * @return
+     */
+    private Map<String, String> getHeader() {
+        Map<String, String> headerMap = new HashMap<>();
+        if (StrUtil.isEmpty(COOKIE)) {
+            String[] cookieArray = HttpRequest.get("https://live.douyin.com").execute().header(Header.SET_COOKIE).split(";");
+            COOKIE = cookieArray[0];
+        }
+        headerMap.put(Header.COOKIE.getValue(), COOKIE);
+        return headerMap;
+    }
+
+    /**
+     * 更新cookie
+     *
+     * @param cookie
+     */
+    private void updateCOOKIE(String cookie) {
+        String[] cookieArray = cookie.split(";");
+        COOKIE = cookieArray[0];
+    }
+
+    /**
+     * 获取分类房间的请求param
+     *
+     * @param areaId   分类id
+     * @param pageSize 分页大小
+     * @param pageNum  页数
+     * @return
+     */
+    private Map<String, Object> getAreaRoomParam(String areaId, int pageSize, int pageNum) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("aid", 6383);
+        paramMap.put("app_name", "douyin_web");
+        paramMap.put("live_id", 1);
+        paramMap.put("device_platform", "web");
+        paramMap.put("count", pageSize);
+        paramMap.put("offset", pageNum);
+        paramMap.put("partition", areaId);
+        paramMap.put("partition_type", 1);
+        paramMap.put("req_from", 2);
+        return paramMap;
     }
 }

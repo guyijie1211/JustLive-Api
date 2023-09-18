@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
-import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.impl.*;
-
-import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -27,6 +24,8 @@ class PlatformTest {
 
     @Test
     void testArea() {
-        douyin.getAreaRoom("123", 1, 15);
+//        Map<String, String> headerMap = douyin.getHeader();
+        douyin.getAreaList();
+        System.out.println(111);
     }
 }

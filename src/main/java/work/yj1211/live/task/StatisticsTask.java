@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import work.yj1211.live.service.AreaService;
 import work.yj1211.live.service.UserService;
 
 /**
@@ -18,6 +19,8 @@ import work.yj1211.live.service.UserService;
 public class StatisticsTask {
     @Autowired
     private UserService userService;
+    @Autowired
+    private AreaService areaService;
 
     /**
      * 统计前一天活跃用户
@@ -27,5 +30,15 @@ public class StatisticsTask {
     @Scheduled(cron = "0 0 0 * * ?")
     public void insertActiveUserNum() {
         userService.insertActiveUserNum();
+    }
+
+    /**
+     * 刷新所有平台的分区映射
+     * 每天凌晨5点执行
+     */
+    @Async
+    @Scheduled(cron = "0 0 5 * * ?")
+    public void refreshAllAreas() {
+        areaService.refreshAreasAll();
     }
 }
