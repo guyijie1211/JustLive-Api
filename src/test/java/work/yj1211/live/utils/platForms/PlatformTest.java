@@ -25,7 +25,7 @@ class PlatformTest {
     @Test
     void testArea() {
 //        Map<String, String> headerMap = douyin.getHeader();
-        douyin.search("123");
+        douyin.search("原神");
         System.out.println();
     }
 }

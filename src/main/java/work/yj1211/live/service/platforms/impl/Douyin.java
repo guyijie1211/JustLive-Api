@@ -159,9 +159,8 @@ public class Douyin implements BasePlatform {
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
             if (resultJsonObj.getInt("status_code") == 0) {
                 JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("data");
-                Iterator<Object> it = data.iterator();
-                while(it.hasNext()){
-                    JSONObject totalInfo = (JSONObject) it.next();
+                for (Object datum : data) {
+                    JSONObject totalInfo = (JSONObject) datum;
                     JSONObject roomInfo = totalInfo.getJSONObject("room");
                     JSONObject ownerInfo = roomInfo.getJSONObject("owner");
                     LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
@@ -191,8 +190,6 @@ public class Douyin implements BasePlatform {
         try {
             URIBuilder uriBuilder = new URIBuilder("https://www.douyin.com/aweme/v1/web/live/search/")
                     .setScheme("https")
-                    .setPort(443)
-                    .addParameter("device_platform", "webapp")
                     .addParameter("device_platform", "webapp")
                     .addParameter("aid", "6383")
                     .addParameter("channel", "channel_pc_web")
@@ -260,8 +257,6 @@ public class Douyin implements BasePlatform {
 
     /**
      * 获取抖音接口header，主要是cookie
-     *
-     * @return
      */
     private Map<String, String> getHeader() {
         Map<String, String> headerMap = new HashMap<>();
@@ -275,8 +270,6 @@ public class Douyin implements BasePlatform {
 
     /**
      * 更新cookie
-     *
-     * @param cookie
      */
     private void updateCOOKIE(String cookie) {
         String[] cookieArray = cookie.split(";");
@@ -288,7 +281,6 @@ public class Douyin implements BasePlatform {
      *
      * @param areaId   分类id
      * @param page  页数
-     * @return
      */
     private Map<String, Object> getAreaRoomParam(String areaId, int page) {
         Map<String, Object> paramMap = new HashMap<>();
@@ -307,7 +299,6 @@ public class Douyin implements BasePlatform {
     /**
      * 获取推荐房间的请求param
      *
-     * @return
      */
     private Map<String, Object> getRecommendRoomsParam(int page) {
         Map<String, Object> paramMap = new HashMap<>();
@@ -325,7 +316,6 @@ public class Douyin implements BasePlatform {
     /**
      * 获取房间信息的请求param
      *
-     * @return
      */
     private Map<String, Object> getRoomInfoParam(String webRoomId) {
         Map<String, Object> paramMap = new HashMap<>();
@@ -353,7 +343,6 @@ public class Douyin implements BasePlatform {
     /**
      * 获取realRoomId的请求头
      *
-     * @return
      */
     private Map<String, String> getRealRmooIdHead() {
         Map<String, String> headerMap = new HashMap<>();
@@ -392,7 +381,6 @@ public class Douyin implements BasePlatform {
      * 抖音url请求价签(搜索接口用)
      *
      * @param url 请求url
-     * @return
      */
     public String signUrl(String url) {
         JSONObject obj = new JSONObject();
