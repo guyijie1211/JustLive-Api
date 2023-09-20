@@ -2,6 +2,7 @@ package work.yj1211.live.service.platforms.impl;
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -9,7 +10,6 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.URIBuilder;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.model.LiveRoomInfo;
@@ -19,7 +19,10 @@ import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -188,71 +191,67 @@ public class Douyin implements BasePlatform {
     public List<Owner> search(String keyWords) {
         List<Owner> list = new ArrayList<>();
         try {
-            URIBuilder uriBuilder = new URIBuilder("https://www.douyin.com/aweme/v1/web/live/search/")
-                    .setScheme("https")
-                    .addParameter("device_platform", "webapp")
-                    .addParameter("aid", "6383")
-                    .addParameter("channel", "channel_pc_web")
-                    .addParameter("search_channel", "aweme_live")
-                    .addParameter("keyword", keyWords)
-                    .addParameter("search_source", "switch_tab")
-                    .addParameter("query_correct_type", "1")
-                    .addParameter("is_filter_search", "0")
-                    .addParameter("from_group_id", "")
-                    .addParameter("offset", "0")
-                    .addParameter("count", "10")
-                    .addParameter("pc_client_type", "1")
-                    .addParameter("version_code", "170400")
-                    .addParameter("version_name", "17.4.0")
-                    .addParameter("cookie_enabled", "true")
-                    .addParameter("screen_width", "1980")
-                    .addParameter("screen_height", "1080")
-                    .addParameter("browser_language", "zh-CN")
-                    .addParameter("browser_platform", "Win32")
-                    .addParameter("browser_name", "Edge")
-                    .addParameter("browser_version", "114.0.1823.58")
-                    .addParameter("browser_online", "true")
-                    .addParameter("engine_name", "Blink")
-                    .addParameter("engine_version", "114.0.0.0")
-                    .addParameter("os_name", "Windows")
-                    .addParameter("os_version", "10")
-                    .addParameter("cpu_core_num", "12")
-                    .addParameter("device_memory", "8")
-                    .addParameter("platform", "PC")
-                    .addParameter("downlink", "4.7")
-                    .addParameter("effective_type", "4g")
-                    .addParameter("round_trip_time", "100")
-                    .addParameter("webid", "7247041636524377637");
+            String serverUrl = "https://www.douyin.com/aweme/v1/web/live/search/?" +
+                    "device_platform=webapp&" +
+                    "aid=6383&" +
+                    "channel=channel_pc_web&" +
+                    "search_channel=aweme_live&" +
+                    "keyword=" + URLUtil.encode(keyWords) + "&" +
+                    "search_source=switch_tab&" +
+                    "query_correct_type=1&" +
+                    "is_filter_search=0&" +
+                    "from_group_id&" +
+                    "offset=0&" +
+                    "count=10&" +
+                    "pc_client_type=1&" +
+                    "version_code=170400&" +
+                    "version_name=17.4.0&" +
+                    "cookie_enabled=true&" +
+                    "screen_width=1980&" +
+                    "screen_height=1080&" +
+                    "browser_language=zh-CN&" +
+                    "browser_platform=Win32&" +
+                    "browser_name=Edge&" +
+                    "browser_version=114.0.1823.58&" +
+                    "browser_online=true&" +
+                    "engine_name=Blink&" +
+                    "engine_version=114.0.0.0&" +
+                    "os_name=Windows&" +
+                    "os_version=10&" +
+                    "cpu_core_num=12&" +
+                    "device_memory=8&" +
+                    "platform=PC&" +
+                    "downlink=4.7&" +
+                    "effective_type=4g&" +
+                    "round_trip_time=100&" +
+                    "webid=7247041636524377637";
 
-            String requestUrl = signUrl(uriBuilder.build().toString());
-            HttpResponse response = HttpRequest.get(requestUrl)
+            String requestUrlSign = signUrl(serverUrl);
+            HttpResponse response = HttpRequest.get(requestUrlSign)
                     .addHeaders(getRealRmooIdHead())
                     .execute();
             String result = response.body();
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
             if (resultJsonObj.getInt("status_code") == 0) {
-                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("data");
+                JSONArray data = resultJsonObj.getJSONArray("data");
                 data.forEach(room -> {
-                    JSONObject roomObj = ((JSONObject) room).getJSONObject("room");
+                    JSONObject roomObj = JSONUtil.parseObj(((JSONObject) room).getJSONObject("lives").getStr("rawdata"));
                     JSONObject ownerObj = roomObj.getJSONObject("owner");
-
-                    LiveRoomInfo roomInfo = new LiveRoomInfo();
-                    roomInfo.setPlatForm(getPlatformCode());
-                    roomInfo.setRoomId(((JSONObject) room).getStr("web_rid"));
-                    roomInfo.setRoomName(roomObj.getStr("title"));
-                    roomInfo.setRoomPic((String) roomObj.getJSONObject("cover").getJSONArray("url_list").get(0));
-                    roomInfo.setIsLive(1);
-                    roomInfo.setCategoryName(((JSONObject) room).getStr("tag_name"));
-                    roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
-                    roomInfo.setOwnerName(ownerObj.getStr("nickname"));
-                    roomInfo.setOwnerHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
-
+                    Owner ownerInfo = new Owner();
+                    ownerInfo.setPlatform(getPlatformCode());
+                    ownerInfo.setRoomId(ownerObj.getStr("web_rid"));
+                    ownerInfo.setNickName(ownerObj.getStr("nickname"));
+                    ownerInfo.setHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
+                    ownerInfo.setCateName("");
+                    ownerInfo.setFollowers(ownerObj.getJSONObject("follow_info").getInt("follower_count"));
+                    ownerInfo.setIsLive("1");
+                    list.add(ownerInfo);
                 });
             }
         } catch (Exception e) {
-            log.error("抖音---获取推荐房间列表信息异常", e);
+            log.error("抖音---搜索异常", e);
         }
-        return null;
+        return list;
     }
 
     /**
@@ -348,9 +347,11 @@ public class Douyin implements BasePlatform {
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
         headerMap.put("Authority", "live.douyin.com");
-        headerMap.put("Referer", "https://live.douyin.com");
-        headerMap.put("Cookie", "__ac_nonce=" + generateRandomString(21));
+        headerMap.put("Referer", "https://www.douyin.com/");
         headerMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.51");
+        headerMap.put("Cookie", "__ac_nonce=" + generateRandomString(21));
+        headerMap.put("Host", "www.douyin.com");
+        headerMap.put("Connection", "keep-alive");
         return headerMap;
     }
 

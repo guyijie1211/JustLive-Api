@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
+import work.yj1211.live.model.Owner;
 import work.yj1211.live.service.platforms.impl.*;
+
+import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -25,7 +28,7 @@ class PlatformTest {
     @Test
     void testArea() {
 //        Map<String, String> headerMap = douyin.getHeader();
-        douyin.search("原神");
+        List<Owner> list = douyin.search("英雄联盟");
         System.out.println();
     }
 }
