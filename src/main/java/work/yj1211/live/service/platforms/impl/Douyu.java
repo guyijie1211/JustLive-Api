@@ -1,6 +1,9 @@
 package work.yj1211.live.service.platforms.impl;
 
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.http.Header;
+import cn.hutool.http.HtmlUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -8,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.enums.PlayUrlType;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
 import work.yj1211.live.model.platform.UrlQuality;
@@ -136,8 +140,94 @@ public class Douyu implements BasePlatform {
 
     @Override
     public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
-        // TODO
-        return null;
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        cn.hutool.http.HttpResponse response = cn.hutool.http.HttpRequest.get("https://www.douyu.com/betard/" + roomId)
+                .header(Header.REFERER, "https://www.douyu.com/" + roomId)
+                .header(Header.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43")
+                .execute();
+        String result = response.body();
+        JSONObject resultObj = JSONUtil.parseObj(result);
+        String realRoomId = resultObj.getJSONObject("room").getStr("room_id");
+
+        String jsEncResult = cn.hutool.http.HttpRequest.get("https://www.douyu.com/swf_api/homeH5Enc?rids=" + roomId)
+                .header(Header.REFERER, "https://www.douyu.com/" + roomId)
+                .header(Header.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43")
+                .execute().body();
+        String crptext = JSONUtil.parseObj(jsEncResult).getJSONObject("data").getStr("room" + roomId);
+        String data = getPlayArgs(crptext, realRoomId);
+        String dataUse = data + "&cdn=&rate=-1&ver=Douyu_223061205&iar=1&ive=1&hevc=0&fa=0";
+
+        String finalResult = cn.hutool.http.HttpRequest.post("https://www.douyu.com/lapi/live/getH5Play/" + realRoomId)
+                .body(dataUse)
+                .execute().body();
+        JSONObject finalObj = JSONUtil.parseObj(finalResult);
+        if (finalObj.getInt("error") == 0) {
+            JSONObject finalData = finalObj.getJSONObject("data");
+            JSONArray cdnArray = finalData.getJSONArray("cdnsWithName");
+
+            JSONArray multiArray = finalData.getJSONArray("multirates");
+            multiArray.forEach(multi -> {
+                for (int i = 0; i < cdnArray.size(); i++) {
+                    JSONObject cdn = (JSONObject) cdnArray.get(i);
+                    String cdnStr = cdn.getStr("cdn");
+                    String sourceName = cdn.getStr("name");
+                    int rate = ((JSONObject) multi).getInt("rate");
+                    String qualityName = ((JSONObject) multi).getStr("name");
+                    String url = getPlayUrl(realRoomId, data, rate, cdnStr);
+                    UrlQuality urlQuality = new UrlQuality();
+                    urlQuality.setQualityName(qualityName);
+                    urlQuality.setUrlType(url.contains(".flv") ? PlayUrlType.FLV.getTypeName() : PlayUrlType.HLS.getTypeName());
+                    urlQuality.setPlayUrl(url);
+                    urlQuality.setSourceName(sourceName);
+                    urlQuality.setPriority(10 - i);
+                    qualityResultList.add(urlQuality);
+                }
+            });
+        }
+        Collections.sort(qualityResultList);
+        return qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
+    }
+
+    private String getPlayArgs(String crptext, String realRoomId) {
+        try {
+            String regex = "(vdwdae325w_64we[\\s\\S]*?function ub98484234[\\s\\S]*?)function";
+            crptext = ReUtil.get(regex, crptext, 1);
+
+            String regex1 = "eval.*?;}";
+            String replacement = "strc;}";
+            crptext = ReUtil.replaceAll(crptext, regex1, replacement);
+            crptext.replaceAll("\"", "\\\"");
+            JSONObject requestBody = new JSONObject();
+            requestBody.set("html", crptext);
+            requestBody.set("rid", realRoomId);
+            String result = cn.hutool.http.HttpRequest.post("http://alive.nsapps.cn/api/AllLive/DouyuSign")
+                    .body(requestBody.toString())
+                    .execute()
+                    .body();
+            JSONObject resultObj = JSONUtil.parseObj(result);
+            if (resultObj.getInt("code") == 0) {
+                return resultObj.getStr("data");
+            }
+        } catch (Exception e) {
+            log.error("斗鱼---getPlayArgs异常", e);
+        }
+        return "";
+    }
+
+    private String getPlayUrl(String roomId, String args, int rate, String cdn) {
+        args += "&cdn=" + cdn + "&rate=" + rate;
+        String result = cn.hutool.http.HttpRequest.post("https://www.douyu.com/lapi/live/getH5Play/" + roomId)
+                .body(args)
+                .header(Header.REFERER, "https://www.douyu.com/" + roomId)
+                .header(Header.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43")
+                .execute().body();
+        JSONObject resultObj = JSONUtil.parseObj(result);
+        String rtmpUrl = resultObj.getJSONObject("data").getStr("rtmp_url");
+        String rtmpLive = resultObj.getJSONObject("data").getStr("rtmp_live");
+        rtmpLive = HtmlUtil.unescape(rtmpLive);
+        return rtmpUrl + "/" + rtmpLive;
     }
 
     public String getRealRoomId(String rid) {

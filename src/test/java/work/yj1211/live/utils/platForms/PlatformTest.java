@@ -9,6 +9,7 @@ import work.yj1211.live.LiveApplication;
 import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.service.platforms.impl.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,8 @@ class PlatformTest {
 
     @Test
     void testArea() {
-        Map<String, List<UrlQuality>> qualityMap = douyin.getRealUrl("87311899746");
+        Map<String, String> map = new HashMap<>();
+        Map<String, List<UrlQuality>> listMap = douyu.getRealUrl("9999");
         System.out.println();
     }
 }
