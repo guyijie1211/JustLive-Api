@@ -119,8 +119,9 @@ public class Douyin implements BasePlatform {
                     .execute();
             updateCOOKIE(response.header(Header.SET_COOKIE));
             String result = response.body();
-            String regex = "8:\\[\\\\\"\\$\\\\\",\\\\\"\\$L11\\\\\",null,(.*?)\\]\\\\n";
-            String renderData = ReUtil.get(regex, result, 1);
+            String regex = "\\{\\\\\"pathname\\\\\":\\\\\"\\/hot_live\\\\\",\\\\\"categoryData.*?\\]\\\\n";
+
+            String renderData = ReUtil.get(regex, result, 0);
             String renderJsonString = renderData.replaceAll("\\\\", "");
             JSONObject resultJsonObj = JSONUtil.parseObj(renderJsonString);
             JSONArray data = resultJsonObj.getJSONArray("categoryData");
@@ -228,7 +229,7 @@ public class Douyin implements BasePlatform {
 
             String requestUrlSign = signUrl(serverUrl);
             HttpResponse response = HttpRequest.get(requestUrlSign)
-                    .addHeaders(getRealRmooIdHead())
+                    .addHeaders(getSearchHead())
                     .execute();
             String result = response.body();
             JSONObject resultJsonObj = JSONUtil.parseObj(result);
@@ -340,10 +341,10 @@ public class Douyin implements BasePlatform {
     }
 
     /**
-     * 获取realRoomId的请求头
+     * 搜索的请求头
      *
      */
-    private Map<String, String> getRealRmooIdHead() {
+    private Map<String, String> getSearchHead() {
         Map<String, String> headerMap = new HashMap<>();
         headerMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
         headerMap.put("Authority", "live.douyin.com");
@@ -355,21 +356,35 @@ public class Douyin implements BasePlatform {
         return headerMap;
     }
 
+
+    /**
+     * 获取realRoomId的请求头
+     */
+    private Map<String, String> getRealRmooIdHead() {
+        Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        headerMap.put("Authority", "live.douyin.com");
+        headerMap.put("Referer", "https://live.douyin.com");
+        headerMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.51");
+        headerMap.put("Cookie", "__ac_nonce=" + generateRandomString(21));
+        return headerMap;
+    }
+
     /**
      * 获取真实roomId
      *
      * @param webRoomId 网页roomId
      * @return realRoomId
      */
-    private String getRealRoomId(String webRoomId) {
+    public String getRealRoomId(String webRoomId) {
         try {
             HttpResponse response = HttpRequest.get("https://live.douyin.com/" + webRoomId)
                     .addHeaders(getRealRmooIdHead())
                     .execute();
             String result = response.body();
-            String regex = "a:\\[\\\\\"\\$\\\\\",\\\\\"\\$L11\\\\\",null,(.*?)\\]\\\\n";
-            String renderData = ReUtil.get(regex, result, 1);
-            String renderJsonString = renderData.replaceAll("\\\\", "");
+            String regex = "\\{\\\\\"state\\\\\":\\{\\\\\"isLiveModal.*?\\]\\\\n";
+            String renderData = ReUtil.get(regex, result, 0);
+            String renderJsonString = renderData.trim().replaceAll("\\\\\"", "\"").replaceAll("\\\\\\\\", "\\\\").replaceAll("\\]\\\\n", "");
             JSONObject resultJsonObj = JSONUtil.parseObj(renderJsonString);
             return resultJsonObj.getJSONObject("state").getJSONObject("roomStore").getJSONObject("roomInfo").getStr("roomId");
         } catch (Exception e) {
