@@ -96,7 +96,7 @@ public class Bilibili implements BasePlatform {
     }
 
     @Override
-    public List<UrlQuality> getRealUrl(String roomId) {
+    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
         // TODO
         return null;
     }

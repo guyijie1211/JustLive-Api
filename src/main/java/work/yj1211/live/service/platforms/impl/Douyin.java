@@ -22,6 +22,7 @@ import work.yj1211.live.utils.Global;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -70,7 +71,7 @@ public class Douyin implements BasePlatform {
     }
 
     @Override
-    public List<UrlQuality> getRealUrl(String roomId) {
+    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
         List<UrlQuality> qualityResultList = new ArrayList<>();
         try {
             HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/room/web/enter/")
@@ -96,7 +97,9 @@ public class Douyin implements BasePlatform {
             log.error("抖音---获取直播源异常", e);
         }
         Collections.sort(qualityResultList);
-        return qualityResultList;
+        return qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
     }
 
     @Override

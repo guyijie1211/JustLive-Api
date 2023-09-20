@@ -31,8 +31,9 @@ public interface BasePlatform {
 
     /**
      * 获取直播源地址(包含线路)
+     * @return Map(线路, 直播源信息列表)
      */
-    List<UrlQuality> getRealUrl(String roomId);
+    Map<String, List<UrlQuality>> getRealUrl(String roomId);
 
     /**
      * 获取房间信息

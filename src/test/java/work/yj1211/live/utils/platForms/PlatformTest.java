@@ -11,7 +11,6 @@ import work.yj1211.live.service.platforms.impl.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -29,10 +28,7 @@ class PlatformTest {
 
     @Test
     void testArea() {
-        List<UrlQuality> list = douyin.getRealUrl("87311899746");
-        Map<String, List<UrlQuality>> qualityMap = list.stream().collect(
-                Collectors.groupingBy(UrlQuality::getSourceName)
-        );
+        Map<String, List<UrlQuality>> qualityMap = douyin.getRealUrl("87311899746");
         System.out.println();
     }
 }
