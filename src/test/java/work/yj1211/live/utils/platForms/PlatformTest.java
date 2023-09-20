@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
-import work.yj1211.live.model.Owner;
 import work.yj1211.live.service.platforms.impl.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -28,7 +28,8 @@ class PlatformTest {
     @Test
     void testArea() {
 //        Map<String, String> headerMap = douyin.getHeader();
-        List<Owner> list = douyin.search("英雄联盟");
+        Map<String, String> map = new HashMap<>();
+        douyin.getRealUrl(map, "817098015632");
         System.out.println();
     }
 }

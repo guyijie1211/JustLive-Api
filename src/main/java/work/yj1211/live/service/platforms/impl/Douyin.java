@@ -28,6 +28,14 @@ import java.util.Map;
 @Service
 public class Douyin implements BasePlatform {
     private String COOKIE = "";
+    private Map<String, String> qualityMap = new HashMap<>();
+
+    {
+        qualityMap.put("origin", "OD");
+        qualityMap.put("hd", "HD");
+        qualityMap.put("ld", "LD");
+        qualityMap.put("sd", "SD");
+    }
 
     @Override
     public String getPlatformCode() {
@@ -35,8 +43,31 @@ public class Douyin implements BasePlatform {
     }
 
     @Override
-    public void getRealUrl(Map<String, String> urls, String rid) {
-
+    public void getRealUrl(Map<String, String> urls, String roomId) {
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/room/web/enter/")
+                    .addHeaders(getHeader())
+                    .form(getRoomInfoParam(roomId))
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+            if (resultJsonObj.getInt("status_code") == 0) {
+                JSONObject streamUrlObj = ((JSONObject) resultJsonObj.getJSONObject("data").getJSONArray("data").get(0)).getJSONObject("stream_url");
+                String qualityDataString = streamUrlObj.getJSONObject("live_core_sdk_data").getJSONObject("pull_data").getStr("stream_data").replaceAll("\\\"", "\"");
+                JSONObject qualityData = JSONUtil.parseObj(qualityDataString).getJSONObject("data");
+                JSONArray qualityList = streamUrlObj.getJSONObject("live_core_sdk_data").getJSONObject("pull_data").getJSONObject("options").getJSONArray("qualities");
+                qualityList.forEach(quality -> {
+                    String sdkKey = ((JSONObject) quality).getStr("sdk_key");
+                    if (qualityMap.containsKey(sdkKey)) {
+                        String url = qualityData.getJSONObject(sdkKey).getJSONObject("main").getStr("hls");
+                        urls.put(qualityMap.get(sdkKey), url);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.error("抖音---获取直播源异常", e);
+        }
     }
 
     @Override
@@ -356,7 +387,6 @@ public class Douyin implements BasePlatform {
         return headerMap;
     }
 
-
     /**
      * 获取realRoomId的请求头
      */
@@ -376,7 +406,7 @@ public class Douyin implements BasePlatform {
      * @param webRoomId 网页roomId
      * @return realRoomId
      */
-    public String getRealRoomId(String webRoomId) {
+    private String getRealRoomId(String webRoomId) {
         try {
             HttpResponse response = HttpRequest.get("https://live.douyin.com/" + webRoomId)
                     .addHeaders(getRealRmooIdHead())
@@ -398,7 +428,7 @@ public class Douyin implements BasePlatform {
      *
      * @param url 请求url
      */
-    public String signUrl(String url) {
+    private String signUrl(String url) {
         JSONObject obj = new JSONObject();
         obj.set("url", url);
         obj.set("userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.51");
