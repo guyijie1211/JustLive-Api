@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.DouYuOpenApi;
@@ -131,6 +132,12 @@ public class Douyu implements BasePlatform {
             urls.put("OD", res.getStr("url"));
 
         }
+    }
+
+    @Override
+    public List<UrlQuality> getRealUrl(String roomId) {
+        // TODO
+        return null;
     }
 
     public String getRealRoomId(String rid) {

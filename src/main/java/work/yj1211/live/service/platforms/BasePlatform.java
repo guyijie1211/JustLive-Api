@@ -3,6 +3,7 @@ package work.yj1211.live.service.platforms;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.List;
@@ -27,6 +28,11 @@ public interface BasePlatform {
      * @param rid 房间号
      */
     void getRealUrl(Map<String, String> urls, String rid);
+
+    /**
+     * 获取直播源地址(包含线路)
+     */
+    List<UrlQuality> getRealUrl(String roomId);
 
     /**
      * 获取房间信息

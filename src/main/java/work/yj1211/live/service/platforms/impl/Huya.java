@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
@@ -80,6 +81,12 @@ public class Huya implements BasePlatform {
     @Override
     public void getRealUrl(Map<String, String> urls, String roomId) {
         FixHuya.getRealUrl(urls, roomId);
+    }
+
+    @Override
+    public List<UrlQuality> getRealUrl(String roomId) {
+        // TODO
+        return null;
     }
 
     /**

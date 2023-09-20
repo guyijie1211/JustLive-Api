@@ -12,17 +12,16 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.enums.PlayUrlType;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -68,6 +67,36 @@ public class Douyin implements BasePlatform {
         } catch (Exception e) {
             log.error("抖音---获取直播源异常", e);
         }
+    }
+
+    @Override
+    public List<UrlQuality> getRealUrl(String roomId) {
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        try {
+            HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/room/web/enter/")
+                    .addHeaders(getHeader())
+                    .form(getRoomInfoParam(roomId))
+                    .execute();
+            updateCOOKIE(response.header(Header.SET_COOKIE));
+            String result = response.body();
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+            if (resultJsonObj.getInt("status_code") == 0) {
+                JSONObject streamUrlObj = ((JSONObject) resultJsonObj.getJSONObject("data").getJSONArray("data").get(0)).getJSONObject("stream_url");
+                String qualityDataString = streamUrlObj.getJSONObject("live_core_sdk_data").getJSONObject("pull_data").getStr("stream_data").replaceAll("\\\"", "\"");
+                JSONObject qualityData = JSONUtil.parseObj(qualityDataString).getJSONObject("data");
+                JSONArray qualityList = streamUrlObj.getJSONObject("live_core_sdk_data").getJSONObject("pull_data").getJSONObject("options").getJSONArray("qualities");
+                qualityList.forEach(quality -> {
+                    // flv
+                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.FLV, qualityData));
+                    // hls
+                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.HLS, qualityData));
+                });
+            }
+        } catch (Exception e) {
+            log.error("抖音---获取直播源异常", e);
+        }
+        Collections.sort(qualityResultList);
+        return qualityResultList;
     }
 
     @Override
@@ -438,6 +467,22 @@ public class Douyin implements BasePlatform {
                 .execute().body();
         JSONObject resultObj = JSONUtil.parseObj(result);
         return resultObj.getJSONObject("data").getStr("url");
+    }
+
+    /**
+     * 获取抖音直播源信息
+     */
+    private UrlQuality getDouyinUrlQuality(JSONObject quality, PlayUrlType urlType, JSONObject qualityData) {
+        String sdkKey = quality.getStr("sdk_key");
+        String sdkName = quality.getStr("name");
+
+        UrlQuality urlQuality = new UrlQuality();
+        urlQuality.setQualityName(sdkName);
+        urlQuality.setUrlType(urlType.getTypeName());
+        urlQuality.setPlayUrl(qualityData.getJSONObject(sdkKey).getJSONObject("main").getStr(urlType.getTypeName()));
+        urlQuality.setSourceName(urlType.getTypeName());
+        urlQuality.setPriority(quality.getInt("level"));
+        return urlQuality;
     }
 
 
