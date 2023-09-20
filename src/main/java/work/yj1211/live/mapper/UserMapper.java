@@ -3,10 +3,10 @@ package work.yj1211.live.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
-import work.yj1211.live.model.ActiveUsers;
-import work.yj1211.live.model.SimpleRoomInfo;
-import work.yj1211.live.model.UserInfo;
+import work.yj1211.live.model.platform.SimpleRoomInfo;
 import work.yj1211.live.model.platformArea.AreaSimple;
+import work.yj1211.live.model.user.ActiveUsers;
+import work.yj1211.live.model.user.UserInfo;
 
 import java.util.Date;
 import java.util.List;

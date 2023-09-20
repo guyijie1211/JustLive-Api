@@ -1,4 +1,4 @@
-package work.yj1211.live.model;
+package work.yj1211.live.model.app;
 
 import lombok.Data;
 

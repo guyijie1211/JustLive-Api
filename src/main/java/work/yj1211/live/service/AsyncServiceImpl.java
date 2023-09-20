@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
-import work.yj1211.live.model.LiveRoomInfo;
+import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.service.platforms.impl.Bilibili;
 import work.yj1211.live.service.platforms.impl.CC;
 import work.yj1211.live.service.platforms.impl.Douyu;

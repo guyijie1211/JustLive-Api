@@ -2,7 +2,7 @@ package work.yj1211.live.factory;
 
 
 import work.yj1211.live.enums.ResultCode;
-import work.yj1211.live.model.Result;
+import work.yj1211.live.model.response.Result;
 
 public class ResultFactory {
     public static Result buildSuccessResult(Object data){

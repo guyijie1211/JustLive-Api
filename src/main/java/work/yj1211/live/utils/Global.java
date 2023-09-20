@@ -2,9 +2,8 @@ package work.yj1211.live.utils;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import work.yj1211.live.model.BannerInfo;
-import work.yj1211.live.model.TV;
-import work.yj1211.live.model.UpdateInfo;
+import work.yj1211.live.model.app.BannerInfo;
+import work.yj1211.live.model.app.UpdateInfo;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 
@@ -22,7 +21,6 @@ public class Global {
     public static Map<String, String> DouyuCateMap = new HashMap<>();
     private static String updateFilePath;
     private static String bannerInfoFilePath;
-    public static List<TV> m3uResult;
     public static UpdateInfo updateInfo;
     public static List<BannerInfo> updateInfoList;
 

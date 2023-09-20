@@ -1,8 +1,8 @@
 package work.yj1211.live.service.platforms;
 
 import org.springframework.stereotype.Component;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.List;
