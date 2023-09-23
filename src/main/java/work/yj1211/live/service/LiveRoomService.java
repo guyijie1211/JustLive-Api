@@ -253,6 +253,7 @@ public class LiveRoomService{
             platformInfo.setCode(platform.getCode());
             platformInfo.setName(platform.getName());
             platformInfo.setLogoImage(platform.getLogoImage());
+            platformInfo.setAndroidDanmuSupport(platform.getAndroidDanmuSupport());
             platformList.add(platformInfo);
         });
         return response;

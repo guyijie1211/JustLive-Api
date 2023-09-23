@@ -1,5 +1,6 @@
 package work.yj1211.live.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommend(@PathParam("page")int page, @PathParam("size")int size){
         List<LiveRoomInfo> list = liveRoomService.getRecommend(page, 10);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -41,7 +44,10 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommendByPlatform(@PathParam("platform")String platform, @PathParam("page")int page, @PathParam("size")int size){
         List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatform(platform, page, size);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
+
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -50,7 +56,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommendByPlatformArea(@PathParam("platform")String platform, @PathParam("area")String area, @PathParam("page")int page, @PathParam("size")int size){
         List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(platform, area, page, size);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -59,7 +67,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommendByAreaAll(@PathParam("areaType")String areaType, @PathParam("area")String area, @PathParam("page")int page){
         List<LiveRoomInfo> list = liveRoomService.getRecommendByAreaAll(areaType, area, page, 10);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -96,7 +106,10 @@ public class LiveRoomCrl {
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("获取房间信息失败");
         }
-        Collections.sort(roomInfoList);
+        if (CollectionUtil.isNotEmpty(roomInfoList)) {
+            log.debug(String.valueOf(roomInfoList.size()));
+            Collections.sort(roomInfoList);
+        }
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 
@@ -137,7 +150,9 @@ public class LiveRoomCrl {
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("请求过多");
         }
-        Collections.sort(roomInfoList);
+        if (CollectionUtil.isNotEmpty(roomInfoList)) {
+            Collections.sort(roomInfoList);
+        }
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 

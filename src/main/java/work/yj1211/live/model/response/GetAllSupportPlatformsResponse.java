@@ -13,5 +13,6 @@ public class GetAllSupportPlatformsResponse {
         private String name;
         private String code;
         private String logoImage;
+        private Boolean androidDanmuSupport;
     }
 }
