@@ -126,7 +126,7 @@ public class Douyin implements BasePlatform {
                 } else {
                     roomInfo.setRoomPic("");
                 }
-                roomInfo.setCategoryName(resultJsonObj.getJSONObject("data").getJSONObject("partition_road_map").getJSONObject("sub_partition").getJSONObject("partition").getStr("title"));
+                roomInfo.setCategoryName("");
                 roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
                 roomInfo.setOwnerName(ownerObj.getStr("nickname"));
                 roomInfo.setOwnerHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
@@ -326,6 +326,7 @@ public class Douyin implements BasePlatform {
         if (StrUtil.isEmpty(COOKIE)) {
             String[] cookieArray = HttpRequest.get("https://live.douyin.com").execute().header(Header.SET_COOKIE).split(";");
             COOKIE = cookieArray[0];
+            log.debug("douyin-Cookie-GET:" + COOKIE);
         }
         headerMap.put(Header.COOKIE.getValue(), COOKIE);
         return headerMap;
@@ -336,7 +337,11 @@ public class Douyin implements BasePlatform {
      */
     private void updateCOOKIE(String cookie) {
         String[] cookieArray = cookie.split(";");
-        COOKIE = cookieArray[0];
+        String cookieNew = cookieArray[0];
+        if (cookieNew.startsWith("ttwid=")) {
+            COOKIE = cookieArray[0];
+            log.debug("douyin-Cookie-UODATE:" + COOKIE);
+        }
     }
 
     /**
