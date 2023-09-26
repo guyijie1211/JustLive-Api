@@ -16,10 +16,8 @@ import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -98,7 +96,43 @@ public class Bilibili implements BasePlatform {
     @Override
     public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
         // TODO
-        return null;
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        // 通过原始方法转，后续再写获取多线路的
+        Map<String, String> urlMap = new HashMap<>();
+        getRealUrl(urlMap, roomId);
+        urlMap.forEach((qn, url) -> {
+            UrlQuality quality = new UrlQuality();
+            qualityResultList.add(quality);
+            quality.setSourceName("线路1");
+            quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
+            quality.setPlayUrl(url);
+            switch (qn) {
+                case "OD":
+                    quality.setPriority(5);
+                    quality.setQualityName("原画");
+                    break;
+                case "HD":
+                    quality.setPriority(4);
+                    quality.setQualityName("蓝光");
+                    break;
+                case "SD":
+                    quality.setPriority(3);
+                    quality.setQualityName("超清");
+                    break;
+                case "LD":
+                    quality.setPriority(2);
+                    quality.setQualityName("高清");
+                    break;
+                case "FD":
+                    quality.setPriority(1);
+                    quality.setQualityName("流畅");
+                    break;
+            }
+        });
+        Collections.sort(qualityResultList);
+        return qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
     }
 
     /**

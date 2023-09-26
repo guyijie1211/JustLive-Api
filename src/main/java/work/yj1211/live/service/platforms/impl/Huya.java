@@ -22,6 +22,7 @@ import work.yj1211.live.utils.http.HttpRequest;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -33,6 +34,17 @@ public class Huya implements BasePlatform {
     private static final Pattern AREA = Pattern.compile("\"sGameFullName\":\"([\\s\\S]*?)\",");
     private static final Pattern Num = Pattern.compile("\"lActivityCount\":([\\s\\S]*?),");
     private static final Pattern ISLIVE = Pattern.compile("\"eLiveStatus\":([\\s\\S]*?),");
+
+    // 清晰度
+    private List<String> qnList = new ArrayList<>();
+
+    {
+        qnList.add("OD");
+        qnList.add("HD");
+        qnList.add("SD");
+        qnList.add("LD");
+        qnList.add("FD");
+    }
 
     @Override
     public String getPlatformCode() {
@@ -86,7 +98,43 @@ public class Huya implements BasePlatform {
     @Override
     public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
         // TODO
-        return null;
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        // 通过原始方法转，后续再写获取多线路的
+        Map<String, String> urlMap = new HashMap<>();
+        getRealUrl(urlMap, roomId);
+        urlMap.forEach((qn, url) -> {
+            UrlQuality quality = new UrlQuality();
+            qualityResultList.add(quality);
+            quality.setSourceName("线路1");
+            quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
+            quality.setPlayUrl(url);
+            switch (qn) {
+                case "OD":
+                    quality.setPriority(5);
+                    quality.setQualityName("原画");
+                    break;
+                case "HD":
+                    quality.setPriority(4);
+                    quality.setQualityName("蓝光");
+                    break;
+                case "SD":
+                    quality.setPriority(3);
+                    quality.setQualityName("超清");
+                    break;
+                case "LD":
+                    quality.setPriority(2);
+                    quality.setQualityName("高清");
+                    break;
+                case "FD":
+                    quality.setPriority(1);
+                    quality.setQualityName("流畅");
+                    break;
+            }
+        });
+        Collections.sort(qualityResultList);
+        return qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
     }
 
     /**
