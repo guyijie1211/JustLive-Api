@@ -1,13 +1,22 @@
 package work.yj1211.live.service.platforms.impl;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.http.Header;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.enums.PlayUrlType;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
 import work.yj1211.live.model.platform.UrlQuality;
@@ -16,9 +25,10 @@ import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.FixHuya;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
-import work.yj1211.live.utils.http.HttpContentType;
-import work.yj1211.live.utils.http.HttpRequest;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,40 +107,48 @@ public class Huya implements BasePlatform {
 
     @Override
     public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
-        // TODO
         List<UrlQuality> qualityResultList = new ArrayList<>();
-        // 通过原始方法转，后续再写获取多线路的
-        Map<String, String> urlMap = new HashMap<>();
-        getRealUrl(urlMap, roomId);
-        urlMap.forEach((qn, url) -> {
-            UrlQuality quality = new UrlQuality();
-            qualityResultList.add(quality);
-            quality.setSourceName("线路1");
-            quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
-            quality.setPlayUrl(url);
-            switch (qn) {
-                case "OD":
-                    quality.setPriority(5);
-                    quality.setQualityName("原画");
-                    break;
-                case "HD":
-                    quality.setPriority(4);
-                    quality.setQualityName("蓝光");
-                    break;
-                case "SD":
-                    quality.setPriority(3);
-                    quality.setQualityName("超清");
-                    break;
-                case "LD":
-                    quality.setPriority(2);
-                    quality.setQualityName("高清");
-                    break;
-                case "FD":
-                    quality.setPriority(1);
-                    quality.setQualityName("流畅");
-                    break;
+        try {
+            String resultText = HttpRequest.get("https://m.huya.com/" + roomId)
+                    .header(Header.USER_AGENT, "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/91.0.4472.69")
+                    .execute().body();
+            String pattern = "window\\.HNF_GLOBAL_INIT.=.\\{(.*?)\\}.</script>";
+            String text = ReUtil.get(pattern, resultText, 1);
+            JSONObject jsonObj = JSONUtil.parseObj("{" + text + "}");
+
+            JSONArray biterates = jsonObj.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo").getJSONObject("vBitRateInfo").getJSONArray("value");
+            JSONArray lines = jsonObj.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo").getJSONObject("vStreamInfo").getJSONArray("value");
+
+            for (int j = 0; j < biterates.size(); j++) {
+                JSONObject biterate = (JSONObject) biterates.get(j);
+                String qualityName = biterate.getStr("sDisplayName");
+                int bitRate = biterate.getInt("iBitRate");
+                if (StrUtil.containsIgnoreCase(qualityName, "HDR")) {
+                    continue;
+                }
+                for (int i = 0; i < lines.size(); i++) {
+                    JSONObject line = (JSONObject) lines.get(i);
+                    String streamName = line.getStr("sStreamName");
+                    String streamUrl = line.getStr("sFlvUrl") + "/" + streamName + ".flv";
+                    streamUrl += "?" + processAnticode(line.getStr("sFlvAntiCode"), getAnonymousUid(), streamName);
+                    if (bitRate > 0) {
+                        streamUrl += "&ratio=" + bitRate;
+                    }
+                    UrlQuality urlQuality = new UrlQuality();
+                    urlQuality.setQualityName(qualityName);
+                    urlQuality.setUrlType(PlayUrlType.FLV.getTypeName());
+                    urlQuality.setPlayUrl(streamUrl);
+                    urlQuality.setSourceName("线路" + (i + 1));
+                    urlQuality.setPriority(10 - j);
+                    qualityResultList.add(urlQuality);
+                }
             }
-        });
+            biterates.forEach(biterate -> {
+
+            });
+        } catch (Exception e) {
+            log.error("虎牙---获取直播源异常", e);
+        }
         Collections.sort(qualityResultList);
         return qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
@@ -145,10 +163,10 @@ public class Huya implements BasePlatform {
     private List<AreaInfo> refreshSingleArea(String areaCode, String typeName){
         List<AreaInfo> areaInfoList = new ArrayList<>();
         String url = "https://m.huya.com/cache.php?m=Game&do=ajaxGameList&bussType=" + areaCode;
-        String result = HttpRequest.create(url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .get().getBody();
+        String result = HttpRequest.get(url)
+                .contentType("application/x-www-form-urlencoded")
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .execute().body();
         JSONObject responseObj = JSONUtil.parseObj(result);
         if (result != null && responseObj.containsKey("gameList")) {
             // 获取新的分区信息
@@ -177,10 +195,10 @@ public class Huya implements BasePlatform {
     @Override
     public LiveRoomInfo getRoomInfo(String roomId) {
         String room_url = "https://m.huya.com/" + roomId;
-        String response = HttpRequest.create(room_url)
-                .setContentType(HttpContentType.FORM)
-                .putHeader("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .get().getBody();
+        String response = HttpRequest.get(room_url)
+                .contentType("application/x-www-form-urlencoded")
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                .execute().body();
         Matcher matcherOwnerName = OwnerName.matcher(response);
         Matcher matcherRoomName = RoomName.matcher(response);
         Matcher matcherRoomPic = RoomPic.matcher(response);
@@ -318,5 +336,78 @@ public class Huya implements BasePlatform {
         String result;
         result = str.substring(str.indexOf(indexStartStr)+indexStartStr.length(),str.lastIndexOf(indexEndStr));
         return result;
+    }
+
+    private String processAnticode(String anticode, String uid, String streamname) {
+        Map<String, String> q = new HashMap<>();
+        try {
+            for (String param : anticode.split("&")) {
+                String[] pair = param.split("=");
+                String key = URLDecoder.decode(pair[0], "UTF-8");
+                String value = "";
+                if (pair.length > 1) {
+                    value = URLDecoder.decode(pair[1], "UTF-8");
+                }
+                q.put(key, value);
+            }
+        } catch (Exception e) {
+
+        }
+
+
+        q.put("ver", "1");
+        q.put("sv", "2110211124");
+
+        long seqid = Long.parseLong(uid) + (long) (Instant.now().getEpochSecond() * 1000);
+        q.put("seqid", String.valueOf(seqid));
+        q.put("uid", uid);
+        q.put("uuid", IdUtil.randomUUID());
+
+        String ss = DigestUtil.md5Hex(String.format("%s|%s|%s", q.get("seqid"), q.get("ctype"), q.get("t")), StandardCharsets.UTF_8);
+        q.put("fm", new String(Base64.decode(q.get("fm")), StandardCharsets.UTF_8)
+                .replace("$0", q.get("uid"))
+                .replace("$1", streamname)
+                .replace("$2", ss)
+                .replace("$3", q.get("wsTime")));
+
+        String wsSecret = DigestUtil.md5Hex(q.get("fm"), StandardCharsets.UTF_8);
+        q.put("wsSecret", wsSecret);
+        q.remove("fm");
+
+        if (q.containsKey("txyp")) {
+            q.remove("txyp");
+        }
+
+        String result = buildQueryString(q);
+        return result;
+    }
+
+    private String buildQueryString(Map<String, String> params) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1); // 移除最后一个"&"字符
+        }
+        return sb.toString();
+    }
+
+    private String getAnonymousUid() {
+        String url = "https://udblgn.huya.com/web/anonymousLogin";
+        String requestBody = "{\"appId\": 5002, \"byPass\": 3, \"context\": \"\", \"version\": \"2.4\", \"data\": {}}";
+
+        HttpRequest request = HttpRequest.post(url)
+                .contentType("application/json")
+                .body(requestBody);
+
+        HttpResponse response = request.execute();
+
+        if (response.isOk()) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            return jsonObject.getJSONObject("data").getStr("uid");
+        }
+
+        return null;
     }
 }
