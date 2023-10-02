@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.model.response.Result;
@@ -79,6 +80,15 @@ public class LiveRoomCrl {
     public Result getRealUrl(@PathParam("platform")String platform, @PathParam("roomId")String roomId){
         Map<String, String> urls;
         urls = liveRoomService.getRealUrl(platform, roomId);
+        return ResultFactory.buildSuccessResult(urls);
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getRealUrlMultiSource", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getRealUrlMultiSource(@PathParam("platform")String platform, @PathParam("roomId")String roomId){
+        Map<String, List<UrlQuality>> urls;
+        urls = liveRoomService.getRealUrlMultiSource(platform, roomId);
         return ResultFactory.buildSuccessResult(urls);
     }
 

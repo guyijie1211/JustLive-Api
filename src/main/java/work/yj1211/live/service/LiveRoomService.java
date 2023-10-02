@@ -14,6 +14,7 @@ import work.yj1211.live.model.app.UpdateInfo;
 import work.yj1211.live.model.platform.LiveRoomInfo;
 import work.yj1211.live.model.platform.Owner;
 import work.yj1211.live.model.platform.SimpleRoomInfo;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.model.response.GetAllSupportPlatformsResponse;
@@ -106,6 +107,16 @@ public class LiveRoomService{
         Map<String, String> urls = new HashMap<>();
         platformMap.get(platform).getRealUrl(urls, roomId);
         return urls;
+    }
+
+    /**
+     * 获取真实直播地址
+     * @param platform
+     * @param roomId
+     * @return
+     */
+    public Map<String, List<UrlQuality>> getRealUrlMultiSource(String platform, String roomId){
+        return platformMap.get(platform).getRealUrl(roomId);
     };
 
     /**
