@@ -55,6 +55,18 @@ public class AreaService {
     }
 
     /**
+     * 刷新平台分区
+     */
+    public void refreshAreaByPlatform(String refreshPlatform) {
+        // 刷新所有平台分区
+        platformList.forEach(platform -> {
+            if (platform.getPlatformCode().equalsIgnoreCase(refreshPlatform)) {
+                saveOrUpdateBatchByPlatform(platform.getAreaList(), platform.getPlatformCode());
+            }
+        });
+    }
+
+    /**
      * 根据平台更新分类信息
      * @param areaList 平台分类列表
      * @param platform 平台

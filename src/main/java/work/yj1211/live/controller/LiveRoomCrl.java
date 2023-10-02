@@ -136,6 +136,18 @@ public class LiveRoomCrl {
     }
 
     @CrossOrigin
+    @RequestMapping(value = "/api/live/refreshAreaByPlatform", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result refreshAreaByPlatform(@PathParam("platform")String platform){
+        try{
+            liveRoomService.refreshAreaByPlatform(platform);
+        }catch (Exception e){
+            return ResultFactory.buildFailResult(e.getMessage());
+        }
+        return ResultFactory.buildSuccessResult("刷新成功");
+    }
+
+    @CrossOrigin
     @RequestMapping(value = "/api/live/getAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getAreasByPlatform(@PathParam("platform")String platform){

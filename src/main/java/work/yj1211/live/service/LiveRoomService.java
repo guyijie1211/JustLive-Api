@@ -161,6 +161,13 @@ public class LiveRoomService{
     }
 
     /**
+     * 刷新平台分类
+     */
+    public void refreshAreaByPlatform(String platform){
+        areaService.refreshAreaByPlatform(platform);
+    }
+
+    /**
      * 刷新平台分类的缓存
      * @return 属性数据
      */
