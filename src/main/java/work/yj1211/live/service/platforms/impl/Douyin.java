@@ -127,7 +127,9 @@ public class Douyin implements BasePlatform {
                     roomInfo.setRoomPic("");
                 }
                 roomInfo.setCategoryName("");
-                roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
+                if (roomInfo.getIsLive() == 1) {
+                    roomInfo.setOnline(roomObj.getJSONObject("room_view_stats").getInt("display_value"));
+                }
                 roomInfo.setOwnerName(ownerObj.getStr("nickname"));
                 roomInfo.setOwnerHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
             }

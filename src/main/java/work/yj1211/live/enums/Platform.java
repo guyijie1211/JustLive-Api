@@ -8,11 +8,11 @@ public enum Platform {
     /**
      * 斗鱼
      */
-    DOUYU("douyu", "斗鱼直播", "https://imgsrc.baidu.com/forum/pic/item/297a0bfc1e178a823f26bdc2e103738da977e81c.jpg", true),
+    DOUYU("douyu", "斗鱼", "https://imgsrc.baidu.com/forum/pic/item/297a0bfc1e178a823f26bdc2e103738da977e81c.jpg", true),
     /**
      * 虎牙
      */
-    HUYA("huya", "虎牙直播", "https://imgsrc.baidu.com/forum/pic/item/902397dda144ad3469d79d09dea20cf430ad85d7.jpg", true),
+    HUYA("huya", "虎牙", "https://imgsrc.baidu.com/forum/pic/item/902397dda144ad3469d79d09dea20cf430ad85d7.jpg", true),
     /**
      * 哔哩哔哩直播
      */
