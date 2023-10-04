@@ -1,5 +1,6 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
@@ -251,7 +252,10 @@ public class LiveRoomService{
         try {
             if ("all".equalsIgnoreCase(platform)) {
                 platformMap.values().forEach(basePlatform -> {
-                    list.addAll(basePlatform.search(finalKeyWords));
+                    List<Owner> platformList = basePlatform.search(finalKeyWords);
+                    if (CollUtil.isNotEmpty(platformList)) {
+                        list.addAll(platformList);
+                    }
                 });
             } else {
                 list.addAll(platformMap.get(platform).search(finalKeyWords));
