@@ -194,45 +194,55 @@ public class Huya implements BasePlatform {
      */
     @Override
     public LiveRoomInfo getRoomInfo(String roomId) {
-        String room_url = "https://m.huya.com/" + roomId;
-        String response = HttpRequest.get(room_url)
-                .contentType("application/x-www-form-urlencoded")
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
-                .execute().body();
-        Matcher matcherOwnerName = OwnerName.matcher(response);
-        Matcher matcherRoomName = RoomName.matcher(response);
-        Matcher matcherRoomPic = RoomPic.matcher(response);
-        Matcher matcherOwnerPic = OwnerPic.matcher(response);
-        Matcher matcherAREA = AREA.matcher(response);
-        Matcher matcherNum = Num.matcher(response);
-        Matcher matcherISLIVE = ISLIVE.matcher(response);
-        if (!(matcherOwnerName.find() && matcherRoomName.find() && matcherRoomPic.find()
-                && matcherOwnerPic.find() && matcherAREA.find() && matcherNum.find()
-                && matcherISLIVE.find())){
-            log.info("虎牙获取房间信息异常,roomId:[{}]",roomId);
-        }
-        String resultOwnerName = matcherOwnerName.group();
-        String resultRoomName = matcherRoomName.group();
-        String resultRoomPic = matcherRoomPic.group();
-        String resultOwnerPic = matcherOwnerPic.group();
-        String resultAREA = matcherAREA.group();
-        String resultNum = matcherNum.group();
-        String resultISLIVE = matcherISLIVE.group();
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+        try {
+            String room_url = "https://m.huya.com/" + roomId;
+            String response = HttpRequest.get(room_url)
+                    .contentType("application/x-www-form-urlencoded")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Mobile Safari/537.36")
+                    .execute().body();
+            if (response.contains("找不到此页面")) {
+                log.info("虎牙获取房间信息异常,找不到此页面,roomId:[{}]", roomId);
+                return liveRoomInfo;
+            }
+            Matcher matcherOwnerName = OwnerName.matcher(response);
+            Matcher matcherRoomName = RoomName.matcher(response);
+            Matcher matcherRoomPic = RoomPic.matcher(response);
+            Matcher matcherOwnerPic = OwnerPic.matcher(response);
+            Matcher matcherAREA = AREA.matcher(response);
+            Matcher matcherNum = Num.matcher(response);
+            Matcher matcherISLIVE = ISLIVE.matcher(response);
+            if (!(matcherOwnerName.find() && matcherRoomName.find() && matcherRoomPic.find()
+                    && matcherOwnerPic.find() && matcherAREA.find() && matcherNum.find()
+                    && matcherISLIVE.find())) {
+                log.info("虎牙获取房间信息异常,roomId:[{}]", roomId);
+                return liveRoomInfo;
+            }
+            String resultOwnerName = matcherOwnerName.group();
+            String resultRoomName = matcherRoomName.group();
+            String resultRoomPic = matcherRoomPic.group();
+            String resultOwnerPic = matcherOwnerPic.group();
+            String resultAREA = matcherAREA.group();
+            String resultNum = matcherNum.group();
+            String resultISLIVE = matcherISLIVE.group();
 
-        liveRoomInfo.setRoomId(roomId);
-        liveRoomInfo.setPlatForm(getPlatformCode());
-        liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "\":\"", "\""));
-        liveRoomInfo.setRoomName(getMatchResult(resultRoomName,"\":\"", "\""));
-        liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "\":\"", "\""));
-        liveRoomInfo.setOwnerHeadPic(getMatchResult(resultOwnerPic, "\":\"", "\""));
-        liveRoomInfo.setCategoryName(getMatchResult(resultAREA, "\":\"", "\""));
-        if (!getMatchResult(resultNum, "\":", ",").equals("") ) {
-            liveRoomInfo.setOnline(Integer.valueOf(getMatchResult(resultNum, "\":", ",")));
-        } else {
-            liveRoomInfo.setOnline(0);
+
+            liveRoomInfo.setRoomId(roomId);
+            liveRoomInfo.setPlatForm(getPlatformCode());
+            liveRoomInfo.setOwnerName(getMatchResult(resultOwnerName, "\":\"", "\""));
+            liveRoomInfo.setRoomName(getMatchResult(resultRoomName, "\":\"", "\""));
+            liveRoomInfo.setRoomPic(getMatchResult(resultRoomPic, "\":\"", "\""));
+            liveRoomInfo.setOwnerHeadPic(getMatchResult(resultOwnerPic, "\":\"", "\""));
+            liveRoomInfo.setCategoryName(getMatchResult(resultAREA, "\":\"", "\""));
+            if (!getMatchResult(resultNum, "\":", ",").equals("")) {
+                liveRoomInfo.setOnline(Integer.valueOf(getMatchResult(resultNum, "\":", ",")));
+            } else {
+                liveRoomInfo.setOnline(0);
+            }
+            liveRoomInfo.setIsLive(getMatchResult(resultISLIVE, "\":", ",").equals("2") ? 1 : 0);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        liveRoomInfo.setIsLive(getMatchResult(resultISLIVE, "\":", ",").equals("2") ? 1 : 0);
 
         return liveRoomInfo;
     }
