@@ -32,12 +32,15 @@ public class CC implements BasePlatform {
     @Override
     public List<Owner> search(String keyWords){
         List<Owner> list = new ArrayList<>();
-        String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
+        String url = "https://cc.163.com/search/anchor/?page=1&size=10&query=" + keyWords;
         String result = HttpUtil.doGet(url);
+        if (!JSONUtil.isTypeJSONObject(result)) {
+            return list;
+        }
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
-            ownerList.forEach(item ->{
+            ownerList.forEach(item -> {
                 JSONObject responseOwner = (JSONObject) item;
                 Owner owner = new Owner();
                 owner.setNickName(responseOwner.getStr("nickname"));
