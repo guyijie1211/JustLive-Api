@@ -24,7 +24,6 @@ import work.yj1211.live.utils.thread.AsyncService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -127,15 +126,21 @@ public class LiveRoomService{
     public List<LiveRoomInfo> getRoomsByUid(String uid){
         List<LiveRoomInfo> roomList = new ArrayList<>();
         List<SimpleRoomInfo> simpleRoomInfoList = roomMapper.getRoomsByUid(uid);
-        CountDownLatch countDownLatch = new CountDownLatch(simpleRoomInfoList.size());
-        for(SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList){
-            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
+        // 有几个平台就开几个线程
+        int threadCount = Platform.values().length;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        for (SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList) {
+//            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
+            // 遍历平台 提交获取推荐列表的任务
+            BasePlatform platform = platformMap.get(simpleRoomInfo.getPlatform());
+            executorService.execute(() -> roomList.add(platform.getRoomInfo(simpleRoomInfo.getRoomId())));
         }
+        executorService.shutdown();
         try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            roomList.clear();
+            // 阻塞，直到线程池里所有任务结束
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("getRoomsByUid报错:", e);
         }
         return roomList;
     }
