@@ -203,14 +203,17 @@ public class CC implements BasePlatform {
     @Override
     public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-        int start = (page-1)*size;
+        int start = (page - 1) * size;
         String url = "https://cc.163.com/api/category/live/?format=json&start=" + start + "&size=" + size;
         String result = HttpUtil.doGet(url);
+        if (!JSONUtil.isTypeJSONObject(result)) {
+            return list;
+        }
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (null != resultJsonObj) {
             JSONArray data = resultJsonObj.getJSONArray("lives");
             Iterator<Object> it = data.iterator();
-            while(it.hasNext()){
+            while (it.hasNext()) {
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
                 liveRoomInfo.setPlatForm(getPlatformCode());
