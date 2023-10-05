@@ -2,6 +2,7 @@ package work.yj1211.live.service;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -133,6 +134,9 @@ public class LiveRoomService{
         for (SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList) {
 //            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
             // 遍历平台 提交获取推荐列表的任务
+            if (!NumberUtil.isNumber(simpleRoomInfo.getRoomId())) {
+                continue;
+            }
             BasePlatform platform = platformMap.get(simpleRoomInfo.getPlatform());
             executorService.execute(() -> roomList.add(platform.getRoomInfo(simpleRoomInfo.getRoomId())));
         }
