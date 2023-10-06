@@ -95,40 +95,33 @@ public class Bilibili implements BasePlatform {
 
     @Override
     public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
-        // TODO
         List<UrlQuality> qualityResultList = new ArrayList<>();
-        // 通过原始方法转，后续再写获取多线路的
-        Map<String, String> urlMap = new HashMap<>();
-        getRealUrl(urlMap, roomId);
-        urlMap.forEach((qn, url) -> {
-            UrlQuality quality = new UrlQuality();
-            qualityResultList.add(quality);
-            quality.setSourceName("线路1");
-            quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
-            quality.setPlayUrl(url);
-            switch (qn) {
-                case "OD":
-                    quality.setPriority(5);
-                    quality.setQualityName("原画");
-                    break;
-                case "HD":
-                    quality.setPriority(4);
-                    quality.setQualityName("蓝光");
-                    break;
-                case "SD":
-                    quality.setPriority(3);
-                    quality.setQualityName("超清");
-                    break;
-                case "LD":
-                    quality.setPriority(2);
-                    quality.setQualityName("高清");
-                    break;
-                case "FD":
-                    quality.setPriority(1);
-                    quality.setQualityName("流畅");
-                    break;
+        try {
+            String realRoomId = getRealRoomId(roomId);
+            String requestUrl = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + realRoomId +
+                    "&protocol=0,1&format=0,1,2&codec=0,1&platform=web";
+            String resultText = cn.hutool.http.HttpRequest.get(requestUrl)
+                    .execute().body();
+            JSONObject resultObj = JSONUtil.parseObj(resultText);
+            if (resultObj.getInt("code") == 0) {
+                Map<Integer, String> qnMap = new HashMap<>();
+                JSONArray qnDescArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("g_qn_desc");
+                qnDescArray.forEach(qnDesc -> {
+                    qnMap.put(((JSONObject) qnDesc).getInt("qn"), ((JSONObject) qnDesc).getStr("desc"));
+                });
+
+                JSONArray streamArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("stream");
+                JSONArray formatArray = ((JSONObject) streamArray.get(0)).getJSONArray("format");
+                JSONArray codecArray = ((JSONObject) formatArray.get(0)).getJSONArray("codec");
+                JSONArray acceptQnArray = ((JSONObject) codecArray.get(0)).getJSONArray("accept_qn");
+                for (int i = 0; i < acceptQnArray.size(); i++) {
+                    int qn = (Integer) acceptQnArray.get(i);
+                    qualityResultList.addAll(getUrlQuality(realRoomId, (Integer) qn, qnMap.get(qn), 20 - i * 2));
+                }
             }
-        });
+        } catch (Exception e) {
+            log.error("bilibili---获取直播源异常", e);
+        }
         Collections.sort(qualityResultList);
         return qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
@@ -355,9 +348,78 @@ public class Bilibili implements BasePlatform {
         return list;
     }
 
-    private String getUserName(String responseName){
-        String str1 = responseName.replaceAll("<em class=\"keyword\">","");
-        String result = str1.replaceAll("</em>","");
+    private String getUserName(String responseName) {
+        String str1 = responseName.replaceAll("<em class=\"keyword\">", "");
+        String result = str1.replaceAll("</em>", "");
         return result;
+    }
+
+    /**
+     * 获取真实房间号
+     */
+    private String getRealRoomId(String roomId) {
+        String resultText = cn.hutool.http.HttpRequest.get("https://api.live.bilibili.com/xlive/web-room/v1/index/getH5InfoByRoom?room_id=" + roomId)
+                .execute().body();
+        JSONObject resultObj = JSONUtil.parseObj(resultText);
+        if (resultObj.getInt("code") == 0) {
+            return resultObj.getJSONObject("data").getJSONObject("room_info").getStr("room_id");
+        }
+        return roomId;
+    }
+
+    private List<UrlQuality> getUrlQuality(String roomId, Integer qn, String qualityName, Integer priority) {
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        int sourceNum = 1;
+        int sourceProNum = 1;
+        String requestUrl = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + roomId +
+                "&protocol=0,1&format=0,2&codec=0,1&platform=web&qn=" + qn;
+        String resultText = cn.hutool.http.HttpRequest.get(requestUrl)
+                .execute().body();
+        JSONObject resultObj = JSONUtil.parseObj(resultText);
+        if (resultObj.getInt("code") == 0) {
+            JSONArray streamArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("stream");
+            // http_stream/http_hls
+            for (int i = 0; i < streamArray.size(); i++) {
+                JSONObject streamObj = (JSONObject) streamArray.get(i);
+                if (streamObj.getStr("protocol_name").equalsIgnoreCase("http_stream")) {
+                    continue;
+                }
+                JSONArray formatArray = streamObj.getJSONArray("format");
+                // formatArray理论上只有一个, flv/m3u8
+                for (int j = 0; j < formatArray.size(); j++) {
+                    JSONObject formatObj = (JSONObject) formatArray.get(j);
+                    String urlType = formatObj.getStr("format_name");
+                    JSONArray codecArray = formatObj.getJSONArray("codec");
+                    // 编码avc/hevc, hevc就是原画pro这种(需要新开一个QualityName)
+                    for (int k = 0; k < codecArray.size(); k++) {
+                        JSONObject codecObj = (JSONObject) codecArray.get(k);
+                        if (!Objects.equals(codecObj.getInt("current_qn"), qn)) {
+                            continue;
+                        }
+                        String codec = codecObj.getStr("codec_name");
+                        boolean isHevc = codec.equalsIgnoreCase("hevc");
+                        JSONArray urlList = codecObj.getJSONArray("url_info");
+                        String baseUrl = codecObj.getStr("base_url");
+                        for (int p = 0; p < urlList.size(); p++) {
+                            JSONObject urlObj = (JSONObject) urlList.get(p);
+                            UrlQuality urlQuality = new UrlQuality();
+                            urlQuality.setUrlType(urlType);
+                            urlQuality.setPlayUrl(urlObj.getStr("host") + baseUrl + urlObj.getStr("extra"));
+                            if (isHevc) {
+                                urlQuality.setQualityName(qualityName + "PRO");
+                                urlQuality.setSourceName("线路" + sourceProNum++);
+                                urlQuality.setPriority(priority - 1);
+                            } else {
+                                urlQuality.setQualityName(qualityName);
+                                urlQuality.setSourceName("线路" + sourceNum++);
+                                urlQuality.setPriority(priority);
+                            }
+                            qualityResultList.add(urlQuality);
+                        }
+                    }
+                }
+            }
+        }
+        return qualityResultList;
     }
 }
