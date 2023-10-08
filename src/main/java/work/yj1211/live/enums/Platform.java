@@ -16,11 +16,11 @@ public enum Platform {
     /**
      * 哔哩哔哩直播
      */
-    BILIBILI("bilibili", "哔哩哔哩", "", true),
+    BILIBILI("bilibili", "哔哩哔哩", "https://www.baijingapp.com/uploads/product/16511192803960/165111928035679.png", true),
     /**
      * 抖音直播
      */
-    DOUYIN("douyin", "抖音直播", "https://imgsrc.baidu.com/forum/pic/item/0ff41bd5ad6eddc48041796937dbb6fd536633fa.jpg", false),
+    DOUYIN("douyin", "抖音直播", "https://img.zcool.cn/community/01595a5b0e1dcca8012181b009d6d2.png", false),
     /**
      * 网易cc
      */
