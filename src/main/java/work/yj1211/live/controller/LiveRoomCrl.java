@@ -12,6 +12,7 @@ import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.model.response.Result;
 import work.yj1211.live.service.LiveRoomService;
+import work.yj1211.live.utils.FixHuya;
 import work.yj1211.live.utils.annotation.AccessLimit;
 
 import javax.websocket.server.PathParam;
@@ -198,5 +199,12 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getAllSupportPlatforms() {
         return ResultFactory.buildSuccessResult(liveRoomService.getAllSupportPlatforms());
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getHuyaInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getHuyaInfo(@PathParam("roomId") String roomId) {
+        return ResultFactory.buildSuccessResult(FixHuya.getLiveStreamInfo(roomId));
     }
 }

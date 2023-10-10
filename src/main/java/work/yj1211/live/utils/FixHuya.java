@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -56,7 +57,7 @@ public class FixHuya {
     }
 
 
-    private static LiveStreamInfo getLiveStreamInfo(String roomId) {
+    public static LiveStreamInfo getLiveStreamInfo(String roomId) {
         String room_url = "https://m.huya.com/" + roomId;
         String response = HttpRequest.create(room_url)
                 .setContentType(HttpContentType.FORM)
