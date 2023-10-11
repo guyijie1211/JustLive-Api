@@ -139,7 +139,8 @@ public class Douyu implements BasePlatform {
     }
 
     @Override
-    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
         List<UrlQuality> qualityResultList = new ArrayList<>();
         cn.hutool.http.HttpResponse response = cn.hutool.http.HttpRequest.get("https://www.douyu.com/betard/" + roomId)
                 .header(Header.REFERER, "https://www.douyu.com/" + roomId)
@@ -180,14 +181,20 @@ public class Douyu implements BasePlatform {
                     urlQuality.setPlayUrl(url);
                     urlQuality.setSourceName(sourceName);
                     urlQuality.setPriority(10 - i);
+                    resultMap.put(sourceName, null);
                     qualityResultList.add(urlQuality);
                 }
             });
         }
         Collections.sort(qualityResultList);
-        return qualityResultList.stream().collect(
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
         );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     private String getPlayArgs(String crptext, String realRoomId) {

@@ -94,7 +94,8 @@ public class Bilibili implements BasePlatform {
     }
 
     @Override
-    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
         List<UrlQuality> qualityResultList = new ArrayList<>();
         try {
             String realRoomId = getRealRoomId(roomId);
@@ -116,16 +117,21 @@ public class Bilibili implements BasePlatform {
                 JSONArray acceptQnArray = ((JSONObject) codecArray.get(0)).getJSONArray("accept_qn");
                 for (int i = 0; i < acceptQnArray.size(); i++) {
                     int qn = (Integer) acceptQnArray.get(i);
-                    qualityResultList.addAll(getUrlQuality(realRoomId, (Integer) qn, qnMap.get(qn), 20 - i * 2));
+                    qualityResultList.addAll(getUrlQuality(realRoomId, (Integer) qn, qnMap.get(qn), 20 - i * 2, resultMap));
                 }
             }
         } catch (Exception e) {
             log.error("bilibili---获取直播源异常", e);
         }
         Collections.sort(qualityResultList);
-        return qualityResultList.stream().collect(
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
         );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     /**
@@ -367,7 +373,7 @@ public class Bilibili implements BasePlatform {
         return roomId;
     }
 
-    private List<UrlQuality> getUrlQuality(String roomId, Integer qn, String qualityName, Integer priority) {
+    private List<UrlQuality> getUrlQuality(String roomId, Integer qn, String qualityName, Integer priority, LinkedHashMap<String, List<UrlQuality>> resultMap) {
         List<UrlQuality> qualityResultList = new ArrayList<>();
         int sourceNum = 1;
         int sourceProNum = 1;
@@ -407,10 +413,12 @@ public class Bilibili implements BasePlatform {
                             urlQuality.setPlayUrl(urlObj.getStr("host") + baseUrl + urlObj.getStr("extra"));
                             if (isHevc) {
                                 urlQuality.setQualityName(qualityName + "PRO");
+                                resultMap.put("线路" + sourceProNum, null);
                                 urlQuality.setSourceName("线路" + sourceProNum++);
                                 urlQuality.setPriority(priority - 1);
                             } else {
                                 urlQuality.setQualityName(qualityName);
+                                resultMap.put("线路" + sourceNum, null);
                                 urlQuality.setSourceName("线路" + sourceNum++);
                                 urlQuality.setPriority(priority);
                             }

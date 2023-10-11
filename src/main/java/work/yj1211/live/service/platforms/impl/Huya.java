@@ -106,7 +106,8 @@ public class Huya implements BasePlatform {
     }
 
     @Override
-    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
         List<UrlQuality> qualityResultList = new ArrayList<>();
         try {
             String resultText = HttpRequest.get("https://m.huya.com/" + roomId)
@@ -139,6 +140,7 @@ public class Huya implements BasePlatform {
                     urlQuality.setUrlType(PlayUrlType.FLV.getTypeName());
                     urlQuality.setPlayUrl(streamUrl);
                     urlQuality.setSourceName("线路" + (i + 1));
+                    resultMap.put(urlQuality.getSourceName(), null);
                     urlQuality.setPriority(10 - j);
                     qualityResultList.add(urlQuality);
                 }
@@ -150,9 +152,14 @@ public class Huya implements BasePlatform {
             log.error("虎牙---获取直播源异常", e);
         }
         Collections.sort(qualityResultList);
-        return qualityResultList.stream().collect(
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
         );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     /**

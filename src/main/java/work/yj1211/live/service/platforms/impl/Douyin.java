@@ -71,7 +71,8 @@ public class Douyin implements BasePlatform {
     }
 
     @Override
-    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
         List<UrlQuality> qualityResultList = new ArrayList<>();
         try {
             HttpResponse response = HttpRequest.get("https://live.douyin.com/webcast/room/web/enter/")
@@ -88,18 +89,23 @@ public class Douyin implements BasePlatform {
                 JSONArray qualityList = streamUrlObj.getJSONObject("live_core_sdk_data").getJSONObject("pull_data").getJSONObject("options").getJSONArray("qualities");
                 qualityList.forEach(quality -> {
                     // flv
-                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.FLV, qualityData));
+                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.FLV, qualityData, resultMap));
                     // hls
-                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.HLS, qualityData));
+                    qualityResultList.add(getDouyinUrlQuality((JSONObject) quality, PlayUrlType.HLS, qualityData, resultMap));
                 });
             }
         } catch (Exception e) {
             log.error("抖音---获取直播源异常", e);
         }
         Collections.sort(qualityResultList);
-        return qualityResultList.stream().collect(
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
         );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     @Override
@@ -482,7 +488,7 @@ public class Douyin implements BasePlatform {
     /**
      * 获取抖音直播源信息
      */
-    private UrlQuality getDouyinUrlQuality(JSONObject quality, PlayUrlType urlType, JSONObject qualityData) {
+    private UrlQuality getDouyinUrlQuality(JSONObject quality, PlayUrlType urlType, JSONObject qualityData, LinkedHashMap<String, List<UrlQuality>> resultMap) {
         String sdkKey = quality.getStr("sdk_key");
         String sdkName = quality.getStr("name");
 
@@ -490,6 +496,7 @@ public class Douyin implements BasePlatform {
         urlQuality.setQualityName(sdkName);
         urlQuality.setUrlType(urlType.getTypeName());
         urlQuality.setPlayUrl(qualityData.getJSONObject(sdkKey).getJSONObject("main").getStr(urlType.getTypeName()));
+        resultMap.put(urlType.getTypeName(), null);
         urlQuality.setSourceName(urlType.getTypeName());
         urlQuality.setPriority(quality.getInt("level"));
         return urlQuality;

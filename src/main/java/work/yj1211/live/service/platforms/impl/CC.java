@@ -87,8 +87,9 @@ public class CC implements BasePlatform {
     }
 
     @Override
-    public Map<String, List<UrlQuality>> getRealUrl(String roomId) {
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
         // TODO
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
         List<UrlQuality> qualityResultList = new ArrayList<>();
         // 通过原始方法转，后续再写获取多线路的
         Map<String, String> urlMap = new HashMap<>();
@@ -96,6 +97,7 @@ public class CC implements BasePlatform {
         urlMap.forEach((qn, url) -> {
             UrlQuality quality = new UrlQuality();
             qualityResultList.add(quality);
+            resultMap.put("线路1", null);
             quality.setSourceName("线路1");
             quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
             quality.setPlayUrl(url);
@@ -123,9 +125,14 @@ public class CC implements BasePlatform {
             }
         });
         Collections.sort(qualityResultList);
-        return qualityResultList.stream().collect(
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
                 Collectors.groupingBy(UrlQuality::getSourceName)
         );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     /**
