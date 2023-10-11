@@ -2,7 +2,6 @@ package work.yj1211.live.service.platforms.impl;
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -262,67 +261,79 @@ public class Douyin implements BasePlatform {
     @Override
     public List<Owner> search(String keyWords) {
         List<Owner> list = new ArrayList<>();
-        try {
-            String serverUrl = "https://www.douyin.com/aweme/v1/web/live/search/?" +
-                    "device_platform=webapp&" +
-                    "aid=6383&" +
-                    "channel=channel_pc_web&" +
-                    "search_channel=aweme_live&" +
-                    "keyword=" + URLUtil.encode(keyWords) + "&" +
-                    "search_source=switch_tab&" +
-                    "query_correct_type=1&" +
-                    "is_filter_search=0&" +
-                    "from_group_id&" +
-                    "offset=0&" +
-                    "count=10&" +
-                    "pc_client_type=1&" +
-                    "version_code=170400&" +
-                    "version_name=17.4.0&" +
-                    "cookie_enabled=true&" +
-                    "screen_width=1980&" +
-                    "screen_height=1080&" +
-                    "browser_language=zh-CN&" +
-                    "browser_platform=Win32&" +
-                    "browser_name=Edge&" +
-                    "browser_version=114.0.1823.58&" +
-                    "browser_online=true&" +
-                    "engine_name=Blink&" +
-                    "engine_version=114.0.0.0&" +
-                    "os_name=Windows&" +
-                    "os_version=10&" +
-                    "cpu_core_num=12&" +
-                    "device_memory=8&" +
-                    "platform=PC&" +
-                    "downlink=4.7&" +
-                    "effective_type=4g&" +
-                    "round_trip_time=100&" +
-                    "webid=7247041636524377637";
-
-            String requestUrlSign = signUrl(serverUrl);
-            HttpResponse response = HttpRequest.get(requestUrlSign)
-                    .addHeaders(getSearchHead())
-                    .execute();
-            String result = response.body();
-            JSONObject resultJsonObj = JSONUtil.parseObj(result);
-            if (resultJsonObj.getInt("status_code") == 0) {
-                JSONArray data = resultJsonObj.getJSONArray("data");
-                data.forEach(room -> {
-                    JSONObject roomObj = JSONUtil.parseObj(((JSONObject) room).getJSONObject("lives").getStr("rawdata"));
-                    JSONObject ownerObj = roomObj.getJSONObject("owner");
-                    Owner ownerInfo = new Owner();
-                    ownerInfo.setPlatform(getPlatformCode());
-                    ownerInfo.setRoomId(ownerObj.getStr("web_rid"));
-                    ownerInfo.setNickName(ownerObj.getStr("nickname"));
-                    ownerInfo.setHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
-                    ownerInfo.setCateName("");
-                    ownerInfo.setFollowers(ownerObj.getJSONObject("follow_info").getInt("follower_count"));
-                    ownerInfo.setIsLive("1");
-                    list.add(ownerInfo);
-                });
-            }
-        } catch (Exception e) {
-            log.error("抖音---搜索异常", e);
+        LiveRoomInfo roomInfo = getRoomInfo(keyWords);
+        if (roomInfo != null) {
+            Owner ownerInfo = new Owner();
+            ownerInfo.setPlatform(getPlatformCode());
+            ownerInfo.setRoomId(roomInfo.getRoomId());
+            ownerInfo.setNickName(roomInfo.getOwnerName());
+            ownerInfo.setHeadPic(roomInfo.getOwnerHeadPic());
+            ownerInfo.setCateName("");
+            ownerInfo.setFollowers(0);
+            ownerInfo.setIsLive(ownerInfo.getIsLive());
+            list.add(ownerInfo);
         }
+//        try {
+//            String serverUrl = "https://www.douyin.com/aweme/v1/web/live/search/?" +
+//                    "device_platform=webapp&" +
+//                    "aid=6383&" +
+//                    "channel=channel_pc_web&" +
+//                    "search_channel=aweme_live&" +
+//                    "keyword=" + URLUtil.encode(keyWords) + "&" +
+//                    "search_source=switch_tab&" +
+//                    "query_correct_type=1&" +
+//                    "is_filter_search=0&" +
+//                    "from_group_id&" +
+//                    "offset=0&" +
+//                    "count=10&" +
+//                    "pc_client_type=1&" +
+//                    "version_code=170400&" +
+//                    "version_name=17.4.0&" +
+//                    "cookie_enabled=true&" +
+//                    "screen_width=1980&" +
+//                    "screen_height=1080&" +
+//                    "browser_language=zh-CN&" +
+//                    "browser_platform=Win32&" +
+//                    "browser_name=Edge&" +
+//                    "browser_version=114.0.1823.58&" +
+//                    "browser_online=true&" +
+//                    "engine_name=Blink&" +
+//                    "engine_version=114.0.0.0&" +
+//                    "os_name=Windows&" +
+//                    "os_version=10&" +
+//                    "cpu_core_num=12&" +
+//                    "device_memory=8&" +
+//                    "platform=PC&" +
+//                    "downlink=4.7&" +
+//                    "effective_type=4g&" +
+//                    "round_trip_time=100&" +
+//                    "webid=7247041636524377637";
+//
+//            String requestUrlSign = signUrl(serverUrl);
+//            HttpResponse response = HttpRequest.get(requestUrlSign)
+//                    .addHeaders(getSearchHead())
+//                    .execute();
+//            String result = response.body();
+//            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+//            if (resultJsonObj.getInt("status_code") == 0) {
+//                JSONArray data = resultJsonObj.getJSONArray("data");
+//                data.forEach(room -> {
+//                    JSONObject roomObj = JSONUtil.parseObj(((JSONObject) room).getJSONObject("lives").getStr("rawdata"));
+//                    JSONObject ownerObj = roomObj.getJSONObject("owner");
+//                    Owner ownerInfo = new Owner();
+//                    ownerInfo.setPlatform(getPlatformCode());
+//                    ownerInfo.setRoomId(ownerObj.getStr("web_rid"));
+//                    ownerInfo.setNickName(ownerObj.getStr("nickname"));
+//                    ownerInfo.setHeadPic((String) ownerObj.getJSONObject("avatar_thumb").getJSONArray("url_list").get(0));
+//                    ownerInfo.setCateName("");
+//                    ownerInfo.setFollowers(ownerObj.getJSONObject("follow_info").getInt("follower_count"));
+//                    ownerInfo.setIsLive("1");
+//                    list.add(ownerInfo);
+//                });
+//            }
+//        } catch (Exception e) {
+//            log.error("抖音---搜索异常", e);
+//        }
         return list;
     }
 
