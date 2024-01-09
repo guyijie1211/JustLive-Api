@@ -2,14 +2,13 @@ package work.yj1211.live.service.platforms.impl;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.net.NetUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.net.URLDecoder;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -26,8 +25,10 @@ import work.yj1211.live.utils.FixHuya;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 
-import java.net.URLDecoder;
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -111,7 +112,7 @@ public class Huya implements BasePlatform {
         List<UrlQuality> qualityResultList = new ArrayList<>();
         try {
             String resultText = HttpRequest.get("https://m.huya.com/" + roomId)
-                    .header(Header.USER_AGENT, "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/91.0.4472.69")
+                    .header(Header.USER_AGENT, "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36 Edg/117.0.0.0")
                     .execute().body();
             String pattern = "window\\.HNF_GLOBAL_INIT.=.\\{(.*?)\\}.</script>";
             String text = ReUtil.get(pattern, resultText, 1);
@@ -131,7 +132,7 @@ public class Huya implements BasePlatform {
                     JSONObject line = (JSONObject) lines.get(i);
                     String streamName = line.getStr("sStreamName");
                     String streamUrl = line.getStr("sFlvUrl") + "/" + streamName + ".flv";
-                    streamUrl += "?" + processAnticode(line.getStr("sFlvAntiCode"), getAnonymousUid(), streamName);
+                    streamUrl += "?" + processAnticode(line.getStr("sFlvAntiCode"), getUid(13, 10), streamName);
                     if (bitRate > 0) {
                         streamUrl += "&ratio=" + bitRate;
                     }
@@ -355,76 +356,85 @@ public class Huya implements BasePlatform {
         return result;
     }
 
-    private String processAnticode(String anticode, String uid, String streamname) {
+    private String processAnticode(String anticode, String uid, String streamname) throws UnsupportedEncodingException {
         Map<String, String> q = new HashMap<>();
         try {
             for (String param : anticode.split("&")) {
                 String[] pair = param.split("=");
-                String key = URLDecoder.decode(pair[0], "UTF-8");
+                String key = URLDecoder.decode(pair[0], StandardCharsets.UTF_8);
                 String value = "";
                 if (pair.length > 1) {
-                    value = URLDecoder.decode(pair[1], "UTF-8");
+                    value = URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
                 }
                 q.put(key, value);
             }
         } catch (Exception e) {
 
         }
+        q.put("t", "100");
+        q.put("ctype", "huya_live");
 
+        long seqid = System.currentTimeMillis() + Long.parseLong(uid);
 
-        q.put("ver", "1");
-        q.put("sv", "2110211124");
+        // wsTime
+        String wsTime = Long.toHexString(Instant.now().toEpochMilli() / 1000 + 21600);
 
-        long seqid = Long.parseLong(uid) + (long) (Instant.now().getEpochSecond() * 1000);
-        q.put("seqid", String.valueOf(seqid));
-        q.put("uid", uid);
-        q.put("uuid", IdUtil.randomUUID());
+        // wsSecret
+        String fm = new String(Base64.decode(URLDecoder.decode(q.get("fm"), StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+        String wsSecretPrefix = fm.split("_")[0];
 
-        String ss = DigestUtil.md5Hex(String.format("%s|%s|%s", q.get("seqid"), q.get("ctype"), q.get("t")), StandardCharsets.UTF_8);
-        q.put("fm", new String(Base64.decode(q.get("fm")), StandardCharsets.UTF_8)
-                .replace("$0", q.get("uid"))
-                .replace("$1", streamname)
-                .replace("$2", ss)
-                .replace("$3", q.get("wsTime")));
+        byte[] temp = String.format("%s|%s|%s", seqid, q.get("ctype"), q.get("t")).getBytes(StandardCharsets.UTF_8);
+        String wsSecretHash = SecureUtil.md5(new ByteArrayInputStream(temp));
+        String wsSecret = SecureUtil.md5(new ByteArrayInputStream(String.format("%s_%s_%s_%s_%s", wsSecretPrefix, uid, streamname, wsSecretHash, wsTime).getBytes(StandardCharsets.UTF_8)));
 
-        String wsSecret = DigestUtil.md5Hex(q.get("fm"), StandardCharsets.UTF_8);
-        q.put("wsSecret", wsSecret);
-        q.remove("fm");
+        LinkedHashMap<String, String> resultParamMap = new LinkedHashMap<>();
+        resultParamMap.put("wsSecret", wsSecret);
+        resultParamMap.put("wsTime", wsTime);
+        resultParamMap.put("seqid", String.valueOf(seqid));
+        resultParamMap.put("ctype", "huya_live");
+        resultParamMap.put("ver", "1");
+        resultParamMap.put("fs", q.get("fs"));
+        resultParamMap.put("sphdcdn", q.putIfAbsent("sphdcdn", ""));
+        resultParamMap.put("sphdDC", q.putIfAbsent("sphdDC", ""));
+        resultParamMap.put("sphd", Objects.requireNonNull(q.putIfAbsent("sphd", "")).replace("*", "%2A"));
+        resultParamMap.put("exsphd", Objects.requireNonNull(q.putIfAbsent("exsphd", "")).replace(",", "%2C"));
+        resultParamMap.put("uid", uid);
+        resultParamMap.put("uuid", getUUid());
+        resultParamMap.put("t", "100");
+        resultParamMap.put("sv", "2110211124");
+        return buildQueryString(resultParamMap);
+    }
 
-        if (q.containsKey("txyp")) {
-            q.remove("txyp");
-        }
-
-        String result = buildQueryString(q);
-        return result;
+    public static String getUUid() {
+        long currentTime = System.currentTimeMillis();
+        SecureRandom random = new SecureRandom();
+        int randomValue = random.nextInt(Integer.MAX_VALUE);
+        long result = (currentTime % 10000000000L * 1000L + randomValue) % 4294967295L;
+        return Long.toString(result);
     }
 
     private String buildQueryString(Map<String, String> params) {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-        }
+        params.forEach((key, value) -> {
+            sb.append(key).append("=").append(value).append("&");
+        });
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1); // 移除最后一个"&"字符
         }
         return sb.toString();
     }
 
-    private String getAnonymousUid() {
-        String url = "https://udblgn.huya.com/web/anonymousLogin";
-        String requestBody = "{\"appId\": 5002, \"byPass\": 3, \"context\": \"\", \"version\": \"2.4\", \"data\": {}}";
+    public String getUid(Integer length, Integer bound) {
+        Random random = new Random();
+        char[] characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .toCharArray();
+        StringBuilder uid = new StringBuilder();
 
-        HttpRequest request = HttpRequest.post(url)
-                .contentType("application/json")
-                .body(requestBody);
-
-        HttpResponse response = request.execute();
-
-        if (response.isOk()) {
-            JSONObject jsonObject = new JSONObject(response.body());
-            return jsonObject.getJSONObject("data").getStr("uid");
+        if (length != null) {
+            for (int i = 0; i < length; i++) {
+                uid.append(characters[random.nextInt(bound != null ? bound : characters.length)]);
+            }
         }
 
-        return null;
+        return uid.toString();
     }
 }
