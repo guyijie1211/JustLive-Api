@@ -189,26 +189,38 @@ public class Bilibili implements BasePlatform {
     public LiveRoomInfo getRoomInfo(String roomId){
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         try{
-            String req_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/" +
-                    "getH5InfoByRoom?room_id="+roomId;
+            String req_url = "https://api.live.bilibili.com/room/v1/Room/get_info" +
+                    "?room_id=" + roomId;
             JSONObject response = HttpRequest.create(req_url).get().getBodyJson();
             JSONObject data = response.getJSONObject("data");
-            JSONObject room_info = data.getJSONObject("room_info");
-            JSONObject owner_info = data.getJSONObject("anchor_info").getJSONObject("base_info");
+            JSONObject ownerInfo = getOwnerInfo(data.getStr("uid"));
             liveRoomInfo.setPlatForm(getPlatformCode());
-            liveRoomInfo.setRoomId(room_info.getStr("room_id"));
-            liveRoomInfo.setCategoryId(room_info.getInt("area_id").toString());
-            liveRoomInfo.setCategoryName(room_info.getStr("area_name"));
-            liveRoomInfo.setRoomName(room_info.getStr("title"));
-            liveRoomInfo.setOwnerName(owner_info.getStr("uname"));
-            liveRoomInfo.setRoomPic(room_info.getStr("cover"));
-            liveRoomInfo.setOwnerHeadPic(owner_info.getStr("face"));
-            liveRoomInfo.setOnline(room_info.getInt("online"));
-            liveRoomInfo.setIsLive((room_info.getInt("live_status") == 1) ? 1 : 0);
+            liveRoomInfo.setRoomId(data.getStr("room_id"));
+            liveRoomInfo.setCategoryId(data.getInt("area_id").toString());
+            liveRoomInfo.setCategoryName(data.getStr("area_name"));
+            liveRoomInfo.setRoomName(data.getStr("title"));
+            liveRoomInfo.setOwnerName(ownerInfo.getStr("uname"));
+            liveRoomInfo.setRoomPic(data.getStr("user_cover"));
+            liveRoomInfo.setOwnerHeadPic(ownerInfo.getStr("face"));
+            liveRoomInfo.setOnline(data.getInt("online"));
+            liveRoomInfo.setIsLive((data.getInt("live_status") == 1) ? 1 : 0);
         } catch (Exception e) {
             log.error("BILIBILI---获取直播间信息异常---roomId：" + roomId + "\n" + e);
         }
         return liveRoomInfo;
+    }
+
+    public JSONObject getOwnerInfo(String ownerId) {
+        JSONObject data = new JSONObject();
+        try {
+            String req_url = "https://api.live.bilibili.com/live_user/v1/Master/info" +
+                    "?uid=" + ownerId;
+            JSONObject response = HttpRequest.create(req_url).get().getBodyJson();
+            data = response.getJSONObject("data").getJSONObject("info");
+        } catch (Exception e) {
+            log.error("BILIBILI---获取主播信息异常---ownerId：" + ownerId + "\n" + e);
+        }
+        return data;
     }
 
     /**
