@@ -1,6 +1,5 @@
 package work.yj1211.live.service;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +65,6 @@ public class AreaService {
             }
         });
     }
-
-    private Map<String, String> douyuAreaNameMap;
 
     /**
      * 根据平台更新分类信息
@@ -188,11 +185,11 @@ public class AreaService {
         });
         // 获取areaType的顺序,并按照顺序返回结果
         QueryWrapper<AreaTypeIndex> wrapper = new QueryWrapper<>();
-        wrapper.select("distinct area_type_platform").eq("platform", platform);
+        wrapper.select("distinct area_type").eq("platform", platform);
         List<AreaTypeIndex> typeList =  areaTypeIndexService.list(wrapper);
         typeList.forEach(type->{
-            if (resultMap.containsKey(type.getAreaTypePlatform())) {
-                resultList.add(resultMap.get(type.getAreaTypePlatform()));
+            if (resultMap.containsKey(type.getAreaType())) {
+                resultList.add(resultMap.get(type.getAreaType()));
             } else {
                 resultList.add(new ArrayList<>());
             }
@@ -229,20 +226,6 @@ public class AreaService {
         List<AreaInfo> resultList = areaInfoService.list(queryInfoWrapper);
 
         return resultList.stream().collect(Collectors.toMap(AreaInfo::getPlatform, Function.identity()));
-    }
-
-    /**
-     * 获取斗鱼的分区名映射
-     * @return
-     */
-    public Map<String, String> getDouyuAreaNameMap() {
-        if (CollectionUtil.isEmpty(douyuAreaNameMap)) {
-            QueryWrapper<AreaInfo> queryWrapper = new QueryWrapper<>();
-            queryWrapper.select("distinct area_name, area_id").eq("platform", "douyu");
-            List<AreaInfo> areaInfoList = areaInfoService.list(queryWrapper);
-            douyuAreaNameMap = areaInfoList.stream().collect(Collectors.toMap(AreaInfo::getAreaId, AreaInfo::getAreaName));
-        }
-        return  douyuAreaNameMap;
     }
 
     /**

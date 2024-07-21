@@ -60,13 +60,12 @@ public interface BasePlatform {
 
     /**
      * 获取分区房间列表
-     *
-     * @param areaInfo
-     * @param page     页数
-     * @param size     分页大小
+     * @param area 分区名
+     * @param page 页数
+     * @param size 分页大小
      * @return
      */
-    List<LiveRoomInfo> getAreaRoom(AreaInfo areaInfo, int page, int size);
+    List<LiveRoomInfo> getAreaRoom(String area, int page, int size);
 
     /**
      * 搜索
