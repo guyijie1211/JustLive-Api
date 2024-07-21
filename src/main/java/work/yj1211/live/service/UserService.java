@@ -1,6 +1,9 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.aliyun.dm20151123.models.SingleSendMailRequest;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
@@ -11,12 +14,16 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.UserMailMapper;
 import work.yj1211.live.mapper.UserMapper;
+import work.yj1211.live.model.app.BannerInfo;
+import work.yj1211.live.model.app.UpdateInfo;
+import work.yj1211.live.model.platformArea.AreaSimple;
+import work.yj1211.live.model.user.ActiveUsers;
+import work.yj1211.live.model.user.UserInfo;
+import work.yj1211.live.model.user.UserMail;
+import work.yj1211.live.service.platforms.impl.Douyu;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.service.platforms.impl.Douyu;
-import work.yj1211.live.model.*;
-import work.yj1211.live.model.platformArea.AreaSimple;
 
 import java.util.Date;
 import java.util.List;
@@ -73,7 +80,7 @@ public class UserService {
     }
 
     public void followRoom(String platform, String roomId, String uid){
-        if (platform.equalsIgnoreCase(Platform.DOUYU.getName())) {
+        if (platform.equalsIgnoreCase(Platform.DOUYU.getCode())) {
             roomId = douyu.getRealRoomId(roomId);
         }
         if (userMapper.checkFollowed(platform, roomId, uid) == null) {
@@ -250,5 +257,34 @@ public class UserService {
             return userInfo.getUid();
         }
         return null;
+    }
+
+    /**
+     * 获取缓存中的BannerInfoList，如果为空就重新获取文件
+     * @return
+     */
+    public List<BannerInfo> getBannerInfoList() {
+        if (CollUtil.isEmpty(Global.updateInfoList)) {
+            return refreshBannerInfoList();
+        } else {
+            return Global.updateInfoList;
+        }
+    }
+
+    /**
+     * 刷新缓存中的BannerInfoList
+     * @return
+     */
+    public List<BannerInfo> refreshBannerInfoList() {
+        String readResult = Global.readTxtFile(Global.getBannerInfoFilePath());
+        List<BannerInfo> updateInfoList;
+        try {
+            updateInfoList = JSONUtil.parseArray(readResult).toList(BannerInfo.class);
+        } catch (Exception e) {
+            Global.updateInfoList = ListUtil.empty();
+            return ListUtil.empty();
+        }
+        Global.updateInfoList = updateInfoList;
+        return updateInfoList;
     }
 }

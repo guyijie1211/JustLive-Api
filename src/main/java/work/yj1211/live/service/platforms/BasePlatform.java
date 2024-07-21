@@ -1,10 +1,12 @@
 package work.yj1211.live.service.platforms;
 
 import org.springframework.stereotype.Component;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,11 +17,11 @@ import java.util.Map;
 @Component
 public interface BasePlatform {
     /**
-     * 平台名称
+     * 平台code
      *
-     * @return
+     * @return Platform.getCode()
      */
-    String getPlatformName();
+    String getPlatformCode();
 
     /**
      * 获取直播地址
@@ -27,6 +29,13 @@ public interface BasePlatform {
      * @param rid 房间号
      */
     void getRealUrl(Map<String, String> urls, String rid);
+
+    /**
+     * 获取直播源地址(包含线路)
+     *
+     * @return Map(线路, 直播源信息列表)
+     */
+    LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId);
 
     /**
      * 获取房间信息

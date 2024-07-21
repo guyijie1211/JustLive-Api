@@ -7,14 +7,17 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
+import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -48,8 +51,8 @@ public class Bilibili implements BasePlatform {
     }
 
     @Override
-    public String getPlatformName() {
-        return Platform.BILIBILI.getName();
+    public String getPlatformCode() {
+        return Platform.BILIBILI.getCode();
     }
 
     /**
@@ -88,6 +91,47 @@ public class Bilibili implements BasePlatform {
         if (bilibiliOD.equals(od.split("&qn=")[1].split("&trid=")[0])){
             urls.put("OD",od);
         }
+    }
+
+    @Override
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        try {
+            String realRoomId = getRealRoomId(roomId);
+            String requestUrl = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + realRoomId +
+                    "&protocol=0,1&format=0,1,2&codec=0,1&platform=web";
+            String resultText = cn.hutool.http.HttpRequest.get(requestUrl)
+                    .execute().body();
+            JSONObject resultObj = JSONUtil.parseObj(resultText);
+            if (resultObj.getInt("code") == 0) {
+                Map<Integer, String> qnMap = new HashMap<>();
+                JSONArray qnDescArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("g_qn_desc");
+                qnDescArray.forEach(qnDesc -> {
+                    qnMap.put(((JSONObject) qnDesc).getInt("qn"), ((JSONObject) qnDesc).getStr("desc"));
+                });
+
+                JSONArray streamArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("stream");
+                JSONArray formatArray = ((JSONObject) streamArray.get(0)).getJSONArray("format");
+                JSONArray codecArray = ((JSONObject) formatArray.get(0)).getJSONArray("codec");
+                JSONArray acceptQnArray = ((JSONObject) codecArray.get(0)).getJSONArray("accept_qn");
+                for (int i = 0; i < acceptQnArray.size(); i++) {
+                    int qn = (Integer) acceptQnArray.get(i);
+                    qualityResultList.addAll(getUrlQuality(realRoomId, (Integer) qn, qnMap.get(qn), 20 - i * 2, resultMap));
+                }
+            }
+        } catch (Exception e) {
+            log.error("bilibili---获取直播源异常", e);
+        }
+        Collections.sort(qualityResultList);
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
     }
 
     /**
@@ -145,26 +189,38 @@ public class Bilibili implements BasePlatform {
     public LiveRoomInfo getRoomInfo(String roomId){
         LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
         try{
-            String req_url = "https://api.live.bilibili.com/xlive/web-room/v1/index/" +
-                    "getH5InfoByRoom?room_id="+roomId;
+            String req_url = "https://api.live.bilibili.com/room/v1/Room/get_info" +
+                    "?room_id=" + roomId;
             JSONObject response = HttpRequest.create(req_url).get().getBodyJson();
             JSONObject data = response.getJSONObject("data");
-            JSONObject room_info = data.getJSONObject("room_info");
-            JSONObject owner_info = data.getJSONObject("anchor_info").getJSONObject("base_info");
-            liveRoomInfo.setPlatForm(getPlatformName());
-            liveRoomInfo.setRoomId(room_info.getStr("room_id"));
-            liveRoomInfo.setCategoryId(room_info.getInt("area_id").toString());
-            liveRoomInfo.setCategoryName(room_info.getStr("area_name"));
-            liveRoomInfo.setRoomName(room_info.getStr("title"));
-            liveRoomInfo.setOwnerName(owner_info.getStr("uname"));
-            liveRoomInfo.setRoomPic(room_info.getStr("cover"));
-            liveRoomInfo.setOwnerHeadPic(owner_info.getStr("face"));
-            liveRoomInfo.setOnline(room_info.getInt("online"));
-            liveRoomInfo.setIsLive((room_info.getInt("live_status") == 1) ? 1 : 0);
+            JSONObject ownerInfo = getOwnerInfo(data.getStr("uid"));
+            liveRoomInfo.setPlatForm(getPlatformCode());
+            liveRoomInfo.setRoomId(data.getStr("room_id"));
+            liveRoomInfo.setCategoryId(data.getInt("area_id").toString());
+            liveRoomInfo.setCategoryName(data.getStr("area_name"));
+            liveRoomInfo.setRoomName(data.getStr("title"));
+            liveRoomInfo.setOwnerName(ownerInfo.getStr("uname"));
+            liveRoomInfo.setRoomPic(data.getStr("user_cover"));
+            liveRoomInfo.setOwnerHeadPic(ownerInfo.getStr("face"));
+            liveRoomInfo.setOnline(data.getInt("online"));
+            liveRoomInfo.setIsLive((data.getInt("live_status") == 1) ? 1 : 0);
         } catch (Exception e) {
             log.error("BILIBILI---获取直播间信息异常---roomId：" + roomId + "\n" + e);
         }
         return liveRoomInfo;
+    }
+
+    public JSONObject getOwnerInfo(String ownerId) {
+        JSONObject data = new JSONObject();
+        try {
+            String req_url = "https://api.live.bilibili.com/live_user/v1/Master/info" +
+                    "?uid=" + ownerId;
+            JSONObject response = HttpRequest.create(req_url).get().getBodyJson();
+            data = response.getJSONObject("data").getJSONObject("info");
+        } catch (Exception e) {
+            log.error("BILIBILI---获取主播信息异常---ownerId：" + ownerId + "\n" + e);
+        }
+        return data;
     }
 
     /**
@@ -185,7 +241,7 @@ public class Bilibili implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("roomid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("area_id"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
@@ -222,7 +278,7 @@ public class Bilibili implements BasePlatform {
                     bilibiliArea.setAreaId(areaItemObject.getStr("id"));
                     bilibiliArea.setAreaName(areaItemObject.getStr("name"));
                     bilibiliArea.setAreaPic(areaItemObject.getStr("pic"));
-                    bilibiliArea.setPlatform(getPlatformName());
+                    bilibiliArea.setPlatform(getPlatformCode());
                     areaInfoList.add(bilibiliArea);
                 });
             });
@@ -232,44 +288,50 @@ public class Bilibili implements BasePlatform {
 
     /**
      * 获取b站分区房间
-     *
-     * @param areaInfo
-     * @param page     请求页数
+     * @param area 分类id
+     * @param page 请求页数
      * @param size
      * @return
      */
     @Override
-    public List<LiveRoomInfo> getAreaRoom(AreaInfo areaInfo, int page, int size){
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-        String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
-                "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
-                areaInfo.getAreaId()+"&sort_type=&page="+page;
-        String result = HttpUtil.doGet(url);
-        JSONObject resultJsonObj = JSONUtil.parseObj(result);
-        if (resultJsonObj.getInt("code") == 0) {
-            JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
-            Iterator<Object> it = data.iterator();
-            while(it.hasNext()){
-                JSONObject roomInfo = (JSONObject) it.next();
-                LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
-                liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
-                liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
-                liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
-                liveRoomInfo.setRoomName(roomInfo.getStr("title"));
-                liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
-                liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
-                liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
-                liveRoomInfo.setOnline(roomInfo.getInt("online"));
-                liveRoomInfo.setIsLive(1);
-                list.add(liveRoomInfo);
+        try {
+            AreaInfo areaInfo = Global.getAreaInfo(getPlatformCode(), area);
+            String url = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?" +
+                    "platform=web&parent_area_id="+areaInfo.getAreaType()+"&area_id="+
+                    areaInfo.getAreaId()+"&sort_type=&page="+page;
+            String result = HttpUtil.doGet(url);
+            JSONObject resultJsonObj = JSONUtil.parseObj(result);
+            if (resultJsonObj.getInt("code") == 0) {
+                JSONArray data = resultJsonObj.getJSONObject("data").getJSONArray("list");
+                Iterator<Object> it = data.iterator();
+                while(it.hasNext()){
+                    JSONObject roomInfo = (JSONObject) it.next();
+                    LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
+                    liveRoomInfo.setPlatForm(getPlatformCode());
+                    liveRoomInfo.setRoomId(roomInfo.getInt("roomid").toString());
+                    liveRoomInfo.setCategoryId(roomInfo.getInt("area_id").toString());
+                    liveRoomInfo.setCategoryName(roomInfo.getStr("area_name"));
+                    liveRoomInfo.setRoomName(roomInfo.getStr("title"));
+                    liveRoomInfo.setOwnerName(roomInfo.getStr("uname"));
+                    liveRoomInfo.setRoomPic(roomInfo.getStr("cover"));
+                    liveRoomInfo.setOwnerHeadPic(roomInfo.getStr("face"));
+                    liveRoomInfo.setOnline(roomInfo.getInt("online"));
+                    liveRoomInfo.setIsLive(1);
+                    list.add(liveRoomInfo);
+                }
             }
+        } catch (Exception e) {
+            log.error("BILIBILI---获取分区房间异常---area：" + area, e);
         }
+
         return list;
     }
 
     /**
      * 搜索
+     *
      * @param keyWords 搜索关键字
      * @return
      */
@@ -293,7 +355,7 @@ public class Bilibili implements BasePlatform {
                 owner.setNickName(getUserName(responseOwner.getStr("uname")));
                 owner.setCateName(responseOwner.getStr("无"));
                 owner.setHeadPic(responseOwner.getStr("uface"));
-                owner.setPlatform(getPlatformName());
+                owner.setPlatform(getPlatformCode());
                 owner.setRoomId(responseOwner.getStr("roomid"));
                 owner.setIsLive(responseOwner.getBool("is_live") ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("attentions"));
@@ -304,9 +366,80 @@ public class Bilibili implements BasePlatform {
         return list;
     }
 
-    private String getUserName(String responseName){
-        String str1 = responseName.replaceAll("<em class=\"keyword\">","");
-        String result = str1.replaceAll("</em>","");
+    private String getUserName(String responseName) {
+        String str1 = responseName.replaceAll("<em class=\"keyword\">", "");
+        String result = str1.replaceAll("</em>", "");
         return result;
+    }
+
+    /**
+     * 获取真实房间号
+     */
+    private String getRealRoomId(String roomId) {
+        String resultText = cn.hutool.http.HttpRequest.get("https://api.live.bilibili.com/xlive/web-room/v1/index/getH5InfoByRoom?room_id=" + roomId)
+                .execute().body();
+        JSONObject resultObj = JSONUtil.parseObj(resultText);
+        if (resultObj.getInt("code") == 0) {
+            return resultObj.getJSONObject("data").getJSONObject("room_info").getStr("room_id");
+        }
+        return roomId;
+    }
+
+    private List<UrlQuality> getUrlQuality(String roomId, Integer qn, String qualityName, Integer priority, LinkedHashMap<String, List<UrlQuality>> resultMap) {
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        int sourceNum = 1;
+        int sourceProNum = 1;
+        String requestUrl = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + roomId +
+                "&protocol=0,1&format=0,2&codec=0,1&platform=web&qn=" + qn;
+        String resultText = cn.hutool.http.HttpRequest.get(requestUrl)
+                .execute().body();
+        JSONObject resultObj = JSONUtil.parseObj(resultText);
+        if (resultObj.getInt("code") == 0) {
+            JSONArray streamArray = resultObj.getJSONObject("data").getJSONObject("playurl_info").getJSONObject("playurl").getJSONArray("stream");
+            // http_stream/http_hls
+            for (int i = 0; i < streamArray.size(); i++) {
+                JSONObject streamObj = (JSONObject) streamArray.get(i);
+                if (streamObj.getStr("protocol_name").equalsIgnoreCase("http_stream")) {
+                    continue;
+                }
+                JSONArray formatArray = streamObj.getJSONArray("format");
+                // formatArray理论上只有一个, flv/m3u8
+                for (int j = 0; j < formatArray.size(); j++) {
+                    JSONObject formatObj = (JSONObject) formatArray.get(j);
+                    String urlType = formatObj.getStr("format_name");
+                    JSONArray codecArray = formatObj.getJSONArray("codec");
+                    // 编码avc/hevc, hevc就是原画pro这种(需要新开一个QualityName)
+                    for (int k = 0; k < codecArray.size(); k++) {
+                        JSONObject codecObj = (JSONObject) codecArray.get(k);
+                        if (!Objects.equals(codecObj.getInt("current_qn"), qn)) {
+                            continue;
+                        }
+                        String codec = codecObj.getStr("codec_name");
+                        boolean isHevc = codec.equalsIgnoreCase("hevc");
+                        JSONArray urlList = codecObj.getJSONArray("url_info");
+                        String baseUrl = codecObj.getStr("base_url");
+                        for (int p = 0; p < urlList.size(); p++) {
+                            JSONObject urlObj = (JSONObject) urlList.get(p);
+                            UrlQuality urlQuality = new UrlQuality();
+                            urlQuality.setUrlType(urlType);
+                            urlQuality.setPlayUrl(urlObj.getStr("host") + baseUrl + urlObj.getStr("extra"));
+                            if (isHevc) {
+                                urlQuality.setQualityName(qualityName + "PRO");
+                                resultMap.put("线路" + sourceProNum, null);
+                                urlQuality.setSourceName("线路" + sourceProNum++);
+                                urlQuality.setPriority(priority - 1);
+                            } else {
+                                urlQuality.setQualityName(qualityName);
+                                resultMap.put("线路" + sourceNum, null);
+                                urlQuality.setSourceName("线路" + sourceNum++);
+                                urlQuality.setPriority(priority);
+                            }
+                            qualityResultList.add(urlQuality);
+                        }
+                    }
+                }
+            }
+        }
+        return qualityResultList;
     }
 }

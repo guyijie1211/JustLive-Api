@@ -6,15 +6,18 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import work.yj1211.live.enums.Platform;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.service.platforms.BasePlatform;
+import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.HttpUtil;
 import work.yj1211.live.utils.http.HttpContentType;
 import work.yj1211.live.utils.http.HttpRequest;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,18 +32,21 @@ public class CC implements BasePlatform {
     @Override
     public List<Owner> search(String keyWords){
         List<Owner> list = new ArrayList<>();
-        String url = "https://cc.163.com/search/anchor/?page=1&size=10&query="+keyWords;
+        String url = "https://cc.163.com/search/anchor/?page=1&size=10&query=" + keyWords;
         String result = HttpUtil.doGet(url);
+        if (!JSONUtil.isTypeJSONObject(result)) {
+            return list;
+        }
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (resultJsonObj != null) {
             JSONArray ownerList = resultJsonObj.getJSONObject("webcc_anchor").getJSONArray("result");
-            ownerList.forEach(item ->{
+            ownerList.forEach(item -> {
                 JSONObject responseOwner = (JSONObject) item;
                 Owner owner = new Owner();
                 owner.setNickName(responseOwner.getStr("nickname"));
                 owner.setCateName(responseOwner.getStr("game_name"));
                 owner.setHeadPic(responseOwner.getStr("portrait"));
-                owner.setPlatform(getPlatformName());
+                owner.setPlatform(getPlatformCode());
                 owner.setRoomId(responseOwner.getStr("cuteid"));
                 owner.setIsLive((responseOwner.getStr("status") !=null && responseOwner.getInt("status") == 1) ? "1" : "0");
                 owner.setFollowers(responseOwner.getInt("follower_num"));
@@ -54,8 +60,8 @@ public class CC implements BasePlatform {
     }
 
     @Override
-    public String getPlatformName() {
-        return Platform.CC.getName();
+    public String getPlatformCode() {
+        return Platform.CC.getCode();
     }
 
     /**
@@ -80,6 +86,55 @@ public class CC implements BasePlatform {
         }
     }
 
+    @Override
+    public LinkedHashMap<String, List<UrlQuality>> getRealUrl(String roomId) {
+        // TODO
+        LinkedHashMap<String, List<UrlQuality>> resultMap = new LinkedHashMap<>();
+        List<UrlQuality> qualityResultList = new ArrayList<>();
+        // 通过原始方法转，后续再写获取多线路的
+        Map<String, String> urlMap = new HashMap<>();
+        getRealUrl(urlMap, roomId);
+        urlMap.forEach((qn, url) -> {
+            UrlQuality quality = new UrlQuality();
+            qualityResultList.add(quality);
+            resultMap.put("线路1", null);
+            quality.setSourceName("线路1");
+            quality.setUrlType(url.contains(".flv") ? "flv" : "hls");
+            quality.setPlayUrl(url);
+            switch (qn) {
+                case "OD":
+                    quality.setPriority(5);
+                    quality.setQualityName("原画");
+                    break;
+                case "HD":
+                    quality.setPriority(4);
+                    quality.setQualityName("蓝光");
+                    break;
+                case "SD":
+                    quality.setPriority(3);
+                    quality.setQualityName("超清");
+                    break;
+                case "LD":
+                    quality.setPriority(2);
+                    quality.setQualityName("高清");
+                    break;
+                case "FD":
+                    quality.setPriority(1);
+                    quality.setQualityName("流畅");
+                    break;
+            }
+        });
+        Collections.sort(qualityResultList);
+        Map<String, List<UrlQuality>> dataMap = qualityResultList.stream().collect(
+                Collectors.groupingBy(UrlQuality::getSourceName)
+        );
+
+        resultMap.forEach((sourceName, valueList) -> {
+            resultMap.put(sourceName, dataMap.get(sourceName));
+        });
+        return resultMap;
+    }
+
     /**
      * 获取CC房间信息
      * @param roomId
@@ -100,7 +155,7 @@ public class CC implements BasePlatform {
                 JSONObject resultRealJsonObj = JSONUtil.parseObj(resultReal);
                 if (null != resultRealJsonObj){
                     JSONObject roomInfo = resultRealJsonObj.getJSONArray("data").getJSONObject(0);
-                    liveRoomInfo.setPlatForm(getPlatformName());
+                    liveRoomInfo.setPlatForm(getPlatformCode());
                     liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                     liveRoomInfo.setCategoryId(roomInfo.getStr("cate_id"));//分类id不对
                     liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -142,7 +197,7 @@ public class CC implements BasePlatform {
                 ccArea.setAreaId(areaInfo.getStr("gametype"));
                 ccArea.setAreaName(areaInfo.getStr("name"));
                 ccArea.setAreaPic(areaInfo.getStr("cover"));
-                ccArea.setPlatform(getPlatformName());
+                ccArea.setPlatform(getPlatformCode());
                 areaInfoList.add(ccArea);
             });
         }
@@ -158,17 +213,20 @@ public class CC implements BasePlatform {
     @Override
     public List<LiveRoomInfo> getRecommend(int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
-        int start = (page-1)*size;
+        int start = (page - 1) * size;
         String url = "https://cc.163.com/api/category/live/?format=json&start=" + start + "&size=" + size;
         String result = HttpUtil.doGet(url);
+        if (!JSONUtil.isTypeJSONObject(result)) {
+            return list;
+        }
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
         if (null != resultJsonObj) {
             JSONArray data = resultJsonObj.getJSONArray("lives");
             Iterator<Object> it = data.iterator();
-            while(it.hasNext()){
+            while (it.hasNext()) {
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));
@@ -196,16 +254,16 @@ public class CC implements BasePlatform {
 
     /**
      * 获取CC分区房间
-     *
-     * @param areaInfo
+     * @param area
      * @param page
      * @param size
      * @return
      */
     @Override
-    public List<LiveRoomInfo> getAreaRoom(AreaInfo areaInfo, int page, int size){
+    public List<LiveRoomInfo> getAreaRoom(String area, int page, int size){
         List<LiveRoomInfo> list = new ArrayList<>();
         int start = (page-1)*size;
+        AreaInfo areaInfo = Global.getAreaInfo("cc", area);
         String url = "https://cc.163.com/api/category/" + areaInfo.getAreaId() + "/?format=json&tag_id=0&start=" + start + "&size=" +size;
         String result = HttpUtil.doGet(url);
         JSONObject resultJsonObj = JSONUtil.parseObj(result);
@@ -215,7 +273,7 @@ public class CC implements BasePlatform {
             while(it.hasNext()){
                 JSONObject roomInfo = (JSONObject) it.next();
                 LiveRoomInfo liveRoomInfo = new LiveRoomInfo();
-                liveRoomInfo.setPlatForm(getPlatformName());
+                liveRoomInfo.setPlatForm(getPlatformCode());
                 liveRoomInfo.setRoomId(roomInfo.getStr("cuteid"));
                 liveRoomInfo.setCategoryId(roomInfo.getStr("gametype"));
                 liveRoomInfo.setCategoryName(roomInfo.getStr("gamename"));

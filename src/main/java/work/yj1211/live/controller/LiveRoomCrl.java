@@ -1,19 +1,24 @@
 package work.yj1211.live.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
-import work.yj1211.live.model.platformArea.AreaInfoIndex;
-import work.yj1211.live.service.LiveRoomService;
-import work.yj1211.live.utils.annotation.AccessLimit;
-import work.yj1211.live.model.LiveRoomInfo;
-import work.yj1211.live.model.Owner;
-import work.yj1211.live.model.Result;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.UrlQuality;
 import work.yj1211.live.model.platformArea.AreaInfo;
+import work.yj1211.live.model.platformArea.AreaInfoIndex;
+import work.yj1211.live.model.response.Result;
+import work.yj1211.live.service.LiveRoomService;
+import work.yj1211.live.utils.FixHuya;
+import work.yj1211.live.utils.annotation.AccessLimit;
 
 import javax.websocket.server.PathParam;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author YJ1211
@@ -30,7 +35,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommend(@PathParam("page")int page, @PathParam("size")int size){
         List<LiveRoomInfo> list = liveRoomService.getRecommend(page, 10);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -39,7 +46,10 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommendByPlatform(@PathParam("platform")String platform, @PathParam("page")int page, @PathParam("size")int size){
         List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatform(platform, page, size);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
+
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -47,11 +57,10 @@ public class LiveRoomCrl {
     @RequestMapping(value = "/api/live/getRecommendByPlatformArea", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
     public Result getRecommendByPlatformArea(@PathParam("platform")String platform, @PathParam("area")String area, @PathParam("page")int page, @PathParam("size")int size){
-        AreaInfo areaInfo = new AreaInfo();
-        areaInfo.setPlatform(platform);
-        areaInfo.setAreaName(area);
-        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(areaInfo, page, size);
-        Collections.sort(list);
+        List<LiveRoomInfo> list = liveRoomService.getRecommendByPlatformArea(platform, area, page, size);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -60,7 +69,9 @@ public class LiveRoomCrl {
     @ResponseBody
     public Result getRecommendByAreaAll(@PathParam("areaType")String areaType, @PathParam("area")String area, @PathParam("page")int page){
         List<LiveRoomInfo> list = liveRoomService.getRecommendByAreaAll(areaType, area, page, 10);
-        Collections.sort(list);
+        if (CollectionUtil.isNotEmpty(list)) {
+            Collections.sort(list);
+        }
         return ResultFactory.buildSuccessResult(list);
     }
 
@@ -70,6 +81,15 @@ public class LiveRoomCrl {
     public Result getRealUrl(@PathParam("platform")String platform, @PathParam("roomId")String roomId){
         Map<String, String> urls;
         urls = liveRoomService.getRealUrl(platform, roomId);
+        return ResultFactory.buildSuccessResult(urls);
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getRealUrlMultiSource", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getRealUrlMultiSource(@PathParam("platform")String platform, @PathParam("roomId")String roomId){
+        Map<String, List<UrlQuality>> urls;
+        urls = liveRoomService.getRealUrlMultiSource(platform, roomId);
         return ResultFactory.buildSuccessResult(urls);
     }
 
@@ -97,7 +117,10 @@ public class LiveRoomCrl {
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("获取房间信息失败");
         }
-        Collections.sort(roomInfoList);
+        if (CollectionUtil.isNotEmpty(roomInfoList)) {
+            log.debug(String.valueOf(roomInfoList.size()));
+            Collections.sort(roomInfoList);
+        }
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 
@@ -114,9 +137,21 @@ public class LiveRoomCrl {
     }
 
     @CrossOrigin
+    @RequestMapping(value = "/api/live/refreshAreaByPlatform", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result refreshAreaByPlatform(@PathParam("platform")String platform){
+        try{
+            liveRoomService.refreshAreaByPlatform(platform);
+        }catch (Exception e){
+            return ResultFactory.buildFailResult(e.getMessage());
+        }
+        return ResultFactory.buildSuccessResult("刷新成功");
+    }
+
+    @CrossOrigin
     @RequestMapping(value = "/api/live/getAreas", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
     @ResponseBody
-    public Result getAreas(@PathParam("platform")String platform){
+    public Result getAreasByPlatform(@PathParam("platform")String platform){
         List<List<AreaInfo>> areaMap = liveRoomService.getAreaMap(platform);
         return ResultFactory.buildSuccessResult(areaMap);
     }
@@ -138,7 +173,9 @@ public class LiveRoomCrl {
         if (null == roomInfoList){
             return ResultFactory.buildFailResult("请求过多");
         }
-        Collections.sort(roomInfoList);
+        if (CollectionUtil.isNotEmpty(roomInfoList)) {
+            Collections.sort(roomInfoList);
+        }
         return ResultFactory.buildSuccessResult(roomInfoList);
     }
 
@@ -155,5 +192,19 @@ public class LiveRoomCrl {
             return ResultFactory.buildFailResult("刷新失败, 看下日志报错信息");
         }
         return ResultFactory.buildSuccessResult(result);
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getAllSupportPlatforms", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getAllSupportPlatforms() {
+        return ResultFactory.buildSuccessResult(liveRoomService.getAllSupportPlatforms());
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getHuyaInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getHuyaInfo(@PathParam("roomId") String roomId) {
+        return ResultFactory.buildSuccessResult(FixHuya.getLiveStreamInfo(roomId));
     }
 }

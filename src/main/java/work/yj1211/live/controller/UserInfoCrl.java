@@ -3,15 +3,16 @@ package work.yj1211.live.controller;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import work.yj1211.live.factory.ResultFactory;
 import work.yj1211.live.mapper.UserMailMapper;
-import work.yj1211.live.service.UserService;
-import work.yj1211.live.model.*;
+import work.yj1211.live.model.app.UpdateInfo;
 import work.yj1211.live.model.platformArea.AreaSimple;
+import work.yj1211.live.model.response.Result;
+import work.yj1211.live.model.user.UserInfo;
+import work.yj1211.live.model.user.UserMail;
+import work.yj1211.live.service.UserService;
 
 import javax.websocket.server.PathParam;
 import java.util.List;
@@ -271,5 +272,27 @@ public class UserInfoCrl {
     public Result versionUpdate(){
         UpdateInfo updateInfo = userService.checkUpdate();
         return ResultFactory.buildSuccessResult(updateInfo);
+    }
+
+    /**
+     * 获取BannerInfoList
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/getBannerInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result getBannerInfo(){
+        return ResultFactory.buildSuccessResult(userService.getBannerInfoList());
+    }
+
+    /**
+     * 获取BannerInfoList
+     * @return
+     */
+    @CrossOrigin
+    @RequestMapping(value = "/api/live/refreshBannerInfo", method = RequestMethod.GET, produces = "application/json; charset = UTF-8")
+    @ResponseBody
+    public Result refreshBannerInfo(){
+        return ResultFactory.buildSuccessResult(userService.refreshBannerInfoList());
     }
 }

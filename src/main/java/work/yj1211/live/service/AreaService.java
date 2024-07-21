@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import work.yj1211.live.enums.Platform;
 import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.model.platformArea.AreaTypeIndex;
@@ -13,11 +14,9 @@ import work.yj1211.live.model.platformArea.AreaTypeIndexService;
 import work.yj1211.live.service.mysql.AreaInfoIndexService;
 import work.yj1211.live.service.mysql.AreaInfoService;
 import work.yj1211.live.service.platforms.BasePlatform;
+import work.yj1211.live.utils.Global;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,19 @@ public class AreaService {
     public void refreshAreasAll() {
         // 刷新所有平台分区
         platformList.forEach(platform -> {
-            saveOrUpdateBatchByPlatform(platform.getAreaList(), platform.getPlatformName());
+            saveOrUpdateBatchByPlatform(platform.getAreaList(), platform.getPlatformCode());
+        });
+    }
+
+    /**
+     * 刷新平台分区
+     */
+    public void refreshAreaByPlatform(String refreshPlatform) {
+        // 刷新所有平台分区
+        platformList.forEach(platform -> {
+            if (platform.getPlatformCode().equalsIgnoreCase(refreshPlatform)) {
+                saveOrUpdateBatchByPlatform(platform.getAreaList(), platform.getPlatformCode());
+            }
         });
     }
 
@@ -64,7 +75,9 @@ public class AreaService {
      * @param platform 平台
      */
     public void saveOrUpdateBatchByPlatform(List<AreaInfo> areaList, String platform) {
+        // Map<平台+areaTypePlatform, areaType>
         Map<String, String> areaTypeNameMap = getAreaTypeNameMap();
+        // Map<areaName, id>
         Map<String, Integer> areaIndexMap = getAreaIndexMap();
         log.info("获取到【{}】分类信息【{}】条", platform, areaList.size());
         // 更新列表
@@ -75,9 +88,11 @@ public class AreaService {
         QueryWrapper<AreaInfo> areaSelect = new QueryWrapper<>();
         areaSelect.eq("platform", platform);
         List<AreaInfo> areaInfoList = areaInfoService.list(areaSelect);
+        // Map<平台名+分区id, 主键id>
         Map<String, Integer> areaInfoMap = areaInfoList.stream()
                 .collect(Collectors.toMap(areaInfo -> areaInfo.getPlatform() + areaInfo.getAreaId(), AreaInfo::getId, (a1, a2) -> a1));
 
+        // 遍历 新 获取到的平台分区
         areaList.forEach(areaNew -> {
             // 写入映射后的分区类型
             String areaTypeIndexString = areaNew.getPlatform() + areaNew.getTypeName();
@@ -161,13 +176,14 @@ public class AreaService {
         // 转成Map
         Map<String, List<AreaInfo>> resultMap = new HashMap<>();
         areaInfoList.forEach(areaInfo -> {
-            String typeName = areaInfo.getTypeName();
-            if (resultMap.containsKey(typeName)) {
-                resultMap.get(typeName).add(areaInfo);
+//            String typeName = areaInfo.getTypeName();
+            String typeIndex = areaInfo.getIndexType();
+            if (resultMap.containsKey(typeIndex)) {
+                resultMap.get(typeIndex).add(areaInfo);
             } else {
                 List<AreaInfo> list = new ArrayList<>();
                 list.add(areaInfo);
-                resultMap.put(areaInfo.getTypeName(), list);
+                resultMap.put(typeIndex, list);
             }
         });
         // 获取areaType的顺序,并按照顺序返回结果
@@ -182,6 +198,17 @@ public class AreaService {
             }
         });
         return resultList;
+    }
+
+    /**
+     * 分区信息存到缓存
+     */
+    public void saveAreaInfoLocal() {
+        Arrays.stream(Platform.values()).forEach(platform -> {
+            String platformCode = platform.getCode();
+            Global.platformAreaMap.put(platformCode, getAllAreasByPlatform(platformCode));
+        });
+        Global.AreaIndexList = getAllAreas();
     }
 
     /**

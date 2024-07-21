@@ -6,13 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
-import work.yj1211.live.model.platformArea.AreaInfo;
-import work.yj1211.live.service.platforms.impl.Bilibili;
-import work.yj1211.live.service.platforms.impl.CC;
-import work.yj1211.live.service.platforms.impl.Douyu;
-import work.yj1211.live.service.platforms.impl.Huya;
+import work.yj1211.live.model.platform.UrlQuality;
+import work.yj1211.live.service.platforms.impl.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = LiveApplication.class)
@@ -25,10 +24,13 @@ class PlatformTest {
     private Huya huya;
     @Autowired
     private CC cc;
+    @Autowired
+    private Douyin douyin;
 
     @Test
     void testArea() {
-        List<AreaInfo> areaInfoList = huya.getAreaList();
-        System.out.println(111);
+        Map<String, String> map = new HashMap<>();
+        Map<String, List<UrlQuality>> listMap = douyu.getRealUrl("9999");
+        System.out.println();
     }
 }

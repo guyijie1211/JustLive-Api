@@ -6,15 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import work.yj1211.live.LiveApplication;
-import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
 import work.yj1211.live.service.platforms.impl.Douyu;
 import work.yj1211.live.service.platforms.impl.Huya;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @Author: guyijie1211
@@ -32,7 +28,7 @@ class AreaServiceTest {
 
     @Test
     void saveOrUpdateBatchByPlatform() {
-        areaService.saveOrUpdateBatchByPlatform(douyu.getAreaList(), douyu.getPlatformName());
+        areaService.saveOrUpdateBatchByPlatform(douyu.getAreaList(), douyu.getPlatformCode());
     }
 
     @Test

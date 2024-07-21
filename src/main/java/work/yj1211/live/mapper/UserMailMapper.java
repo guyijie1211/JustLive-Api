@@ -2,7 +2,7 @@ package work.yj1211.live.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import work.yj1211.live.model.UserMail;
+import work.yj1211.live.model.user.UserMail;
 
 import java.util.List;
 

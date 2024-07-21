@@ -1,6 +1,8 @@
 package work.yj1211.live.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -10,17 +12,23 @@ import org.springframework.stereotype.Service;
 import work.yj1211.live.enums.Platform;
 import work.yj1211.live.mapper.RoomMapper;
 import work.yj1211.live.mapper.UserMapper;
-
+import work.yj1211.live.model.app.UpdateInfo;
+import work.yj1211.live.model.platform.LiveRoomInfo;
+import work.yj1211.live.model.platform.Owner;
+import work.yj1211.live.model.platform.SimpleRoomInfo;
+import work.yj1211.live.model.platform.UrlQuality;
+import work.yj1211.live.model.platformArea.AreaInfo;
 import work.yj1211.live.model.platformArea.AreaInfoIndex;
+import work.yj1211.live.model.response.GetAllSupportPlatformsResponse;
 import work.yj1211.live.service.platforms.BasePlatform;
 import work.yj1211.live.utils.Global;
 import work.yj1211.live.utils.thread.AsyncService;
-import work.yj1211.live.model.*;
-import work.yj1211.live.model.platformArea.AreaInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -39,7 +47,7 @@ public class LiveRoomService{
     private final Map<String, BasePlatform> platformMap;
     @Autowired
     public LiveRoomService(List<BasePlatform> platforms){
-        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getPlatformName, Function.identity(), (oldV, newV)-> newV));
+        platformMap = platforms.stream().collect(Collectors.toMap(BasePlatform::getPlatformCode, Function.identity(), (oldV, newV)-> newV));
     }
 
     /**
@@ -99,6 +107,16 @@ public class LiveRoomService{
         Map<String, String> urls = new HashMap<>();
         platformMap.get(platform).getRealUrl(urls, roomId);
         return urls;
+    }
+
+    /**
+     * 获取真实直播地址
+     * @param platform
+     * @param roomId
+     * @return
+     */
+    public Map<String, List<UrlQuality>> getRealUrlMultiSource(String platform, String roomId){
+        return platformMap.get(platform).getRealUrl(roomId);
     };
 
     /**
@@ -109,15 +127,24 @@ public class LiveRoomService{
     public List<LiveRoomInfo> getRoomsByUid(String uid){
         List<LiveRoomInfo> roomList = new ArrayList<>();
         List<SimpleRoomInfo> simpleRoomInfoList = roomMapper.getRoomsByUid(uid);
-        CountDownLatch countDownLatch = new CountDownLatch(simpleRoomInfoList.size());
-        for(SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList){
-            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
+        // 有几个平台就开几个线程
+        int threadCount = Platform.values().length;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        for (SimpleRoomInfo simpleRoomInfo : simpleRoomInfoList) {
+//            asyncService.addRoomInfo(uid, simpleRoomInfo.getPlatform(), simpleRoomInfo.getRoomId(), countDownLatch, roomList);
+            // 遍历平台 提交获取推荐列表的任务
+            if (!NumberUtil.isNumber(simpleRoomInfo.getRoomId())) {
+                continue;
+            }
+            BasePlatform platform = platformMap.get(simpleRoomInfo.getPlatform());
+            executorService.execute(() -> roomList.add(platform.getRoomInfo(simpleRoomInfo.getRoomId())));
         }
+        executorService.shutdown();
         try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            roomList.clear();
+            // 阻塞，直到线程池里所有任务结束
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("getRoomsByUid报错:", e);
         }
         return roomList;
     }
@@ -140,6 +167,13 @@ public class LiveRoomService{
      */
     public void refreshArea(){
        areaService.refreshAreasAll();
+    }
+
+    /**
+     * 刷新平台分类
+     */
+    public void refreshAreaByPlatform(String platform){
+        areaService.refreshAreaByPlatform(platform);
     }
 
     /**
@@ -172,7 +206,7 @@ public class LiveRoomService{
      * @return
      */
     public List<List<AreaInfoIndex>> getAllAreaMap(){
-        return areaService.getAllAreas();
+        return Global.AreaIndexList;
     }
 
     /**
@@ -221,7 +255,10 @@ public class LiveRoomService{
         try {
             if ("all".equalsIgnoreCase(platform)) {
                 platformMap.values().forEach(basePlatform -> {
-                    list.addAll(basePlatform.search(finalKeyWords));
+                    List<Owner> platformList = basePlatform.search(finalKeyWords);
+                    if (CollUtil.isNotEmpty(platformList)) {
+                        list.addAll(platformList);
+                    }
                 });
             } else {
                 list.addAll(platformMap.get(platform).search(finalKeyWords));
@@ -230,5 +267,25 @@ public class LiveRoomService{
             log.error(StrUtil.format("搜索错误,keyword:{},平台:{}",keyWords,platform), e);
         }
         return list;
+    }
+
+    /**
+     * 获取所有支持的平台
+     *
+     * @return
+     */
+    public GetAllSupportPlatformsResponse getAllSupportPlatforms() {
+        GetAllSupportPlatformsResponse response = new GetAllSupportPlatformsResponse();
+        List<GetAllSupportPlatformsResponse.PlatformInfo> platformList = new ArrayList<>();
+        response.setPlatformList(platformList);
+        Arrays.stream(Platform.values()).forEach(platform -> {
+            GetAllSupportPlatformsResponse.PlatformInfo platformInfo = new GetAllSupportPlatformsResponse.PlatformInfo();
+            platformInfo.setCode(platform.getCode());
+            platformInfo.setName(platform.getName());
+            platformInfo.setLogoImage(platform.getLogoImage());
+            platformInfo.setAndroidDanmuSupport(platform.getAndroidDanmuSupport());
+            platformList.add(platformInfo);
+        });
+        return response;
     }
 }

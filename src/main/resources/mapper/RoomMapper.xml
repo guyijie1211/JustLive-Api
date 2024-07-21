@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
 <mapper namespace="work.yj1211.live.mapper.RoomMapper">
-    <resultMap id="RoomInfoMap" type="work.yj1211.live.model.SimpleRoomInfo">
+    <resultMap id="RoomInfoMap" type="work.yj1211.live.model.platform.SimpleRoomInfo">
         <result column="platform" property="platform"/>
         <result column="roomId" property="roomId"/>
     </resultMap>
