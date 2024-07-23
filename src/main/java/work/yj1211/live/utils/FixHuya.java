@@ -2,6 +2,7 @@ package work.yj1211.live.utils;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.net.URLDecoder;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
 import cn.hutool.json.JSONArray;
@@ -76,7 +77,7 @@ public class FixHuya {
         String antiCode = antiCodeMatcher.group(1);
         String streamName = streamNameMatcher.group(1);
         String rateInfo = RateInfoMatcher.group(1) + "\"}";
-        JSONObject jsonObject = JSONUtil.parseObj(rateInfo);
+        JSONObject jsonObject = JSONUtil.parseObj(ReUtil.replaceAll(rateInfo, "function([\\s\\S]*?)},", "0,"));
         JSONArray jsonArray = jsonObject.getJSONArray("value");
         List<Integer> qnList = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++) {
@@ -87,6 +88,7 @@ public class FixHuya {
         }
         Collections.sort(qnList);
         Collections.reverse(qnList);
+        flvUrl = URLDecoder.decode(flvUrl.replace("\\u002F", "/"), StandardCharsets.UTF_8);
         return new LiveStreamInfo(flvUrl, streamName, antiCode, qnList, luid);
     }
 
