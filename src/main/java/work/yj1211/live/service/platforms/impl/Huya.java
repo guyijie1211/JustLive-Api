@@ -114,13 +114,13 @@ public class Huya implements BasePlatform {
             String resultText = HttpRequest.get("https://m.huya.com/" + roomId)
                     .header(Header.USER_AGENT, "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36 Edg/117.0.0.0")
                     .execute().body();
-            String pattern = "window\\.HNF_GLOBAL_INIT.=.\\{(.*?)\\}.</script>";
-            String text = ReUtil.get(pattern, resultText, 1);
-            JSONObject jsonObj = JSONUtil.parseObj("{" + text + "}");
-
-            JSONArray biterates = jsonObj.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo").getJSONObject("vBitRateInfo").getJSONArray("value");
-            JSONArray lines = jsonObj.getJSONObject("roomInfo").getJSONObject("tLiveInfo").getJSONObject("tLiveStreamInfo").getJSONObject("vStreamInfo").getJSONArray("value");
-
+            String tLiveStreamInfo = ReUtil.get("\"tLiveStreamInfo\":(.*?\"iIsRoomPay\":[^{}]*?)", resultText, 1);
+            String content = tLiveStreamInfo.substring(0, tLiveStreamInfo.lastIndexOf("}") + 1);
+            // 将 js 的function 替换成 0, 已构造json
+            String tLiveStreamInfoJson = ReUtil.replaceAll(content, "function([\\s\\S]*?)},", "0,");
+            JSONObject jsonObj = JSONUtil.parseObj(tLiveStreamInfoJson);
+            JSONArray biterates = jsonObj.getJSONObject("vBitRateInfo").getJSONArray("value");
+            JSONArray lines = jsonObj.getJSONObject("vStreamInfo").getJSONArray("value");
             for (int j = 0; j < biterates.size(); j++) {
                 JSONObject biterate = (JSONObject) biterates.get(j);
                 String qualityName = biterate.getStr("sDisplayName");
@@ -371,8 +371,8 @@ public class Huya implements BasePlatform {
         } catch (Exception e) {
 
         }
-        q.put("t", "100");
-        q.put("ctype", "huya_live");
+        q.put("t", "102");
+        q.put("ctype", "tars_mp");
 
         long seqid = System.currentTimeMillis() + Long.parseLong(uid);
 
@@ -391,17 +391,17 @@ public class Huya implements BasePlatform {
         resultParamMap.put("wsSecret", wsSecret);
         resultParamMap.put("wsTime", wsTime);
         resultParamMap.put("seqid", String.valueOf(seqid));
-        resultParamMap.put("ctype", "huya_live");
+        resultParamMap.put("ctype", q.get("ctype"));
         resultParamMap.put("ver", "1");
         resultParamMap.put("fs", q.get("fs"));
         resultParamMap.put("sphdcdn", q.putIfAbsent("sphdcdn", ""));
         resultParamMap.put("sphdDC", q.putIfAbsent("sphdDC", ""));
-        resultParamMap.put("sphd", Objects.requireNonNull(q.putIfAbsent("sphd", "")).replace("*", "%2A"));
-        resultParamMap.put("exsphd", Objects.requireNonNull(q.putIfAbsent("exsphd", "")).replace(",", "%2C"));
+        resultParamMap.put("sphd", q.getOrDefault("sphd", ""));
+        resultParamMap.put("exsphd", q.getOrDefault("exsphd", ""));
         resultParamMap.put("uid", uid);
         resultParamMap.put("uuid", getUUid());
-        resultParamMap.put("t", "100");
-        resultParamMap.put("sv", "2110211124");
+        resultParamMap.put("t", q.get("t"));
+        resultParamMap.put("sv", "2401310322");
         return buildQueryString(resultParamMap);
     }
 
